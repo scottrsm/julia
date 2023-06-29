@@ -15,4 +15,6 @@ uses macros to provide a more intuitive external representation.
 - CardTest.ipynb -- Jupyter notebook to test the Cards module.
   - Comparisons of various poker hands is produced.
   - A poker game is simulated with two players.
+- Wordle.ipynb   -- Jupyter notebook to test Wordle puzzle solver strategies.
+
 
