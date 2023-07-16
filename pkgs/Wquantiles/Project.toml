@@ -1,0 +1,7 @@
+name = "Wquantiles"
+uuid = "a3c52d17-a87f-45ad-bacc-3a1d32a40522"
+authors = ["Scott McIntire <scottrsm@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+Folds = "41a02a25-b8f0-4f67-bc48-60067656b558"
