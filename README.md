@@ -8,11 +8,11 @@ Provides ways to compare two boolean functions.
 It uses an internal representation of boolean functions as bit-vectors and 
 uses macros to provide a more intuitive external representation.
 
-Module Wquantiles
+### Module Wquantiles
 A vew versions of weighted quantiles with examples
 of using data parallelization.
 
-### Jupyter Note Books
+### Jupyter Notebooks
 
 - BoolTest.ipynb  -- Jupyter notebook to test the Boolean module.
 - CardTest.ipynb  -- Jupyter notebook to test the Cards module.
