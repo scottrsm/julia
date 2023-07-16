@@ -9,7 +9,7 @@ It uses an internal representation of boolean functions as bit-vectors and
 uses macros to provide a more intuitive external representation.
 
 ### Module Wquantiles
-A vew versions of weighted quantiles with examples
+A few versions of weighted quantiles with examples and comparisons 
 of using data parallelization.
 
 ### Jupyter Notebooks
