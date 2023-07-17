@@ -75,7 +75,7 @@ function wquantile(x::Vector{T}, w::Vector{S}, q::Vector{V};
     
     ## Normalize sorted weights?
     if norm_wgt
-      wsc = wsc ./ sum(wsc)
+      wsc ./= sum(wsc)
     end
     
     ## Apply permutation to x.
@@ -157,7 +157,12 @@ function Wquantile(X::Matrix{T}, w::Vector{S}, q::Vector{V};
 
     n, m = size(X)
     if norm_wgt
-        w = w ./ sum(w)
+        w = convert(Vector{promote_type(eltype(w[1]), eltype(q[1]))}, w)
+        w ./= sum(w)
+    end
+
+    if norm_wgt
+        w ./= sum(w)
     end
   
     if sort_q
@@ -165,12 +170,12 @@ function Wquantile(X::Matrix{T}, w::Vector{S}, q::Vector{V};
     end
   
     ## Computation: (from right to left)
-    ## - Zip up the extracted the columns of X along with the column number.
+    ## - Zip up the extracted columns of X along with the column number.
     ## - Use multiple threads, Folds.map, to compute the weighted quantiles on each column of X.
     ## - Place them back as an array using reduce hcat.
     ## If chk is true, only do the input check for the first column
     ## as the checking the rest of the columns is redundant.
-    return(reduce(hcat, Folds.map(p -> wquantile(p[1], w, q; 
+    return(reduce(hcat, Folds.map(p -> wquantile(p[1], w, q             ; 
                                                chk=p[2]==1 ? chk : false, 
                                                norm_wgt=false           , 
                                                sort_q=false             ), 
@@ -247,7 +252,7 @@ function WquantileM(X::Matrix{T}, w::Vector{S}, q::Vector{V}; chk::Bool = true) 
     Wsc = wc[(Idx .- 1) .% n .+ 1]
     
     ## Normalize sorted weights by column.
-    Wsc = Wsc ./ sum(Wsc, dims=1) 
+    Wsc ./= sum(Wsc, dims=1) 
     
     ## Apply permutation to X -- sorting each column of X.
     Xs = X[Idx]
