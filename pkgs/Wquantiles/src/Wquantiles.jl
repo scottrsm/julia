@@ -222,7 +222,7 @@ function WquantileM(X::Matrix{T}, w::Vector{S}, q::Vector{V}; chk::Bool = true) 
         try 
             isless(X[1][1], X[1][1])
         catch e
-            error("Wquantile_old: The type of X is not sortable.")
+            error("WquantileM: The type of X is not sortable.")
         end
         ## X columns length must match weight length.
         @assert(n == length(w))                    # ∀i, |X[:,i]| = |w|
