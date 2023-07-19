@@ -37,21 +37,21 @@ The entry `i` is the i'th quantile (in `qs`) of `x`.
 """
 function wquantile(x::Vector{T}, w::Vector{S}, q::Vector{V}; 
                    chk::Bool = true, norm_wgt::Bool = true, sort_q::Bool = true) :: Vector{T} where {T, S <: Real, V <: Real}
-    ## We report back the quantiles of X in sorted q order, so we need to sort q.
-    ## NOTE: If we don't explicitly sort q, it means that you are ASSUMING q is sorted.
+    ## We report back the quantiles of `x` in sorted `q` order, so we need to sort `q`.
+    ## NOTE: If we don't explicitly sort `q`, it means that you are ASSUMING `q` is sorted.
     if sort_q
       q = sort(q)
     end
     m  = length(q)
     n  = length(x)
 
-    ## Get 0 and 1 for q types.
+    ## Get 0 and 1 for `q` types.
     zeroq = zero(eltype(q[1]))
     oneq  = one(eltype(q[1]))
 
     ## Check input contract...
     if chk
-        ## Is the type of x sortable?
+        ## Is the type of `x` sortable?
         try 
             isless(x[1], x[1])
         catch e
@@ -60,7 +60,7 @@ function wquantile(x::Vector{T}, w::Vector{S}, q::Vector{V};
         @assert(n == length(w))              # |x| = |w|
     end
     
-    ## Get the permutation of indices that sort x.
+    ## Get the permutation of indices that sort `x`.
     idx = sortperm(x)
     
     ## Convert sorted weights.
@@ -78,26 +78,26 @@ function wquantile(x::Vector{T}, w::Vector{S}, q::Vector{V};
       wsc ./= sum(wsc)
     end
     
-    ## Apply permutation to x.
+    ## Apply permutation to `x`.
     xs = x[idx]
 
-    ## Create an index vector to get the list of quantiles of x.
-    ## Default the indices to the larest element of x.
+    ## Create an index vector to get the list of quantiles of `x`.
+    ## Default the indices to the larest element of `x`.
     ## Why is this important: If one chooses 1.0 as a quantile, it could easily be 
     ##                        the case, due to numeric inaccuracy, that we do not
     ##                        reach the 1.0 threshold. For this reason we want
     ##                        to pick the default index value to 
-    ##                        be the largest index in x, so if the threshold
+    ##                        be the largest index in `x`, so if the threshold
     ##                        is not reached we do the right thing.
     qxsi = fill(n, m)
 
     ## Using the fact that the quantile values are in sorted order,
-    ## find the index for each associated value in xs, placing them in <qxsi>.
+    ## find the index for each associated value in `xs`, placing them in `qxsi`.
     j = 1
     s = zeroq
     for i in 1:n
-        ## If we exceed the current quantile threshold, s.
-        ## Set the index at j of the index vector.
+        ## If we exceed the current quantile threshold, `s`.
+        ## Set the index at `j` of the index vector.
         if s >= q[j]
             qxsi[j] = i
             while true
@@ -111,7 +111,7 @@ function wquantile(x::Vector{T}, w::Vector{S}, q::Vector{V};
                 qxsi[j] = i
             end
         end
-        ## Finished with all quantiles that hit the quantile threshold, s.
+        ## Finished with all quantiles that hit the quantile threshold, `s`.
         ## Now update the threshold.
         s += wsc[i]
     end
@@ -156,23 +156,26 @@ function Wquantile(X::Matrix{T}, w::Vector{S}, q::Vector{V};
                    chk::Bool = true, norm_wgt::Bool = true, sort_q::Bool = true) :: Matrix{T} where {T, S <: Real, V <: Real}
 
     n, m = size(X)
+
+    ## Normalize the weights if needed.
     if norm_wgt
         w = convert(Vector{promote_type(eltype(w[1]), eltype(q[1]))}, w)
         w ./= sum(w)
     end
   
+    ## Sort the quantiles if needed.
     if sort_q
         q = sort(q)
     end
   
-    ## Create a closure that will be threaded -- computing ithe weighted wuantiles of the columns of X.
-    ## If chk is true, only do the input check for the first column
+    ## Create a closure that will be threaded -- computing the weighted wuantiles of the columns of `X`.
+    ## If `chk` is true, only do the input check for the first column
     ## as checking the rest of the columns is redundant.
     wquant_vec_func = p -> wquantile(p[1], w, q, chk=p[2]==1 ? chk : false, norm_wgt=false, sort_q=false)
 
     ## Computation: (from right to left)
-    ## - Zip up the columns of X along with the column number.
-    ## - Use Folds.map to apply multiple threads to compute the weighted quantiles on each column of X.
+    ## - Zip up the columns of `X` along with the column number.
+    ## - Use Folds.map to apply multiple threads to compute the weighted quantiles on each column of `X`.
     ## - Place them back as an array using reduce hcat.
     return(reduce(hcat, Folds.map(wquant_vec_func, zip([X[:, i] for i in 1:m], 1:m))))
 
@@ -204,24 +207,24 @@ The entry `(i,j)` is the i'th quantile (in `qs`) from the j'th column of `X`.
 
 """
 function WquantileM(X::Matrix{T}, w::Vector{S}, q::Vector{V}; chk::Bool = true) :: Matrix{T} where {T, S <: Real, V <: Real}
-    ## We report back the quantiles of X in sorted q order, so we sort q.
+    ## We report back the quantiles of `X` in sorted `q` order, so we sort `q`.
     qs    = sort(q) 
     l     = length(qs)
     n, m  = size(X)
 
-    ## Get 0 and 1 for q types.
+    ## Get 0 and 1 for `q` types.
     zeroq = zero(eltype(qs[1]))
     oneq  = one(eltype(qs[1]))
 
     ## Check input contract...
     if chk
-        ## Is the type of X sortable?
+        ## Is the type of `X` sortable?
         try 
             isless(X[1][1], X[1][1])
         catch e
             error("WquantileM: The type of X is not sortable.")
         end
-        ## X columns length must match weight length.
+        ## `X` columns length must match the length of the weight vector.
         @assert(n == length(w))                    # ∀i, |X[:,i]| = |w|
     end
        
@@ -235,21 +238,21 @@ function WquantileM(X::Matrix{T}, w::Vector{S}, q::Vector{V}; chk::Bool = true) 
         @assert(all(zeroq  .<= q     .<= oneq)  )  # ∀i,  0 <= q[i]   <= 1 -- quantile values are in [0,1].
     end
 
-    ## Get the permutation of indices that sort x -- so that viewed as permutations, they 
-    ## permute each the weight vector, wc, for each column of X so that that column is sorted.
+    ## Get the permutation of indices that sort the columns of `X`. This will be used to create
+    ## a matrix of permutations of `wc` that align with this sorting.
     Idx = sortperm(X; dims=1)
 
-    ## Convert the indices to column specific indices that wc understands
-    ## and sort the columns of wc as columns of X are sorted.
+    ## Convert the indices to column specific indices that `wc` understands
+    ## and sort the columns of `wc` as columns of `X` are sorted.
     Wsc = wc[(Idx .- 1) .% n .+ 1]
     
     ## Normalize sorted weights by column.
     Wsc ./= sum(Wsc, dims=1) 
     
-    ## Apply permutation to X -- sorting each column of X.
+    ## Apply permutation to `X` -- sorting each column of `X`.
     Xs = X[Idx]
 
-    ## Create an index matrix to get the list of quantiles of X.
+    ## Create an index matrix to get the list of quantiles of `X`.
     ## Default the indices to the larest element of X for each column.
     ## Why is this important: If one chooses 1.0 as a quantile, it could easily be 
     ##                        the case, due to numeric inaccuracy, that we do not
@@ -263,7 +266,7 @@ function WquantileM(X::Matrix{T}, w::Vector{S}, q::Vector{V}; chk::Bool = true) 
     end
   
     ## Using the fact that the quantile values are in sorted order,
-    ## find the index for each associated value in Xs, placing them in <Qxsi>.
+    ## find the index for each associated value in `Xs`, placing them in `Qxsi`.
     
     ## For each column...
     for k in 1:m
@@ -272,8 +275,8 @@ function WquantileM(X::Matrix{T}, w::Vector{S}, q::Vector{V}; chk::Bool = true) 
         
         ## For each row...
         for i in 1:n
-            ## If we exceed the current quantile threshold, s.
-            ## Set the index at (j,k) of the index matrix.
+            ## If we exceed the current quantile threshold, `s`.
+            ## Set the index at (`j`,`k`) of the index matrix.
             if s >= qs[j] 
                 Qxsi[j,k] = i + (k-1) * n
                 if j == l
@@ -291,7 +294,7 @@ function WquantileM(X::Matrix{T}, w::Vector{S}, q::Vector{V}; chk::Bool = true) 
                 end
             end
 
-            ## Finished with all quantiles that hit the quantile threshold, s.
+            ## Finished with all quantiles that hit the quantile threshold, `s`.
             ## Now update the threshold.
             s += Wsc[i, k]
         end
@@ -300,7 +303,7 @@ function WquantileM(X::Matrix{T}, w::Vector{S}, q::Vector{V}; chk::Bool = true) 
         @label column_done
     end
 
-    ## Return the quantile values as an (l,m) matrix in quantile sorted order.
+    ## Return the quantile values as an (`l`,`m`) matrix in quantile sorted order.
     return(Xs[Qxsi])
 end
 
