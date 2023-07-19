@@ -165,7 +165,7 @@ function Wquantile(X::Matrix{T}, w::Vector{S}, q::Vector{V};
         q = sort(q)
     end
   
-    ## Create a function that will be threaded -- computes weighted wuantiles on the columns of X.
+    ## Create a closure that will be threaded -- computing ithe weighted wuantiles of the columns of X.
     ## If chk is true, only do the input check for the first column
     ## as checking the rest of the columns is redundant.
     wquant_vec_func = p -> wquantile(p[1], w, q, chk=p[2]==1 ? chk : false, norm_wgt=false, sort_q=false)
