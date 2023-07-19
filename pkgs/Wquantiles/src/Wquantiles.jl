@@ -160,31 +160,23 @@ function Wquantile(X::Matrix{T}, w::Vector{S}, q::Vector{V};
         w = convert(Vector{promote_type(eltype(w[1]), eltype(q[1]))}, w)
         w ./= sum(w)
     end
-
-    if norm_wgt
-        w ./= sum(w)
-    end
   
     if sort_q
         q = sort(q)
     end
   
-    ## Computation: (from right to left)
-    ## - Zip up the extracted columns of X along with the column number.
-    ## - Use multiple threads, Folds.map, to compute the weighted quantiles on each column of X.
-    ## - Place them back as an array using reduce hcat.
+    ## Create a function that will be threaded -- computes weighted wuantiles on the columns of X.
     ## If chk is true, only do the input check for the first column
-    ## as the checking the rest of the columns is redundant.
-    return(reduce(hcat, Folds.map(p -> wquantile(p[1], w, q             ; 
-                                               chk=p[2]==1 ? chk : false, 
-                                               norm_wgt=false           , 
-                                               sort_q=false             ), 
-                                zip([X[:, i] for i in 1:m], 1:m)
-                                )
-                )
-         )
-end
+    ## as checking the rest of the columns is redundant.
+    wquant_vec_func = p -> wquantile(p[1], w, q, chk=p[2]==1 ? chk : false, norm_wgt=false, sort_q=false)
 
+    ## Computation: (from right to left)
+    ## - Zip up the columns of X along with the column number.
+    ## - Use Folds.map to apply multiple threads to compute the weighted quantiles on each column of X.
+    ## - Place them back as an array using reduce hcat.
+    return(reduce(hcat, Folds.map(wquant_vec_func, zip([X[:, i] for i in 1:m], 1:m))))
+
+end
 
 
 """
