@@ -14,13 +14,13 @@ of using data parallelization.
 
 ### Jupyter Notebooks
 
-- BoolTest.ipynb  -- Jupyter notebook to test the Boolean module.
-- CardTest.ipynb  -- Jupyter notebook to test the Cards module.
+- BoolTest.ipynb      -- Jupyter notebook to test the Boolean module.
+- CardTest.ipynb      -- Jupyter notebook to test the Cards module.
   - Comparisons of various poker hands is produced.
   - A poker game is simulated with two players.
-- Wordle.ipynb    -- Jupyter notebook to test Wordle puzzle solver strategies.
-- Wquantile.ipynb -- Jupyter notebook to test Wquantiles module.
-                     In order to examine parallelism you must ensure
-                     that your notebooks are running julia with multiple threads.
+- WordleTest.ipynb    -- Jupyter notebook to test Wordle puzzle solver strategies.
+- WquantileTest.ipynb -- Jupyter notebook to test Wquantiles module.
+                         In order to examine parallelism you must ensure
+                         that your notebooks are running julia with multiple threads.
 
 
