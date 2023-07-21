@@ -64,7 +64,7 @@ function wquantile(x::Vector{T}, w::Vector{S}, q::Vector{V};
     idx = sortperm(x)
     
     ## Convert sorted weights.
-    wsc = convert(Vector{promote_type(eltype(w[1]), eltype(q[1]))}, w[idx])
+    @inbounds wsc = convert(Vector{promote_type(eltype(w[1]), eltype(q[1]))}, w[idx])
     
     ## Check input contract...
     if chk    
@@ -79,7 +79,7 @@ function wquantile(x::Vector{T}, w::Vector{S}, q::Vector{V};
     end
     
     ## Apply permutation to `x`.
-    xs = x[idx]
+    @inbounds xs = x[idx]
 
     ## Create an index vector to get the list of quantiles of `x`.
     ## Default the indices to the larest element of `x`.
@@ -99,7 +99,7 @@ function wquantile(x::Vector{T}, w::Vector{S}, q::Vector{V};
         ## If we exceed the current quantile threshold, `s`.
         ## Set the index at `j` of the index vector.
         if s >= q[j]
-            qxsi[j] = i
+            @inbounds qxsi[j] = i
             while true
                 j += 1
                 if j == m+1
@@ -108,17 +108,17 @@ function wquantile(x::Vector{T}, w::Vector{S}, q::Vector{V};
                 if q[j] > s
                     break
                 end
-                qxsi[j] = i
+                @inbounds qxsi[j] = i
             end
         end
         ## Finished with all quantiles that hit the quantile threshold, `s`.
         ## Now update the threshold.
-        s += wsc[i]
+        @inbounds s += wsc[i]
     end
     @label done
 
     ## Return the quantile values (in quntile sorted order).
-    return(xs[qxsi])
+    @inbounds return(xs[qxsi])
 end
 
 
@@ -244,13 +244,13 @@ function WquantileM(X::Matrix{T}, w::Vector{S}, q::Vector{V}; chk::Bool = true) 
 
     ## Convert the indices to column specific indices that `wc` understands
     ## and sort the columns of `wc` as columns of `X` are sorted.
-    Wsc = wc[(Idx .- 1) .% n .+ 1]
+    @inbounds Wsc = wc[(Idx .- 1) .% n .+ 1]
     
     ## Normalize sorted weights by column.
     Wsc ./= sum(Wsc, dims=1) 
     
     ## Apply permutation to `X` -- sorting each column of `X`.
-    Xs = X[Idx]
+    @inbounds Xs = X[Idx]
 
     ## Create an index matrix to get the list of quantiles of `X`.
     ## Default the indices to the larest element of X for each column.
@@ -262,7 +262,7 @@ function WquantileM(X::Matrix{T}, w::Vector{S}, q::Vector{V}; chk::Bool = true) 
     ##                        is not reached we do the right thing.
     Qxsi = Array{Int64}(undef, l, m)
     for i in 1:m
-      Qxsi[:, i] .= i * n
+      @inbounds Qxsi[:, i] .= i * n
     end
   
     ## Using the fact that the quantile values are in sorted order,
@@ -278,7 +278,7 @@ function WquantileM(X::Matrix{T}, w::Vector{S}, q::Vector{V}; chk::Bool = true) 
             ## If we exceed the current quantile threshold, `s`.
             ## Set the index at (`j`,`k`) of the index matrix.
             if s >= qs[j] 
-                Qxsi[j,k] = i + (k-1) * n
+                @inbounds Qxsi[j,k] = i + (k-1) * n
                 if j == l
                     break
                 end
@@ -290,13 +290,13 @@ function WquantileM(X::Matrix{T}, w::Vector{S}, q::Vector{V}; chk::Bool = true) 
                     if qs[j] > s
                         break
                     end
-                    Qxsi[j,k] = i + (k-1) * n
+                    @inbounds Qxsi[j,k] = i + (k-1) * n
                 end
             end
 
             ## Finished with all quantiles that hit the quantile threshold, `s`.
             ## Now update the threshold.
-            s += Wsc[i, k]
+            @inbounds s += Wsc[i, k]
         end
         
         ## We've finished off a column, onto the next.
@@ -304,7 +304,7 @@ function WquantileM(X::Matrix{T}, w::Vector{S}, q::Vector{V}; chk::Bool = true) 
     end
 
     ## Return the quantile values as an (`l`,`m`) matrix in quantile sorted order.
-    return(Xs[Qxsi])
+    @inbounds return(Xs[Qxsi])
 end
 
 
