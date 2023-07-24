@@ -1,17 +1,13 @@
 module Wordle
 
+export create_wordle_info, filter_universe, pick_guess, solve_wordle
+
 using DataFrames
 import CSV
 
-
-## Change the path to the wordle_db.csv file: If starting julia at the pkgs/Wordle/src, then the path below works. 
-const SRC_PATH  = "../data/"
-
+## Load Wordle database -- stored as a CSV file. 
 const LFA = collect("etaoinshrdlcumwfgypbvkjxqz")
-const WORDLE_DF =  DataFrame(CSV.File(SRC_PATH * "wordle_db.csv"; header=3, types=[String, Float64], comment="#"));
-
-export create_wordle_info, filter_universe, pick_guess, solve_wordle
-
+const WORDLE_DF =  DataFrame(CSV.File(joinpath(@__DIR__, "../data", "wordle_db.csv"); header=3, types=[String, Float64], comment="#"));
 
 """
 ## Solver Strategy
