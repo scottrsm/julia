@@ -1,8 +1,8 @@
 module Wquantiles
 
-import Folds
 export wquantile, Wquantile, WquantileM
 
+import Folds
 
 """
     wquantile[x, w, q[; chk=true, norm_wgt=true, sort_q=true])

@@ -5,7 +5,8 @@ import CSV
 
 
 ## Change the path to the wordle_db.csv file: If starting julia at the pkgs/Wordle/src, then the path below works. 
-const SRC_PATH  = "../../../data/"
+const SRC_PATH  = "../data/"
+
 const LFA = collect("etaoinshrdlcumwfgypbvkjxqz")
 const WORDLE_DF =  DataFrame(CSV.File(SRC_PATH * "wordle_db.csv"; header=3, types=[String, Float64], comment="#"));
 
@@ -29,7 +30,7 @@ export create_wordle_info, filter_universe, pick_guess, solve_wordle
     - current_universe = filter_universe(wordle_info, current_universe)
   - Goto Start
 - End
-    - Return guess
+   - Return guess
 """
 
 
@@ -56,6 +57,8 @@ Here, the dictionary has the in-exact match information:
 ## Examples
     `(winfo, d) = create_wordle_info("which", "where")`
     Output: `([('w', 1), ('h', 2)], Dict('h' => (0, 0), 'c' => (0, 0), 'i' => (0, 0)))`
+    `(winfo, d) = create_wordle_info("teens", "where")`
+    Output: `([('e', 3)], Dict('n' => (0, 0), 's' => (0, 0), 't' => (0, 0), 'e' => (1, 1)))`
 """
 function create_wordle_info(guess :: String, # Guess
                             pword :: String, # Puzzle word
