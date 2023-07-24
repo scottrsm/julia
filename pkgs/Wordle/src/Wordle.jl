@@ -242,7 +242,7 @@ end
     universe_df : A DataFrame with schema: word(words of the same length), freq(freq fraction by use)
                   *NOTE:* The universe is assumed to be sorted in reverse order by the :freq column.
     rec_count   : The number of calls to this function.
-    sol_path    : Any containing the current list of guesses: [ (guess, exact_info, universe_size) ...]
+    sol_path    : Vector containing the current list of guesses: [ (guess, exact_info, universe_size) ...]
     last_guess  : The previous guess.
     lfa         : The lowercase alphabet listed in frequency of use order.
 
@@ -280,9 +280,9 @@ end
 function solve_wordle(puzzle_word :: String                      , # Puzzle word.
                       universe_df :: DataFrame     = WORDLE_DF   , # Wordle database as DataFrame.
                       rec_count   :: Int64         = 1           , # Number of calls to this function.
-                      sol_path    :: Vector{String}= []          , # The solution path of guessed words, so far.
+                      sol_path    :: Vector{Any}   = []          , # The solution path of guessed words, so far.
                       last_guess  :: String        = ""          , # The last guess.
-                      lfa         :: Vector{Char}  = LFA         , # The frequency of use of the alphabet.
+                      lfa         :: Vector{Char}  = LFA         ; # The frequency of use of the alphabet.
                       chk_inputs  :: Bool          = true        , # Do we check the input contract?
                       guess_strategy               = nothing     , # Function to pick the next guess.
                      ):: Tuple{Any, Int64, Symbol}
