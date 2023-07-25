@@ -98,7 +98,15 @@ end
 
 
 """
-    Generate the boolean bit vectors necessary to represent a logic formula of `n` variables.
+    bool_var_rep(n)
+
+Generate the boolean bit vectors necessary to represent a logic formula of `n` variables.
+
+## Arguments
+- `n` : Number of logical variables.
+
+## Return
+    BitArray of the bit representation of all of the logical variables.
 """
 function bool_var_rep(n::Int64)
     if n > 30
@@ -144,12 +152,14 @@ function modifyLogicExpr!(e::T) where {T}
 end
 
 """
-    If e is a Symbol, it should be a variable of the form r"[a-zA-Z]+[0-9]+".
-    The code splits the name off and uses the number to look up the bitvector representation.
-    Otherwise, it is assumed to be an operator symbol and it is then mapped to the appropriate 
-    Julia operator.
-    NOTE: This will work even if one makes a mistake and uses x3, or y3, the bit vector for the 
-          third "variable" will be used.
+    modifyLogicExpr(e)
+
+If `e` is a Symbol, it should be a variable of the form r"[a-zA-Z]+[0-9]+".
+The code splits the name off and uses the number to look up the bitvector representation.
+Otherwise, it is assumed to be an operator symbol and it is then mapped to the appropriate 
+Julia operator.
+  **NOTE:** This will work even if one makes a mistake and uses `x3`, or `y3`, the bit vector for the 
+            third "variable" will be used.
 """
 function modifyLogicExpr!(e::Symbol)
     global vars
@@ -167,12 +177,16 @@ end
 
 
 """
-    Performs an RLE on an array, grouping like values into arrays.
-    Assumes that <xs> is sorted.
-    Params:
-    xs: An array of Any
+    rle(xs)
 
-    Return: A vector of pairs (x, count), each item counting the number of times a given value occurred in xs.
+Performs an RLE(Run Length Encoding) on an array, grouping like values into arrays.
+Assumes that `xs` is sorted.
+    
+## Arguments
+- `xs` : An array of Any
+
+## Return
+   A vector of pairs, `(x, count)`, each item counting the number of times a given value occurred in `xs`.
 """
 function rle(xs::Vector{T}) where T
     lastx = xs[1]
@@ -328,7 +342,12 @@ end
 
 
 """
-    Arbitrary expression (parsed) logic expression.
+    simplifyLogic(e)
+
+Simplify a logical expression.
+This function calls a number of specialized variations of this function 
+to deal with different logical operators.
+
 """
 function simplifyLogic(e::Expr)
     if length(e.args) >= 3
@@ -349,7 +368,16 @@ function simplifyLogic(e::Expr)
 end
 
 """
-    Turn boolean formula into a bitvector representation, Blogic.
+    create_bool_rep(s[, simplify])
+
+Turn boolean formula into a bitvector representation, Blogic.
+
+## Arguments 
+- `s`        : A logical string.
+- `simplify` : If `true` simplify the logical expression before creating the bitvector.
+
+## Return
+A Boolean bitvector representing the logical expression.
 """
 function create_bool_rep(s::String, simplify=false)
     global logic_size

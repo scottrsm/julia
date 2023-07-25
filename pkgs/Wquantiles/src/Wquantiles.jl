@@ -5,7 +5,7 @@ export wquantile, Wquantile, WquantileM
 import Folds
 
 """
-    wquantile[x, w, q[; chk=true, norm_wgt=true, sort_q=true])
+    wquantile(x, w, q[; chk=true, norm_wgt=true, sort_q=true])
 
 Finds the `q` weighted quantile values from the vector `x`.
 
@@ -123,7 +123,7 @@ end
 
 
 """
-    Wquantile[X, w, q[; chk=true, norm_wgt=true, sort_q=true])
+    Wquantile(X, w, q[; chk=true, norm_wgt=true, sort_q=true])
 
 Finds the `q` weighted quantile values from the columns of the matrix `X`.
 
@@ -183,7 +183,7 @@ end
 
 
 """
-    WquantileM[X, w, q[; chk=true])
+    WquantileM(X, w, q[; chk=true])
 
 Finds the `q` weighted quantile values from the columns of the matrix `X`.
 
