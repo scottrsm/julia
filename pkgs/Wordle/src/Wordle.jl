@@ -7,7 +7,10 @@ import CSV
 
 ## Load Wordle database -- stored as a CSV file. 
 const LFA = collect("etaoinshrdlcumwfgypbvkjxqz")
-const WORDLE_DF =  DataFrame(CSV.File(joinpath(@__DIR__, "../data", "wordle_db.csv"); header=3, types=[String, Float64], comment="#"));
+const WORDLE_DF =  DataFrame(CSV.File(joinpath(@__DIR__, "../data", "wordle_db.csv"); 
+                                        header=3, 
+                                        types=[String, Float64], 
+                                        comment="#"));
 
 """
 ## Solver Strategy
@@ -21,7 +24,8 @@ const WORDLE_DF =  DataFrame(CSV.File(joinpath(@__DIR__, "../data", "wordle_db.c
     - Goto End
   - Get wordle info about how close guess is to the correct word:
     - wordle_info = create_wordle_info(<guess>, <puzzle_word>)
-      - Example wordle_info, create_wordle_info("exact", "crane") = ( [('a', 3)], Dict('x' => (0, 0), 'c' => (1, 1), 'e' => (1, 1), 't' => (0, 0)) )
+      - Example wordle_info, create_wordle_info("exact", "crane") = 
+      ( [('a', 3)], Dict('x' => (0, 0), 'c' => (1, 1), 'e' => (1, 1), 't' => (0, 0)) )
   - Use this match info to filter existing universe.
     - current_universe = filter_universe(wordle_info, current_universe)
   - Goto Start
@@ -32,14 +36,17 @@ const WORDLE_DF =  DataFrame(CSV.File(joinpath(@__DIR__, "../data", "wordle_db.c
 """
     create_wordle_info(guess, pword)
 
-Create an information structure of the form: ([LETTER, EXACT_MATCH_POSITION)], Dict(LETTER => (NUMBER_OF_MATCHES, MATCH_FLAG))
+Create an information structure of the form: 
+    ([LETTER, EXACT_MATCH_POSITION)], Dict(LETTER => (NUMBER_OF_MATCHES, MATCH_FLAG))
     
 Here, the dictionary has the in-exact match information:
     LETTER : A matching letter 
     NUMBER_OF_MATCHES : The number of matches.
     The latter iis interpreted thusly: 
-        If MATCH_FLAG is 0, there are *exactly* NUMBER_OF_MATCHES with this letter that should occur in the puzzle word.
-        Else              , there are *at least* NUMBER_OF_MATCHES with this letter that should occur in the puzzle word.
+        If MATCH_FLAG is 0, there are *exactly* NUMBER_OF_MATCHES with this 
+                                letter that should occur in the puzzle word.
+        Else              , there are *at least* NUMBER_OF_MATCHES with this 
+                                letter that should occur in the puzzle word.
 
 ## Arguments
 - `guess::String`: The guess for the puzzle.
@@ -47,7 +54,8 @@ Here, the dictionary has the in-exact match information:
      
     
 ## Returns
-    A tuple of a vector of tuples of exact matches and a dictionary of non-exact match info.
+    A tuple of a vector of tuples of exact matches and a dictionary of 
+    non-exact match info.
 
 ## Examples
     `(winfo, d) = create_wordle_info("which", "where")`
@@ -85,10 +93,12 @@ function create_wordle_info(guess :: String, # Guess
 
     d = Dict{Char, Tuple{Int64, Int64}}()
     for i in c_idx
-        ## We know that there is a AT LEAST `dg[guess[i]]` of character `guess[i]` in the puzzle word.
+        ## We know that there is a AT LEAST `dg[guess[i]]` of character 
+        ##  `guess[i]` in the puzzle word.
         if dg[guess[i]] <= get(dp, guess[i], 0)
             d[guess[i]] = (dg[guess[i]], 1)         
-        else # We know that there is EXACTLY `dp[guess[i]]` of character `guess[i]` in the puzzle word.
+        else # We know that there is EXACTLY `dp[guess[i]]` of character 
+             #  `guess[i]` in the puzzle word.
             d[guess[i]] = (get(dp, guess[i], 0), 0) 
         end
     end
@@ -103,17 +113,21 @@ end
 Filter an existing universe of words based on match info.
 
 ## Arguments
-- `wordle_info` : Wordle info of the form `([(LETTER, EXACT_POSITION)], Dict( LETTER => (k, n)))`
-                  The wordle info as the same type as the return value form create_wordle_info.
+- `wordle_info` : Wordle info of the form: 
+                    `([(LETTER, EXACT_POSITION)], Dict( LETTER => (k, n)))`
+                  The wordle info as the same type as the return value form 
+                  create_wordle_info.
 - `words`       : A list of words.
 
 ## Return
-    A subset of the `words` list based on the filter information from `wordle_info`.
+    A subset of the `words` list based on the filter information 
+    from `wordle_info`.
 
 ## Examples
-    Input : (winfo, d)   = create_wordle_info("which", "where")
-             words        = ["state", "which", "where", "child", "there", "taste"]
-    Output: (winfo, d)   = ([('w', 1), ('h', 2)], Dict('h' => (0, 0), 'c' => (0, 0), 'i' => (0, 0)))
+    Input : (winfo, d)= create_wordle_info("which", "where")
+             words    = ["state", "which", "where", "child", "there", "taste"]
+    Output: (winfo, d)= 
+    ([('w', 1), ('h', 2)], Dict('h' => (0, 0), 'c' => (0, 0), 'i' => (0, 0)))
             
    Input : filter_words = filter_universe((winfo, d), words)
    Output: filter_words = 1-element Vector{String}:
@@ -128,7 +142,8 @@ function filter_universe(wordle_info :: Tuple{Vector{Tuple{Char, Int64}}, Dict{C
         return(words)
     end
 
-    ## Destructure the `worlde_info`, get the length of the words used in word lists.
+    ## Destructure the `worlde_info`, get the length of the words 
+    ## used in word lists.
     (winfo, d) = wordle_info
     word_len = length(words[1])
 
@@ -169,17 +184,23 @@ Strategy to pick a guess for Wordle.
     - Take the words in the current universe.
     - Take the complement of the indices where we have exact information.
       For each of these indices create a dictionary with letter => count.
-    - Pick the index where the corresponding dictionary has the largest count value for some letter.
-    - If for a given dictionary, there are several letterrs with the same count, pick the letter from the letter freq string below.
-    - Do the same now across dictionaries, find the letter that is the most frequent and its dictionary index.
-    - For this index, find all words with this letter in this slot. Pick the one that is most frequent.
-      This will be our guess.
+    - Pick the index where the corresponding dictionary has the largest count 
+        value for some letter.
+    - If for a given dictionary, there are several letterrs with the same 
+        count, pick the letter from the letter freq string below.
+    - Do the same now across dictionaries, find the letter that is the most 
+        frequent and its dictionary index.
+    - For this index, find all words with this letter in this slot. 
+        Pick the one that is most frequent.
+        This will be our guess.
 
 ## Arguments
 - `swords` : A Vector of sorted strings (sorted by frequency of occurrence).
-- `lfa`    : This is the alphabet in lower case as a character list from most to least used.
-- `c_idx`  : This is the index values of words to analyze. This list is usually the complement 
-             of exact match indices from a previous guess.
+- `lfa`    : This is the alphabet in lower case as a character list from 
+                most to least used.
+- `c_idx`  : This is the index values of words to analyze. 
+                This list is usually the complement 
+                of exact match indices from a previous guess.
 
 ## Return
 
@@ -199,14 +220,16 @@ function pick_guess(swords::Vector{String}, # The sorted list of words to choose
     ds = [Dict{Char, Int64}() for i in c_idx]
     ary = []
     
-    ## Fill each of the dicts: at index `i`, `ds[i]`: char => count (using swords) 
+    ## Fill each of the dicts: at index 
+    ## `i`, `ds[i]`: char => count (using swords) 
     for i in 1:length(c_idx)
         for word in swords
             ds[i][word[c_idx[i]]] = 1 + get(ds[i], word[c_idx[i]], 0)
         end
     end
 
-    ## Fill the array `ary` with tuples of the form: `(idx, char, num_of_occurrences, lfa_order)`
+    ## Fill the array `ary` with tuples of the form: 
+    ## `(idx, char, num_of_occurrences, lfa_order)`
     for i in 1:length(c_idx)
         mx = maximum(values(ds[i]))
         for (k,v) in ds[i]
@@ -223,13 +246,15 @@ function pick_guess(swords::Vector{String}, # The sorted list of words to choose
     idx  = sary[1][1]
     c    = sary[1][2]
 
-    ## Return the first word(which is sorted by frequency of occurrence) which has character `c` at index, `idx`.
+    ## Return the first word(which is sorted by frequency of occurrence) 
+    ##  which has character `c` at index, `idx`.
     return((filter(x -> x[idx] == c, swords))[1])
 end
 
 
 """
-    solve_wordle(puzzle_word, universe_df, rec_count, sol_path, last_guess, lfa[; chk_inputs, guess_strategy])
+    solve_wordle(puzzle_word, universe_df, rec_count, sol_path, last_guess, 
+                    lfa[; chk_inputs, guess_strategy])
 
 Solves a Wordle puzzle.
 Makes guesses based on the most frequently used word in the uniniverse.
@@ -239,10 +264,13 @@ Makes guesses based on the most frequently used word in the uniniverse.
 ## Arguments
 
 - `puzzle_word` : The puzzle word.
-- `universe_df` : A DataFrame with schema: word(words of the same length), freq(freq fraction by use)
-                  *NOTE:* The universe is assumed to be sorted in reverse order by the :freq column.
+- `universe_df` : A DataFrame with schema: word(words of the same length), 
+                    freq(freq fraction by use)
+                    *NOTE:* The universe is assumed to be sorted in 
+                            reverse order by the :freq column.
 - `rec_count`   : The number of calls to this function.
-- `sol_path`    : Any containing the current list of guesses: [ (guess, exact_info, universe_size) ...]
+- `sol_path`    : Any containing the current list of guesses: 
+                    [ (guess, exact_info, universe_size) ...]
 - `last_guess`  : The previous guess.
 - `lfa`         : The lowercase alphabet listed in frequency of use order.
 
@@ -305,7 +333,8 @@ function solve_wordle(puzzle_word :: String                      , # Puzzle word
     ## Get a copy of the word universe.
     univs = universe_df[!, :word]
 
-    ## Current guessing strategy is to take the most frequently used word in the current universe.
+    ## Current guessing strategy is to take the most frequently used word 
+    ##  in the current universe.
 
     guess    = univs[1]
     if last_guess != ""
@@ -376,7 +405,8 @@ function solve_wordle(puzzle_word :: String                      , # Puzzle word
     sort!(nuniv_df, order(:freq, rev=true))
 
     ## Recurse...
-    solve_wordle(puzzle_word, nuniv_df, rec_count+1, sol_path, guess, lfa; chk_inputs=false, guess_strategy = guess_strategy)
+    solve_wordle(puzzle_word, nuniv_df, rec_count+1, sol_path, guess, 
+                    lfa; chk_inputs=false, guess_strategy = guess_strategy)
 end
 
 end # module Wordle

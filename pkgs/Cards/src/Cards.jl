@@ -1,13 +1,16 @@
 """
     Module Cards:
-    Functions to define cards, a card deck, shuffle the deck, deal from the deck, poker card comparison, and poker hand representations.
+    Functions to define cards, a card deck, shuffle the deck, deal from 
+    the deck, poker card comparison, and poker hand representations.
     Can reset the deck, pulling in all cards from a previous game.
     Additionally, can play a round of vanilla poker with two players.
 """
 module Cards
 
-export PHrep, SPHrep, Card, Deck, show, shuffle, deal!, reset!, pokerHand, pokerHandCmp, pokerTradeInCards!, playPoker2!
-export pokerHandGroupLength, pokerHandSubRep, get_card_rank_and_top_suit, getOrderedCardsFromRep
+export PHrep, SPHrep, Card, Deck, show, shuffle, deal!, reset!, pokerHand 
+export pokerHandCmp, pokerTradeInCards!, playPoker2!
+export pokerHandGroupLength, pokerHandSubRep
+export get_card_rank_and_top_suit, getOrderedCardsFromRep
 export ♣, ♠, ♦, ♥
 export Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Jack, Queen, King, Ace
 export Singles, Pair, TwoPair, ThreeOfAKind, FullHouse, FourOfAKind, Flush, Straight, StraightFlush
@@ -80,12 +83,15 @@ function isPSRLess(cr1::Tuple{Rank, Vector{Suit}}, cr2::Tuple{Rank, Vector{Suit}
 end
 
 """
-    DATA STRUCTURE: Representation of a poker hand. A rep of the form: [(rank, [Suits])].
-    These are the "ordered Card Pairings".
-    This is a natural way that a player would organize their hand: grouping by card ranking.
-    This structure will be used to place a hand in a canonical way by ordering this structure in
-    the following way: First by pairings (rank, [suits]) will be ranked by rank. Within the pair
-    the suits will be ranked in natural order.
+    DATA STRUCTURE: Representation of a poker hand. 
+        A rep of the form: [(rank, [Suits])].
+        These are the "ordered Card Pairings".
+        This is a natural way that a player would organize their hand: 
+            grouping by card ranking.
+        This structure will be used to place a hand in a canonical way 
+            by ordering this structure in the following way: 
+            First by pairings (rank, [suits]) will be ranked by rank. 
+        Within the pair the suits will be ranked in natural order.
     - Step 0: First sort second arg.
     - Step 1: Use the comparison function above to do the sortgin.
 """
@@ -100,9 +106,10 @@ struct SPHrep
 end
 
 """
-    DATA STRUCTURE: Representation of a poker hand. A rep of the form: (PokerType, SPHrep)
-    The SPHrep is a poker hand in canonical order -- see above.
-    This structure will allow us to compare poker hands.
+    DATA STRUCTURE: Representation of a poker hand. 
+        A rep of the form: (PokerType, SPHrep)
+        The SPHrep is a poker hand in canonical order -- see above.
+        This structure will allow us to compare poker hands.
 """
 struct PHrep
     pt::PokerType
@@ -164,7 +171,8 @@ end
 
 """
     Set/reset the deck to be full.
-    That is, gather any outstanding cards from any games and place them back in the deck.
+    That is, gather any outstanding cards from any games and place 
+        them back in the deck.
 
     param d A deck of Cards.
 
@@ -177,9 +185,11 @@ end
 
 
 """
-    Gets a card ranking and its top suit for the nth element of a poker hand representation.
-    That is, take the nth grouping based on the PHrep(ordered as described in the PHrep doc)
-    and return the rank and the top suit in that grouping.
+    Gets a card ranking and its top suit for the nth element of a 
+        poker hand representation.
+    That is, take the nth grouping based on the 
+        PHrep(ordered as described in the PHrep doc)
+        and return the rank and the top suit in that grouping.
 
     param handRep A poker hand representation.
     param n The index into the handRep array.
@@ -198,14 +208,20 @@ end
 
 
 """
-    Takes a poker hand sorted by rank from highest to lowest and converts it to a sub-representation, SPHrep.
+    Takes a poker hand sorted by rank from highest to lowest and converts 
+        it to a sub-representation, SPHrep.
     Currently, this has the form: [(card-rank, [suits])]
-    Here, these paired elements are sorted from highest to lowest based on the number of duplicate cards by rank.
-    The "suits" array keeps track of the suits of the duplicate cards and are ordered from highest to lowest.
-    If a tie appears (2 pairs, singles) sort by the larger of the card rankings of the paired elements.
-    Example 1: The raw (sorted by rank) hand): [ Card(Spade, 10), Card(Club, 10), Card(Diamond, 2), Card(Club, 2), Card(Heart, 2) ]
+    Here, these paired elements are sorted from highest to lowest based 
+        on the number of duplicate cards by rank.
+    The "suits" array keeps track of the suits of the duplicate cards 
+        and are ordered from highest to lowest.
+    If a tie appears (2 pairs, singles) sort by the larger of the 
+        card rankings of the paired elements.
+    Example 1: The raw (sorted by rank) hand): 
+        [ Card(Spade, 10), Card(Club, 10), Card(Diamond, 2), Card(Club, 2), Card(Heart, 2) ]
                becomes: [(2, [Heart, Club, Diamond]), (10, [Club, Spade])]
-    Example 2: The raw (sorted by rank) hand): [ Card(Spade, 10), Card(Club, 10), Card(Diamond, Ace), Card(Heart, Ace), Card(Club, Jack) ]
+    Example 2: The raw (sorted by rank) hand): 
+        [ Card(Spade, 10), Card(Club, 10), Card(Diamond, Ace), Card(Heart, Ace), Card(Club, Jack) ]
                becomes: [ (Ace, [Heart, Diamond]), (10, [Club, Spade]), (Jack, [Club]) ]
    
     ## Heading
@@ -260,7 +276,8 @@ end
 
 """
     Get the length of the nth ordered group in a poker hand.
-    Example: Given that we have a poker hand sub rep, hsRep, representing a full house, 
+    Example: Given that we have a poker hand sub rep, hsRep, 
+                representing a full house, 
              This function would return 3 for the call pokerHandGroupLength(hsRep, 1)
              and return 2 for the call pokerHandgroupLength(hsRep, 2).
 
@@ -281,9 +298,12 @@ end
    
     param v A vector of Cards.
 
-    return A pairing of hand-type with a vector with a sub-representation, currently of the form: (rank, [suits])
-           The sub-representation is ordered as described in the function pokerHandSubRep.
-           Specifically, the return has the form: (hand-type, [(card-rank, [card-suits])])
+    return A pairing of hand-type with a vector with a sub-representation, 
+            currently of the form: (rank, [suits]).
+           The sub-representation is ordered as described in the 
+            function pokerHandSubRep.
+           Specifically, the return has the form: 
+            (hand-type, [(card-rank, [card-suits])])
 """
 function pokerHand(v::Vector{Card})
     if length(v) != 5
@@ -295,7 +315,8 @@ function pokerHand(v::Vector{Card})
     local flushFlag = false
     local hsrep
 
-    ## Look at sequential differences based on rank -- if all ones then we have a straight or straight-flush.
+    ## Look at sequential differences based on rank -- if all ones 
+    ##   then we have a straight or straight-flush.
     local rankDiff = DIFFMAT * map(x -> Int64(x.rank), vs)
     pop!(rankDiff)
 
@@ -316,12 +337,15 @@ function pokerHand(v::Vector{Card})
         return(PHrep(Flush, SPHrep(hsrep)))
     end
     
-    ## Now we have to check for: Singles, Pair, TwoPair, ThreeOfAKind, FullHouse, and FourOfAKind.
-    ## To do this classification, we first create a [ (card-rank, [suits]) ] sub-representation for the hand.
+    ## Now we have to check for: 
+    ##  Singles, Pair, TwoPair, ThreeOfAKind, FullHouse, and FourOfAKind.
+    ## To do this classification, we first create a 
+    ##  [ (card-rank, [suits]) ] sub-representation for the hand.
     hsrep = pokerHandSubRep(vs)
 
     ## Classify the hand using this sub-representation
-    ## and return with the pokerRep -- a pairing of the poker hand-type with the sub rep.
+    ##  and return with the pokerRep -- a pairing of the poker hand-type 
+    ##  with the sub rep.
     hsLen = length(hsrep)
     if hsLen == 5                               ## Singles -- 5 groups of 1                     Total:       = 5 groups.
         return(PHrep(Singles, hsrep))
@@ -350,10 +374,12 @@ end
 
 """
     Compare two poker hands. 
-    First construct their poker-hand-representations: (poker-hand-type, [(card-h1, [ordered-suits]), (card-h2, [ordered-suits])...]).
-    Use this to determine if hr1 < hr2. Do this first by using the ranking of the poker-hand-type (i.e., Pair, TwoPair, FullHouse, etc.)
-    If two hands have the same type, then use ranking and their suits or other means according to the rules of poker to
-    make the determination.
+    First construct their poker-hand-representations: 
+        (poker-hand-type, [(card-h1, [ordered-suits]), (card-h2, [ordered-suits])...]).
+    Use this to determine if hr1 < hr2. Do this first by using the ranking 
+        of the poker-hand-type (i.e., Pair, TwoPair, FullHouse, etc.)
+    If two hands have the same type, then use ranking and their suits or 
+        other means according to the rules of poker to make the determination.
 
     param hr1 PHrep.
     param hr2 PHrep.
@@ -400,8 +426,10 @@ function pokerHandCmp(hr1::PHrep, hr2::PHrep)
     end    
     
     
-    ## Now the hands are of the same type and the first group of each hand has the same ranking.
-    ## This can only happen for: Singles, Pair, TwoPair, Flush, Straight, StraightFlush
+    ## Now the hands are of the same type and the first group of each hand 
+    ##      has the same ranking.
+    ## This can only happen for: 
+    ##      Singles, Pair, TwoPair, Flush, Straight, StraightFlush
     if handType1 in [Singles, Flush, Straight, StraightFlush]  # Compare the highest cards by suit.
         if r1 < r2
           return(true)
@@ -432,7 +460,8 @@ function pokerHandCmp(hr1::PHrep, hr2::PHrep)
                 end
             end
         end
-    elseif handType1 == TwoPair # Compare the next highest pair by card rank, if the same, compare by the next single card: first by rank and then by suit.
+    elseif handType1 == TwoPair # Compare the next highest pair by card rank, 
+                                # if the same, compare by the next single card: first by rank and then by suit.
         rr1, ss1 = get_card_rank_and_top_suit(hr1, 2)
         rr2, ss2 = get_card_rank_and_top_suit(hr2, 2)
         if rr1 < rr2

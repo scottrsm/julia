@@ -5,23 +5,29 @@ global logic_size = nothing
 global opMap = Dict( :* => :.&, :+ => :.|, :⊕ => :.⊻, :~ => :.~)
 
 import Base
-export Blogic, logicCount, nonZero, count_non_zero, bool_var_rep, init_logic, modifyLogicExpr!, simplifyLogic, create_bool_rep
+export Blogic, logicCount, nonZero, count_non_zero, bool_var_rep
+export init_logic, modifyLogicExpr!, simplifyLogic, create_bool_rep
 
 
-## Define an operations type. Meant for the operators :+, :*, :⊕ so that we can dispatch on them as types.
+## Define an operations type. Meant for the operators :
+##  +, :*, :⊕ so that we can dispatch on them as types.
 struct Op{T} end
 
 """
-    Structure used to represent a boolean formula involving variables given by a single base string followed by a number.
-      Example: (z1 + z2) * z3. Is the boolean formula that takes z1 and z2 and ORs then and then ANDs that with z3.
-    The field, val, is a bit vector representing the formula. It essentially expresses the values of all possible inputs.  
+    Structure used to represent a boolean formula involving variables 
+        given by a single base string followed by a number.
+    Example: (z1 + z2) * z3. Is the boolean formula that takes z1 and z2 
+        and ORs then and then ANDs that with z3.
+        The field, val, is a bit vector representing the formula. 
+        It essentially expresses the values of all possible inputs.  
 """
 struct Blogic
     formula::String
     var    ::String
     size   ::Tuple{Int64}
     val    ::BitVector
-    Blogic(form::String, v::String, sz::Int64, value::BitVector) = new(form, v, map(x -> Int64(log2(x)), size(value)), value)
+    Blogic(form::String, v::String, sz::Int64, value::BitVector) = 
+        new(form, v, map(x -> Int64(log2(x)), size(value)), value)
 end
 
 """
@@ -79,7 +85,8 @@ logicCount(l::Blogic) = count(l.val)
     `l` A Blogic structure.
     `head` The maximum number of inputs to consider.
     
-    return: A list of up to `head` input values that will give the logic function, `l`, a value of `true`
+    return: A list of up to `head` input values that will give the 
+            logic function, `l`, a value of `true`
 """
 function nonZero(l::Blogic; head=1)
     n = logicCount(l)
@@ -100,7 +107,8 @@ end
 """
     bool_var_rep(n)
 
-Generate the boolean bit vectors necessary to represent a logic formula of `n` variables.
+Generate the boolean bit vectors necessary to represent a logic 
+    formula of `n` variables.
 
 ## Arguments
 - `n` : Number of logical variables.
@@ -116,15 +124,16 @@ function bool_var_rep(n::Int64)
     else
         let nn::UInt64 = UInt64(n)
             # BitArray([div(i-1, 2^(j-1)) % 2 != 0  for i in 1:2^n, j in 1:n])
-            # This is a bit matrix of shape (2^n, n), where column 1 represents x1, column 2 represents x2, ... up to xn.
+            # This is a bit matrix of shape (2^n, n), where column 1 
+            # represents x1, column 2 represents x2, ... up to xn.
             BitArray([((i-1) >> (j-1)) & 1  for i in 1:2^nn, j in 1:nn])
         end
     end
 end
 
 """
-    This sets two global variables, the size of the boolean vectors and the other 
-    the Bitarray represenations of the variables.
+    This sets two global variables, the size of the boolean vectors and 
+        the other the Bitarray represenations of the variables.
 """
 function init_logic(n::Int64)
     global vars = bool_var_rep(n)
@@ -133,7 +142,7 @@ end
 
 """
     Walk an expression tree, converting variable names and operators
-    to Julia operators and variables with Bitvector representations.
+        to Julia operators and variables with Bitvector representations.
 """
 function modifyLogicExpr!(e::Expr)
     ary = []
@@ -155,10 +164,12 @@ end
     modifyLogicExpr(e)
 
 If `e` is a Symbol, it should be a variable of the form r"[a-zA-Z]+[0-9]+".
-The code splits the name off and uses the number to look up the bitvector representation.
-Otherwise, it is assumed to be an operator symbol and it is then mapped to the appropriate 
-Julia operator.
-  **NOTE:** This will work even if one makes a mistake and uses `x3`, or `y3`, the bit vector for the 
+The code splits the name off and uses the number to look up the 
+    bitvector representation.
+    Otherwise, it is assumed to be an operator symbol and it is then 
+    mapped to the appropriate Julia operator.
+  **NOTE:** This will work even if one makes a mistake and uses 
+            `x3`, or `y3`, the bit vector for the 
             third "variable" will be used.
 """
 function modifyLogicExpr!(e::Symbol)
@@ -179,8 +190,9 @@ end
 """
     rle(xs)
 
-Performs an RLE(Run Length Encoding) on an array, grouping like values into arrays.
-Assumes that `xs` is sorted.
+Performs an RLE(Run Length Encoding) on an array, 
+    grouping like values into arrays.
+**Assumes** that `xs` is sorted.
     
 ## Arguments
 - `xs` : An array of Any
@@ -301,16 +313,19 @@ function simplifyLogic(::Op{:⊕}, xargs::Vector{Any})
     iargs = filter(arg -> typeof(arg) == Int64, xargs)
     xargs = filter(arg -> typeof(arg) != Int64, xargs)
     
-    ## If there are no simple booleans (0 or 1s), return the xor expression with the xargs.
+    ## If there are no simple booleans (0 or 1s), return the xor expression 
+    ##      with the xargs.
     if length(iargs) == 0
         return(Expr(:call, :⊕, xargs...))
     end
     
-    ## If there are no complex boolean expressions, return the xor value of the simple booleans.
+    ## If there are no complex boolean expressions, return the xor 
+    ##      value of the simple booleans.
     if length(xargs) == 0
         return(sum(iargs) % 2)
-        ## else if there is one complex boolean expression, return the expression that is 
-        ## the xor of the resulting simple boolean xors with the complex boolean expression.
+        ## else if there is one complex boolean expression, return the 
+        ## expression that is the xor of the resulting simple boolean xors 
+        ## with the complex boolean expression.
     elseif length(xargs) == 1
         if (sum(iargs) % 2) == 1
             return(Expr(:call, :~, xargs[1]))
@@ -374,7 +389,8 @@ Turn boolean formula into a bitvector representation, Blogic.
 
 ## Arguments 
 - `s`        : A logical string.
-- `simplify` : If `true` simplify the logical expression before creating the bitvector.
+- `simplify` : If `true` simplify the logical expression before 
+                creating the bitvector.
 
 ## Return
 A Boolean bitvector representing the logical expression.
