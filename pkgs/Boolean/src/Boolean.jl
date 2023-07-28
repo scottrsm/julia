@@ -26,7 +26,7 @@ struct Blogic
     var    ::String
     size   ::Tuple{Int64}
     val    ::BitVector
-    Blogic(form::String, v::String, sz::Int64, value::BitVector) = 
+    Blogic(form::String, v::String, value::BitVector) = 
         new(form, v, map(x -> Int64(log2(x)), size(value)), value)
 end
 
@@ -47,7 +47,7 @@ end
     Show a BitMatrix.
 """
 function Base.show(io::IO, z::BitMatrix)
-    n, m = size(z)
+    n, _ = size(z)
     if n == 0
         println("N/A")
     else
@@ -177,7 +177,7 @@ function modifyLogicExpr!(e::Symbol)
     global opMap
     
     ## If this is a variable get the corresponding Bitvector.
-    if match(r"[a-zA-Z]+", String(e)) != nothing
+    if match(r"[a-zA-Z]+", String(e)) !== nothing
         vn = parse(Int64, (split(String(e), r"[a-zA-Z]+"))[2])
         return(vars[:, vn])
     end
@@ -198,7 +198,8 @@ Performs an RLE(Run Length Encoding) on an array,
 - `xs` : An array of Any
 
 ## Return
-   A vector of pairs, `(x, count)`, each item counting the number of times a given value occurred in `xs`.
+   A vector of pairs, `(x, count)`, each item counting the number 
+    of times a given value occurred in `xs`.
 """
 function rle(xs::Vector{T}) where T
     lastx = xs[1]
@@ -218,16 +219,17 @@ function rle(xs::Vector{T}) where T
 end
 
 """
-    Reduce a pair consisting of an expression and its count to just an expression.
-    The default case is to just return the expression.
+    Reduce a pair consisting of an expression and its count to just 
+    an expression. The default case is to just return the expression.
 """
 function redux(::Op{T}, pair) where T
     return(pair[1])
 end
 
 """
-    Reduce a pair consisting of an expression and its count to just an expression.
-    For an XOR expression, we know that only the expression survies or the value is 0.
+    Reduce a pair consisting of an expression and its count to just 
+    an expression. For an XOR expression, we know that only the expression 
+    survies or the value is 0.
 """
 function redux(::Op{:⊕}, pair)
     if pair[2] % 2 == 0
@@ -241,17 +243,17 @@ end
 """
     Operator is NOT.
 """
-function simplifyLogic(::Op{:~}, xarg::Any)
+function simplifyLogic(::Op{:~}, xargs::Any)
     xargs = map(arg -> simplifyLogic(arg), xargs)
     xargs = map(x -> redux(Op{:~}(), x), rle(sort(xargs)))
     
-    if xarg == 1
+    if xargs == 1
         return(0)
     end
     if xargs == 0
         return(1)
     end
-    return(Expr(:call, :~, xarg))
+    return(Expr(:call, :~, xargs))
 end
 
 
@@ -409,7 +411,8 @@ function create_bool_rep(s::String, simplify=false)
     ## If there are more than one, error.
     ar = unique(ar)
     if length(ar) > 1
-        error("Logic string uses more than one variable: ", map(x -> String(x), ar))
+        error("Logic string uses more than one variable: ", 
+                map(x -> String(x), ar))
     end
     if simplify
         val = eval(modifyLogicExpr!(simplifyLogic(Meta.parse(s))))

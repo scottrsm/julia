@@ -7,7 +7,7 @@
 """
 module Cards
 
-export PHrep, SPHrep, Card, Deck, show, shuffle, deal!, reset!, pokerHand 
+export PHrep, SPHrep, Card, Deck, show, deal!, reset!, pokerHand
 export pokerHandCmp, pokerTradeInCards!, playPoker2!
 export pokerHandGroupLength, pokerHandSubRep
 export get_card_rank_and_top_suit, getOrderedCardsFromRep
@@ -21,11 +21,11 @@ import Printf
 
 
 ## Enums for card ranking and for Suits. The ranking is based on poker.
-@enum Suit ♠=1 ♦ ♣ ♥
-@enum Rank Two=1 Three Four Five Six Seven Eight Nine Ten Jack Queen King Ace
+@enum Suit ♠ ♦ ♣ ♥
+@enum Rank Two Three Four Five Six Seven Eight Nine Ten Jack Queen King Ace
 
 ## Enum for the ranking of poker hands.
-@enum PokerType Singles=1 Pair TwoPair ThreeOfAKind FullHouse FourOfAKind Flush Straight StraightFlush
+@enum PokerType Singles Pair TwoPair ThreeOfAKind FullHouse FourOfAKind Flush Straight StraightFlush
 
 const SUITSIZE = 4
 const RANKSIZE = 13
@@ -54,7 +54,7 @@ mutable struct Deck
     cards::Vector{Card}
     left::UInt8
     function Deck()
-        new(reshape([Card(Suit(suit), Rank(num)) for num in 1:RANKSIZE, suit in 1:SUITSIZE], (DECKSIZE,)), UInt8(1))
+        new(reshape([Card(Suit(suit), Rank(num)) for num in 0:(RANKSIZE-1), suit in 0:(SUITSIZE-1)], (DECKSIZE,)), UInt8(1))
     end
 end
 
@@ -480,9 +480,9 @@ function pokerHandCmp(hr1::PHrep, hr2::PHrep)
             end
         end
     else
-        throw("pokerHandCmp: The following handType should not occur at this stage: $handType")
+        throw("pokerHandCmp: The following handType should not occur at this stage: $handType1")
     end
-    throw("pokerHandCmp: Should not have reached here, there is a gap in our processing. The handType is $handType")
+    throw("pokerHandCmp: Should not have reached here, there is a gap in our processing. The handType is $handType1")
 end
 
 

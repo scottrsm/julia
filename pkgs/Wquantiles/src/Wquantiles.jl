@@ -156,7 +156,7 @@ function Wquantile(X::Matrix{T}, w::Vector{S}, q::Vector{V};
                    chk::Bool = true, norm_wgt::Bool = true, 
                    sort_q::Bool = true) :: Matrix{T} where {T, S <: Real, V <: Real}
 
-    n, m = size(X)
+    _, m = size(X)
 
     ## Normalize the weights if needed.
     if norm_wgt
@@ -226,7 +226,7 @@ function WquantileM(X::Matrix{T}, w::Vector{S}, q::Vector{V};
         ## Is the type of `X` sortable?
         try
             isless(X[1][1], X[1][1])
-        catch e
+        catch _
             error("WquantileM: The type of X is not sortable.")
         end
         ## `X` columns length must match the length of the weight vector.
