@@ -5,8 +5,11 @@ export create_wordle_info, filter_universe, pick_guess, solve_wordle
 using DataFrames
 import CSV
 
-## Load Wordle database -- stored as a CSV file. 
+## LFA is an ordering of the alphabet based on letter frequency 
+## from some corpus of text.
 const LFA = collect("etaoinshrdlcumwfgypbvkjxqz")
+
+## Load Wordle database -- stored as a CSV file. 
 const WORDLE_DF =  DataFrame(CSV.File(joinpath(@__DIR__, "../data", "wordle_db.csv"); 
                                         header=3, 
                                         types=[String, Float64], 
@@ -19,7 +22,8 @@ const WORDLE_DF =  DataFrame(CSV.File(joinpath(@__DIR__, "../data", "wordle_db.c
   - X = Start with universe of 5 letter words along with freqency of usage.
   - Set current_universe = X
  - Start
-  - Pick guess (pick the most frequent word in current_universe that we haven't picked previously)
+  - Pick guess (by default pick the most frequent word in current_universe 
+     that we haven't picked previously).
   - If guess == puzzle_word)
     - Goto End
   - Get wordle info about how close guess is to the correct word:
@@ -67,10 +71,10 @@ Here, the dictionary has the in-exact match information:
 function create_wordle_info(guess :: String, # Guess
                             pword :: String, # Puzzle word
                            ) :: Tuple{Vector{Tuple{Char, Int64}}, Dict{Char, Tuple{Int64, Int64}}}
-    n     :: Int64                            = length(pword)
-    e_idx :: Vector{Int64}                    = []
-    f_idx :: Vector{Int64}                    = collect(1:n)
-    c_idx :: Vector{Int64}                    = []
+    n     :: Int64         = length(pword)
+    e_idx :: Vector{Int64} = []
+    f_idx :: Vector{Int64} = collect(1:n)
+    c_idx :: Vector{Int64} = []
 
     ary :: Vector{Tuple{Char, Int64}} = []
   
@@ -115,12 +119,12 @@ Filter an existing universe of words based on match info.
 ## Arguments
 - `wordle_info` : Wordle info of the form: 
                     `([(LETTER, EXACT_POSITION)], Dict( LETTER => (k, n)))`
-                  The wordle info as the same type as the return value form 
+                  The wordle info -- the same type as the return value form 
                   create_wordle_info.
-- `words`       : A list of words.
+- `words`       : A Vector of words.
 
 ## Return
-    A subset of the `words` list based on the filter information 
+    A subset of the `words` vector based on the filter information 
     from `wordle_info`.
 
 ## Examples
@@ -257,7 +261,10 @@ end
                     lfa[; chk_inputs, guess_strategy])
 
 Solves a Wordle puzzle.
-Makes guesses based on the most frequently used word in the uniniverse.
+
+By default, makes guesses based on the most frequently used 
+word in the universe passed in. However, there is an option
+to pass in a guessing strategy function.
     
 ## ASSUMES: The universe DataFrame is sorted from highest frequency to lowest.
 
@@ -286,6 +293,11 @@ Here,
 
 ## Return
     (sol_path, number-of-guesses, :SUCCESS/:FAILURE)
+    **NOTE:** A sol_path that does not include the puzzle word, means
+              that at some point after a guess was made -- along with
+              the corresponding filtering of the universe -- there was 
+              only one word left. In this case the guess count was 
+              increased by 1, but the function did not recurse.
 
 ## Examples
     Input : solve_wordle("taste")
@@ -303,7 +315,7 @@ Here,
 """
 function solve_wordle(puzzle_word :: String                      , # Puzzle word.
                       universe_df :: DataFrame     = WORDLE_DF   , # Wordle database as DataFrame.
-                      rec_count   :: Int64         = 1           , # Number of calls to this function.
+                      rec_count   :: Int64         = 1           , # Number of calls (including this one) to this function.
                       sol_path    :: Vector{Any}   = []          , # The solution path of guessed words, so far.
                       last_guess  :: String        = ""          , # The last guess.
                       lfa         :: Vector{Char}  = LFA         ; # The frequency of use of the alphabet.
@@ -312,7 +324,7 @@ function solve_wordle(puzzle_word :: String                      , # Puzzle word
                      ):: Tuple{Any, Int64, Symbol}
 
     ## Check input contract?
-    if chk_inputs
+    if chk_inputs && rec_count == 1
         ## 1. Does `universe_df` have the correct schema?
         @assert(Set(names(universe_df)) == Set(["word", "freq"]))
 
@@ -330,12 +342,11 @@ function solve_wordle(puzzle_word :: String                      , # Puzzle word
         @assert(words[sidx] == words)
     end
 
-    ## Get a copy of the word universe.
+    ## Get a reference to the Wordle universe.
     univs = universe_df[!, :word]
 
     ## Current guessing strategy is to take the most frequently used word 
     ##  in the current universe.
-
     guess    = univs[1]
     if last_guess != ""
         univs = filter(x -> x != last_guess, univs)
@@ -373,7 +384,8 @@ function solve_wordle(puzzle_word :: String                      , # Puzzle word
     (exact_info, ino_dct) = create_wordle_info(guess, puzzle_word)
 
     ## Get the size of the current search universe.
-    ## Push the guess and it's exact match info on the `sol_path`.
+    ## Push the guess; the "exact match info"; and the size of the universe 
+    ## onto the `sol_path`.
     n = length(univs)
     push!(sol_path, (guess, exact_info, n))
 
@@ -390,7 +402,7 @@ function solve_wordle(puzzle_word :: String                      , # Puzzle word
     if n == 0 # The information does not lead to a solution -- the puzzle word is not in our initial universe.
         return((sol_path, rec_count  , :FAILURE))
     elseif n == 1 && puzzle_word == new_universe[1] # We know the solution without having to recurse again.
-        return((sol_path, rec_count, :SUCCESS))
+        return((sol_path, rec_count+1, :SUCCESS))
     elseif n == 1 # The puzzle word is not in our initial universe.
         return((sol_path, rec_count+1, :FAILURE))
     end
@@ -400,7 +412,8 @@ function solve_wordle(puzzle_word :: String                      , # Puzzle word
         return((sol_path, rec_count, :FAILURE))
     end
 
-    ## Get the new universe as a dataframe and sort it based on frequency of occurrence from hightest to lowest.
+    ## Get the new universe as a dataframe and sort it based on frequency 
+    ## of occurrence from hightest to lowest.
     nuniv_df = filter(:word => x -> x in new_universe, universe_df)
     sort!(nuniv_df, order(:freq, rev=true))
 
@@ -410,3 +423,4 @@ function solve_wordle(puzzle_word :: String                      , # Puzzle word
 end
 
 end # module Wordle
+
