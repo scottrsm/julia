@@ -1,6 +1,6 @@
 module Wordle
 
-export create_wordle_info, filter_universe, pick_guess, solve_wordle
+export create_wordle_info, filter_universe, freq_letter_strat, solve_wordle
 
 using DataFrames
 import CSV
@@ -46,7 +46,7 @@ Create an information structure of the form:
 Here, the dictionary has the in-exact match information:
     LETTER : A matching letter 
     NUMBER_OF_MATCHES : The number of matches.
-    The latter iis interpreted thusly: 
+    The latter is interpreted thusly: 
         If MATCH_FLAG is 0, there are *exactly* NUMBER_OF_MATCHES with this 
                                 letter that should occur in the puzzle word.
         Else              , there are *at least* NUMBER_OF_MATCHES with this 
@@ -119,8 +119,8 @@ Filter an existing universe of words based on match info.
 ## Arguments
 - `wordle_info` : Wordle info of the form: 
                     `([(LETTER, EXACT_POSITION)], Dict( LETTER => (k, n)))`
-                  The wordle info -- the same type as the return value form 
-                  create_wordle_info.
+                  The Wordle info -- the same type as the return value form 
+                  `create_wordle_info`.
 - `words`       : A Vector of words.
 
 ## Return
@@ -182,7 +182,7 @@ end
 
 
 """
-    pick_guess(swords, lfa, c_idx)
+    freq_letter_strat(swords, lfa, c_idx)
 
 Strategy to pick a guess for Wordle.    
     - Take the words in the current universe.
@@ -190,7 +190,7 @@ Strategy to pick a guess for Wordle.
       For each of these indices create a dictionary with letter => count.
     - Pick the index where the corresponding dictionary has the largest count 
         value for some letter.
-    - If for a given dictionary, there are several letterrs with the same 
+    - If for a given dictionary, there are several letters with the same 
         count, pick the letter from the letter freq string below.
     - Do the same now across dictionaries, find the letter that is the most 
         frequent and its dictionary index.
@@ -215,13 +215,13 @@ Strategy to pick a guess for Wordle.
     The characters in swords are lowercase letters: [a-z].
 
 """
-function pick_guess(swords::Vector{String}, # The sorted list of words to choose from. 
-                    lfa   ::Vector{Char}  , # The letter frequency order of the alphabet.
-                    c_idx ::Vector{Int64} , # The complement of the indices that are exact.
-                   ) :: String
+function freq_letter_strat(swords::Vector{String}, # The sorted list of words to choose from. 
+                           lfa   ::Vector{Char}  , # The letter frequency order of the alphabet.
+                           c_idx ::Vector{Int64} , # The complement of the indices that are exact.
+                          ) :: String
     
     ## Create corresponding dictionaries for each index.
-    ds = [Dict{Char, Int64}() for i in c_idx]
+    ds = [Dict{Char, Int64}() for _ in c_idx]
     ary = []
     
     ## Fill each of the dicts: at index 
@@ -287,9 +287,16 @@ to pass in a guessing strategy function.
 - `guess_strategy` : If not `nothing`, apply this function to pick the next guess.
                      If `nothing`, pick the next guess as the most frequent word
                      in the current universe.
+- `ul`             : The lower threshold size of the filtered Wordle universe.
+- `uu`             : The upper threshold size of the filtered Wordle universe.
+
 Here, 
 - `exact_info` has the form: `[(LETTER, POSITION) ...]`
 - `universe_size` is the size the word list when the `guess` was made.
+- The `guess_strategy` is only turned on when the filtered Wordle universe
+  is between the thresholds: `ul` and `uu`; otherwise, the default strategy
+  is used -- the most frequently used word in the existing filtered Wordle
+  universe is chosen.
 
 ## Return
     (sol_path, number-of-guesses, :SUCCESS/:FAILURE)
@@ -321,6 +328,8 @@ function solve_wordle(puzzle_word :: String                      , # Puzzle word
                       lfa         :: Vector{Char}  = LFA         ; # The frequency of use of the alphabet.
                       chk_inputs  :: Bool          = true        , # Do we check the input contract?
                       guess_strategy               = nothing     , # Function to pick the next guess.
+                      ul          :: Int64         = 20          , # Used if function guess_strategy given.
+                      uu          :: Int64         = 20          , # Used if function guess_strategy given.
                      ):: Tuple{Any, Int64, Symbol}
 
     ## Check input contract?
@@ -338,7 +347,7 @@ function solve_wordle(puzzle_word :: String                      , # Puzzle word
         @assert(length(values(dw)) > 1)
         dw = nothing # Set for garbage collection.
 
-        ## 3. Is `universe_df` sorted from hightest to lowest word usage?
+        ## 3. Is `universe_df` sorted from highest to lowest word usage?
         @assert(words[sidx] == words)
     end
 
@@ -365,7 +374,8 @@ function solve_wordle(puzzle_word :: String                      , # Puzzle word
     if guess_strategy !== nothing
         if length(sol_path) != 0
             exact_info = sol_path[end][2]
-            if length(exact_info) != 0
+            ulen = length(univs)
+            if length(exact_info) != 0 && ul < ulen && ulen < uu
                 f_idx = collect(1:word_len)
                 e_idx = map(x -> x[2], exact_info)
                 c_idx = setdiff(f_idx, e_idx)
@@ -413,7 +423,7 @@ function solve_wordle(puzzle_word :: String                      , # Puzzle word
     end
 
     ## Get the new universe as a dataframe and sort it based on frequency 
-    ## of occurrence from hightest to lowest.
+    ## of occurrence from highest to lowest.
     nuniv_df = filter(:word => x -> x in new_universe, universe_df)
     sort!(nuniv_df, order(:freq, rev=true))
 
