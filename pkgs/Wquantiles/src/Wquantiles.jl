@@ -4,6 +4,17 @@ export wquantile, Wquantile, WquantileM
 
 import Folds
 
+## Make a sortable Trait.
+function isSortable(::Type{T}) :: Bool where {T <: Number}
+    x = one(T)
+    try
+       isless(x, x)
+    catch _ 
+        return(false) 
+    end
+    return(true)
+end
+
 """
     wquantile(x, w, q[; chk=true, norm_wgt=true, sort_q=true])
 
@@ -14,31 +25,33 @@ Finds the `q` weighted quantile values from the vector `x`.
 - `w  ::Vector{S}`: Vector(n) of weights to use.
 - `q  ::Vector{V}`: Vector(l) of quantile values.
 
-## Key word Args
+## Keyword Args
 - `chk     ::Bool`: If `true`, check the input contract described below.
 - `norm_wgt::Bool`: If `true`, normalize the weights.
-                    **NOTE:** If `norm_wgt` is `false`, it is **ASSUMED** that `w` is already normalized.
+
+   **NOTE:** If `norm_wgt` is `false`, it is *ASSUMED* that `w` is already normalized.
 - `sort_q  ::Bool`: If `true`, sort the quantile vector, `q`.
-                    **NOTE:** If `sort_q` is `false`, it **ASSUMED** that `q` is already sorted.
+
+   **NOTE:** If `sort_q` is `false`, it *ASSUMED* that `q` is already sorted.
 
 ### Input Contract
 - The type of `x` implements sortable.
--      ` |x|  = |w|`           -- Length of x matches length of weights.
-- `∀i,  w[i] >= 0`             -- The weights are non-negative.
-- `   Σ w[i] >  0`             -- The sum of the weights is positive.
-- `∀i,  q[i] <= 1`             -- The quantile values are in [0,1].
+-    `|x|  = |w|`     -- Length of `x` matches length of weights.
+- `∀i,  w[i] >= 0`    -- The weights are non-negative.
+-    `Σ w[i] >  0`    -- The sum of the weights is positive.
+- `∀i,  q[i] <= 1`    -- The quantile values are in ``[0,1]``.
 - `∀i,  q[i] >= 0`
 
 ## Return
 The vector(l) of weighted quantile values from `x`.
 Letting `qs` be the sorted quantiles of `q`.
-The entry `i` is the i'th quantile (in `qs`) of `x`.
+The entry `i` is the ``i^{\\rm th}`` quantile (in `qs`) of `x`.
 
 """
 function wquantile(x::Vector{T}, w::Vector{S}, q::Vector{V};
                    chk::Bool = true, norm_wgt::Bool = true, sort_q::Bool = true) :: Vector{T} where {T, S <: Real, V <: Real}
     ## We report back the quantiles of `x` in sorted `q` order, so we need to sort `q`.
-    ## NOTE: If we don't explicitly sort `q`, it means that you are ASSUMING `q` is sorted.
+    ## **NOTE:** If we don't explicitly sort `q`, it means that you are *ASSUMING* `q` is sorted.
     if sort_q
       q = sort(q)
     end
@@ -51,13 +64,8 @@ function wquantile(x::Vector{T}, w::Vector{S}, q::Vector{V};
 
     ## Check input contract...
     if chk
-        ## Is the type of `x` sortable?
-        try
-            isless(x[1], x[1])
-        catch e
-            error("wquantile: The type of x is not sortable.")
-        end
-        @assert(n == length(w))              # |x| = |w|
+        @assert(isSortable(T))               #  x sortable?
+        @assert(n == length(w))              # |x| = |w| ?
     end
 
     ## Get the permutation of indices that sort `x`.
@@ -68,9 +76,9 @@ function wquantile(x::Vector{T}, w::Vector{S}, q::Vector{V};
 
     ## Check input contract...
     if chk
-        @assert(all(wsc   .>= zeroq)      )  # ∀i,      w[i] >= 0  -- Weights are non-negative
-        @assert(sum(wsc)    > zeroq       )  #        Σ w[i]  > 0  -- The sum of the weights is positive.
-        @assert(all(zeroq .<= q .<= oneq) )  # ∀i, 0 <= q[i] <= 1  -- Quantile values are in [0,1].
+        @assert(all(wsc   .>= zeroq)      )  # ∀i,      w[i] >= 0  -- (Weights are non-negative?)
+        @assert(sum(wsc)    > zeroq       )  #        Σ w[i]  > 0  -- (The sum of the weights is positive?)
+        @assert(all(zeroq .<= q .<= oneq) )  # ∀i, 0 <= q[i] <= 1  -- (Quantile values are in [0,1]?)
     end
 
     ## Normalize sorted weights?
@@ -82,7 +90,7 @@ function wquantile(x::Vector{T}, w::Vector{S}, q::Vector{V};
     @inbounds xs = x[idx]
 
     ## Create an index vector to get the list of quantiles of `x`.
-    ## Default the indices to the larest element of `x`.
+    ## Default the indices to the largest element of `x`.
     ## Why is this important: If one chooses 1.0 as a quantile, it could easily be
     ##                        the case, due to numeric inaccuracy, that we do not
     ##                        reach the 1.0 threshold. For this reason we want
@@ -117,7 +125,7 @@ function wquantile(x::Vector{T}, w::Vector{S}, q::Vector{V};
     end
     @label done
 
-    ## Return the quantile values (in quntile sorted order).
+    ## Return the quantile values (in quantile sorted order).
     @inbounds return(xs[qxsi])
 end
 
@@ -132,24 +140,26 @@ Finds the `q` weighted quantile values from the columns of the matrix `X`.
 - `w  ::Vector{S}`: Vector(n) of weights to use.
 - `q  ::Vector{V}`: Vector(l) of quantile values.
 
-## Key word Args
+## Keyword Args
 - `chk     ::Bool`: If `true`, check the input contract described below.
 - `norm_wgt::Bool`: If `true`, normalize the weights.
-                    **NOTE:** If `norm_wgt` is `false`, it is **ASSUMED** that `w` is already normalized.
+
+   **NOTE:** If `norm_wgt` is `false`, it is *ASSUMED* that `w` is already normalized.
 - `sort_q  ::Bool`: If `true`, sort the quantile vector, `q`.
-                    **NOTE:** If `sort_q` is `false`, it is **ASSUMED** that `q` is already sorted.
+
+   **NOTE:** If `sort_q` is `false`, it is *ASSUMED* that `q` is already sorted.
 ### Input Contract
 -  The type of `X` implements sortable.
 - `∀i, |X[:, i]|   = |w|` -- Length of each column of `X` matches length of weights.
 - `∀i,      w[i]  >= 0`   -- Weights are non-negative.
--        `Σ w[i]  >  0`   -- The sum of the weights is positive.
-- `∀i,      q[i]  <= 1`   -- The quantiles values are in [0,1].
+- `Σ w[i]  >  0`          -- The sum of the weights is positive.
+- `∀i,      q[i]  <= 1`   -- The quantiles values are in ``[0,1]``.
 - `∀i,      q[i]  >= 0`
 
 ## Return
 The `(l,m)` matrix of weighted quantile values from `X`.
 Letting `qs` be the sorted quantiles of `q`.
-The entry `(i,j)` is the i'th quantile (in `qs`) from the j'th column of `X`.
+The entry `(i,j)` is the ``i^{\\rm th}`` quantile (in `qs`) from the ``j^{\\rm th}`` column of `X`.
 
 """
 function Wquantile(X::Matrix{T}, w::Vector{S}, q::Vector{V};
@@ -169,7 +179,7 @@ function Wquantile(X::Matrix{T}, w::Vector{S}, q::Vector{V};
         q = sort(q)
     end
 
-    ## Create a closure that will be threaded -- computing the weighted wuantiles of the columns of `X`.
+    ## Create a closure that will be threaded -- computing the weighted quantiles of the columns of `X`.
     ## If `chk` is true, only do the input check for the first column
     ## as checking the rest of the columns is redundant.
     wquant_vec_func = p -> wquantile(p[1], w, q, 
@@ -195,19 +205,21 @@ Finds the `q` weighted quantile values from the columns of the matrix `X`.
 - `X  ::Matrix{T}`: Matrix(n,m) of values from which to find quantiles.
 - `w  ::Vector{S}`: Vector(n) of weights to use.
 - `q  ::Vector{V}`: Vector(l) of quantile values.
+
+## Keyword Args
 - `chk::Bool`     : If `true`, check the input contract described below.
 
 ### Input Contract
 -  The type of `X` is sortable.
 - `∀i, |X[:, i]|  = |w|` -- Length of each column of `X` matches length of weights.
 - `∀i,      w[i] >= 0`   -- Weights are non-negative.
--        `Σ w[i] >  0`   -- The sum of the weights is positive.
-- `∀i, 0 <= q[i] <= 1`   -- The quantiles values are in [0,1].
+- `Σ w[i] >  0`          -- The sum of the weights is positive.
+- `∀i, 0 <= q[i] <= 1`   -- The quantiles values are in ``[0,1]``.
 
 ## Return
 The `(l,m)` matrix of weighted quantile values from `X`.
 Letting `qs` be the sorted quantiles of `q`.
-The entry `(i,j)` is the i'th quantile (in `qs`) from the j'th column of `X`.
+The entry `(i,j)` is the ``i^{\\rm th}`` quantile (in `qs`) from the ``j^{\\rm th}`` column of `X`.
 
 """
 function WquantileM(X::Matrix{T}, w::Vector{S}, q::Vector{V}; 
@@ -223,14 +235,8 @@ function WquantileM(X::Matrix{T}, w::Vector{S}, q::Vector{V};
 
     ## Check input contract...
     if chk
-        ## Is the type of `X` sortable?
-        try
-            isless(X[1][1], X[1][1])
-        catch _
-            error("WquantileM: The type of X is not sortable.")
-        end
-        ## `X` columns length must match the length of the weight vector.
-        @assert(n == length(w))                    # ∀i, |X[:,i]| = |w|
+        @assert(isSortable(T))               # x sortable?
+        @assert(n == length(w))              # ∀i, |X[:,i]| = |w| ?
     end
 
     ## Convert weights.
@@ -238,9 +244,9 @@ function WquantileM(X::Matrix{T}, w::Vector{S}, q::Vector{V};
 
     ## Check input contract...
     if chk
-        @assert(all(wc     .>= zeroq         )  )  # ∀i,       wc[i]  >= 0 -- non-neg weights.
-        @assert(sum(wc)    .>  zeroq            )  #         Σ wc[i]  >  0 -- sum of weights is positive.
-        @assert(all(zeroq  .<= q     .<= oneq)  )  # ∀i,  0 <= q[i]   <= 1 -- quantile values are in [0,1].
+        @assert(all(wc     .>= zeroq         )  )  # ∀i,       wc[i]  >= 0 -- (non-neg weights?)
+        @assert(sum(wc)    .>  zeroq            )  #         Σ wc[i]  >  0 -- (sum of weights is positive?)
+        @assert(all(zeroq  .<= q     .<= oneq)  )  # ∀i,  0 <= q[i]   <= 1 -- (quantile values are in [0,1]?)
     end
 
     ## Get the permutation of indices that sort the columns of `X`. This will be used to create
@@ -258,7 +264,7 @@ function WquantileM(X::Matrix{T}, w::Vector{S}, q::Vector{V};
     @inbounds Xs = X[Idx]
 
     ## Create an index matrix to get the list of quantiles of `X`.
-    ## Default the indices to the larest element of X for each column.
+    ## Default the indices to the index of the largest element of X for each column.
     ## Why is this important: If one chooses 1.0 as a quantile, it could easily be
     ##                        the case, due to numeric inaccuracy, that we do not
     ##                        reach the 1.0 threshold. For this reason we want
@@ -311,11 +317,6 @@ function WquantileM(X::Matrix{T}, w::Vector{S}, q::Vector{V};
     ## Return the quantile values as an (`l`,`m`) matrix in quantile sorted order.
     @inbounds return(Xs[Qxsi])
 end
-
-function fooo(x)
-
-end
-
 
 end # module Wquantiles
 
