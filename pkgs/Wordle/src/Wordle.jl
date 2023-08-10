@@ -41,16 +41,17 @@ const WORDLE_DF =  DataFrame(CSV.File(joinpath(@__DIR__, "../data", "wordle_db.c
     create_wordle_info(guess, pword)
 
 Create an information structure of the form: 
-    ([LETTER, EXACT_MATCH_POSITION)], Dict(LETTER => (NUMBER_OF_MATCHES, MATCH_FLAG))
+
+   `([LETTER, EXACT_MATCH_POSITION)], Dict(LETTER => (NUMBER_OF_MATCHES, MATCH_FLAG))`
     
 Here, the dictionary has the in-exact match information:
-    LETTER : A matching letter 
-    NUMBER_OF_MATCHES : The number of matches.
+    `LETTER` : A matching letter 
+    `NUMBER_OF_MATCHES` : The number of matches.
     The latter is interpreted thusly: 
-        If MATCH_FLAG is 0, there are *exactly* NUMBER_OF_MATCHES with this 
-                                letter that should occur in the puzzle word.
-        Else              , there are *at least* NUMBER_OF_MATCHES with this 
-                                letter that should occur in the puzzle word.
+-    If `MATCH_FLAG` is ``0``, there are *exactly* `NUMBER_OF_MATCHES` 
+                    with this letter that should occur in the puzzle word.
+-    Else           there are *at least* `NUMBER_OF_MATCHES` 
+                    with this letter that should occur in the puzzle word.
 
 ## Arguments
 - `guess::String`: The guess for the puzzle.
@@ -124,8 +125,8 @@ Filter an existing universe of words based on match info.
 - `words`       : A Vector of words.
 
 ## Return
-    A subset of the `words` vector based on the filter information 
-    from `wordle_info`.
+   A subset of the `words` vector based on the filter information 
+   from `wordle_info`.
 
 ## Examples
     Input : (winfo, d)= create_wordle_info("which", "where")
@@ -133,8 +134,8 @@ Filter an existing universe of words based on match info.
     Output: (winfo, d)= 
     ([('w', 1), ('h', 2)], Dict('h' => (0, 0), 'c' => (0, 0), 'i' => (0, 0)))
             
-   Input : filter_words = filter_universe((winfo, d), words)
-   Output: filter_words = 1-element Vector{String}:
+    Input : filter_words = filter_universe((winfo, d), words)
+    Output: filter_words = 1-element Vector{String}:
                                      "where"
 """
 function filter_universe(wordle_info :: Tuple{Vector{Tuple{Char, Int64}}, Dict{Char, Tuple{Int64, Int64}}},
@@ -184,23 +185,23 @@ end
 """
     freq_letter_strat(swords, lfa, c_idx)
 
-Strategy to pick a guess for Wordle.    
-    - Take the words in the current universe.
-    - Take the complement of the indices where we have exact information.
+Strategy to pick a guess for Wordle:    
+- Take the words in the current universe.
+- Take the complement of the indices where we have exact information.
       For each of these indices create a dictionary with letter => count.
-    - Pick the index where the corresponding dictionary has the largest count 
+- Pick the index where the corresponding dictionary has the largest count 
         value for some letter.
-    - If for a given dictionary, there are several letters with the same 
+- If for a given dictionary, there are several letters with the same 
         count, pick the letter from the letter freq string below.
-    - Do the same now across dictionaries, find the letter that is the most 
+- Do the same now across dictionaries, find the letter that is the most 
         frequent and its dictionary index.
-    - For this index, find all words with this letter in this slot. 
+- For this index, find all words with this letter in this slot. 
         Pick the one that is most frequent.
         This will be our guess.
 
 ## Arguments
 - `swords` : A Vector of sorted strings (sorted by frequency of occurrence).
-- `lfa`    : This is the alphabet in lower case as a character list from 
+- `lfa`    : This is the alphabet in lower case as a character vector from 
                 most to least used.
 - `c_idx`  : This is the index values of words to analyze. 
                 This list is usually the complement 
@@ -273,15 +274,16 @@ to pass in a guessing strategy function.
 - `puzzle_word` : The puzzle word.
 - `universe_df` : A DataFrame with schema: word(words of the same length), 
                     freq(freq fraction by use)
-                    *NOTE:* The universe is assumed to be sorted in 
-                            reverse order by the :freq column.
+
+     **NOTE:** The universe is assumed to be sorted in 
+               reverse order by the :freq column.
 - `rec_count`   : The number of calls to this function.
 - `sol_path`    : Any containing the current list of guesses: 
-                    [ (guess, exact_info, universe_size) ...]
+                    `[ (guess, exact_info, universe_size) ...]`
 - `last_guess`  : The previous guess.
 - `lfa`         : The lowercase alphabet listed in frequency of use order.
 
-## Key Word Arguments
+## Keyword Arguments
 
 - `chk_inputs`     : If true, check the input contract.
 - `guess_strategy` : If not `nothing`, apply this function to pick the next guess.
@@ -300,7 +302,8 @@ Here,
 
 ## Return
     (sol_path, number-of-guesses, :SUCCESS/:FAILURE)
-    **NOTE:** A sol_path that does not include the puzzle word, means
+
+   **NOTE:** A sol_path that does not include the puzzle word, means
               that at some point after a guess was made -- along with
               the corresponding filtering of the universe -- there was 
               only one word left. In this case the guess count was 
@@ -315,10 +318,11 @@ Here,
                  ("taste", [('t', 1, 'E'), ('a', 2, 'E'), ('s', 3, 'E'), ('t', 4, 'E'), ('e', 5, 'E')], 2)
                 ], 5, :SUCCESS)
 
-##  Input Contract
-- 1. universe_df, schema is (:word, :freq)
-- 2. ∃ N,m > 0, ∀ i∈[1,N], |words| = N ∧|words[i]| = m
-- 3. ∃ N > 0  ,            words = words[argsort[universe_df[:freq]]]
+###  Input Contract
+- `universe_df` schema is (:word, :freq)
+- If `words` is an N-vector of the words from `universe_df`, then
+    - `∃ m > 0, ∀ i∈[1,N], |words[i]| = m`  (All the words in `universe_df` have the same length.)
+- `words = words[argsort[universe_df[:freq]]]` (Words are sorted from highest to lowest word usage.)
 """
 function solve_wordle(puzzle_word :: String                      , # Puzzle word.
                       universe_df :: DataFrame     = WORDLE_DF   , # Wordle database as DataFrame.
@@ -329,7 +333,7 @@ function solve_wordle(puzzle_word :: String                      , # Puzzle word
                       chk_inputs  :: Bool          = true        , # Do we check the input contract?
                       guess_strategy               = nothing     , # Function to pick the next guess.
                       ul          :: Int64         = 20          , # Used if function guess_strategy given.
-                      uu          :: Int64         = 20          , # Used if function guess_strategy given.
+                      uu          :: Int64         = 50          , # Used if function guess_strategy given.
                      ):: Tuple{Any, Int64, Symbol}
 
     ## Check input contract?
@@ -355,9 +359,11 @@ function solve_wordle(puzzle_word :: String                      , # Puzzle word
     univs = universe_df[!, :word]
 
     ## Current guessing strategy is to take the most frequently used word 
-    ##  in the current universe.
-    guess    = univs[1]
-    if last_guess != ""
+    ##  in the current universe -- except for the very first guess.
+    guess = univs[1]
+    if last_guess == ""
+        guess = "their"
+    else 
         univs = filter(x -> x != last_guess, univs)
         if length(univs) == 0
             return((sol_path, rec_count  , :FAILURE))
@@ -367,11 +373,12 @@ function solve_wordle(puzzle_word :: String                      , # Puzzle word
     word_len = length(guess)
 
     ## If we specified a picking strategy, modify the guess.
+    ##  -- Only used after first guess (last_guess != "").
     ## The strategy is based on:
     ## 1. The existing universe
     ## 2. The letter frequency order.
     ## 3. The indices to focus on.
-    if guess_strategy !== nothing
+    if (guess_strategy !== nothing) && (last_guess != "")
         if length(sol_path) != 0
             exact_info = sol_path[end][2]
             ulen = length(univs)
