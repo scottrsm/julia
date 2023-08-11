@@ -74,20 +74,16 @@ function Base.show(io::IO, z::BitMatrix)
 end
 
 
-function Base.isless(x::Int64, y::Symbol)
-    true
-end
+Base.isless(x::Int64 , y::Symbol) = true
+Base.isless(x::Symbol, y::Int64 ) = false
+Base.isless(x::Symbol, y::Expr  ) = true
+Base.isless(x::Expr  , y::Symbol) = false
 
-function Base.isless(x::Symbol, y::Int64)
-    false
-end
-
-function Base.isless(x::Symbol, y::Expr)
-    true
-end
-
-function Base.isless(x::Expr, y::Symbol)
-    false
+function Base.:(==)(b1::Blogic, b2::Blogic) 
+    (b1.formula == b2.formula) &&
+    (b1.var     == b2.var    ) &&    
+    (b1.size    == b2.size   ) &&    
+    (b1.val     == b2.val    ) 
 end
 
 """
@@ -293,7 +289,7 @@ end
 
 
 """
-    redux(::Op{T}, Tuple{Expr, Int64})
+    redux(::Op{T}, Tuple{S, Int64})
 
 Reduce a pair consisting of an expression and its count to just 
 an expression. The default case is to just return the expression.
@@ -306,18 +302,18 @@ an expression. The default case is to just return the expression.
 ``::Expr`` -- Expression.
 
 """
-function redux(::Op{T}, pair::Tuple{Expr, Int64}) where T
+function redux(::Op{T}, pair::Tuple{S, Int64}) where {S, T}
     return(pair[1])
 end
 
 """
-    redux(::Opt{:⊕}, pair::Tuple{Expr, int64})
+    redux(::Opt{:⊕}, pair::Tuple{Expr, Int64})
 
 Reduce a pair consisting of an expression and its count to just 
 an expression. For an XOR expression, we know that only the expression 
 remains or the value is 0.
 """
-function redux(::Op{:⊕}, pair::Any)
+function redux(::Op{:⊕}, pair::Tuple{Expr, Int64})
     if pair[2] % 2 == 0
         return(0)
     else
