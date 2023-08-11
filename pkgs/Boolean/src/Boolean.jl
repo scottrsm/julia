@@ -74,11 +74,14 @@ function Base.show(io::IO, z::BitMatrix)
 end
 
 
+## Define how to order Int, Symbols, and Expr.
+## Needed for `simplifyLogic`.
 Base.isless(x::Int64 , y::Symbol) = true
 Base.isless(x::Symbol, y::Int64 ) = false
 Base.isless(x::Symbol, y::Expr  ) = true
 Base.isless(x::Expr  , y::Symbol) = false
 
+## Define equality for type `Blogic`.
 function Base.:(==)(b1::Blogic, b2::Blogic) 
     (b1.formula == b2.formula) &&
     (b1.var     == b2.var    ) &&    
@@ -241,7 +244,7 @@ to Julia operators and variables into `BitVector` representations.
 - `e :: Expr` -- An expression.
 
 ## Return
-A logic expression.
+`::Expr` -- A logic expression.
 """
 function modifyLogicExpr!(e::Expr)
     ary = []
@@ -270,7 +273,7 @@ The code splits the name off and uses the number to look up the
 - `e :: Symbol` -- An variable or operator.
 
 ## Return
-A logic expression.
+`::Expr` -- A logic expression.
 """
 function modifyLogicExpr!(e::Symbol)
     global vars
@@ -299,7 +302,7 @@ an expression. The default case is to just return the expression.
 - `pair :: Tuple{Expr, Int64}` -- Expression and its count.
 
 ## Return
-``::Expr`` -- Expression.
+`::Expr` -- Expression.
 
 """
 function redux(::Op{T}, pair::Tuple{S, Int64}) where {S, T}
@@ -501,7 +504,7 @@ Turn boolean formula into a `BitVector` representation, `Blogic`.
 - `create_bool_rep("(z1 + z2) * z3")`
 
 ## Return
-`BitVector` -- representing the logical expression.
+`::Blogic` -- Type representing the logical expression.
 """
 function create_bool_rep(s::String, simplify=false)
     global logic_size
@@ -538,7 +541,7 @@ Determines if two logical functions are equivalent.
 - `f2 :: String` -- Formula 2.
 
 ## Return
-`Bool` -- `true` if the formulas are equivalent; `false` otherwise.
+`::Bool` -- `true` if the formulas are equivalent; `false` otherwise.
 
 """
 function isEquiv(f1::String, f2::String)
