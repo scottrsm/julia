@@ -21,10 +21,51 @@ import Printf
 
 
 ## Enums for card ranking and for Suits. The ranking is based on poker.
+"""
+    Suit (Enum)
+
+Allowable suits in poker; ordered by strength from lowest to highest.
+
+## Fields
+- ♠
+- ♦  
+- ♣  
+- ♥ 
+"""
 @enum Suit ♠ ♦ ♣ ♥
+
+"""
+    Rank (Enum)
+
+Card ranks in poker; ordered by strength from lowest to highest.
+
+## Fields
+- `Two -- Nine`
+- `Jack`
+- `Queen`
+- `King`
+- `Ace`
+"""
 @enum Rank Two Three Four Five Six Seven Eight Nine Ten Jack Queen King Ace
 
-## Enum for the ranking of poker hands.
+## `Enum` for the ranking of poker hands.
+"""
+    PokerType (Enum)
+
+Enumeration describing a classification of hands for poker; ordered by strength
+from lowest to highest.
+
+## Fields
+- Singles
+- Pair
+- TwoPair
+- ThreeOfAKind
+- FullHouse
+- FourOfAKind
+- Flush
+- Straight
+- StraightFlush
+"""
 @enum PokerType Singles Pair TwoPair ThreeOfAKind FullHouse FourOfAKind Flush Straight StraightFlush
 
 const SUITSIZE = 4
@@ -38,7 +79,16 @@ const DIFFMAT  = LinearAlgebra.Bidiagonal([1,1,1,1,1], [-1, -1, -1, -1], :U)
 ### -------------------------------------------------------------
 
 """
-    DATA STRUCTURE: Representation of a Card.
+    Card
+
+DATA STRUCTURE: Representation of a Card.
+
+## Fields 
+- suit :: Suit
+- rank :: Rank
+
+## Constructors
+- Card(::Suit, ::Rank)
 """
 struct Card
     suit::Suit
@@ -48,7 +98,16 @@ end
 
 
 """
-    DATA STRUCTURE: Representation of a Desk of Cards.
+    Deck (mutable)
+
+DATA STRUCTURE: Representation of a Desk of Cards.
+
+## Fields
+- cards :: Vector{Card}
+- left  :: UInt8 (position in deck where next to draw.)
+
+## Constructors
+- Deck()
 """
 mutable struct Deck
     cards::Vector{Card}
@@ -83,17 +142,29 @@ function isPSRLess(cr1::Tuple{Rank, Vector{Suit}}, cr2::Tuple{Rank, Vector{Suit}
 end
 
 """
-    DATA STRUCTURE: Representation of a poker hand. 
-        A rep of the form: [(rank, [Suits])].
-        These are the "ordered Card Pairings".
-        This is a natural way that a player would organize their hand: 
-            grouping by card ranking.
-        This structure will be used to place a hand in a canonical way 
-            by ordering this structure in the following way: 
-            First by pairings (rank, [suits]) will be ranked by rank. 
-        Within the pair the suits will be ranked in natural order.
-    - Step 0: First sort second arg.
-    - Step 1: Use the comparison function above to do the sortgin.
+    SPHrep
+
+A lower level representation of a poker hand. 
+
+A rep containing the data: `[(rank, [Suits])]`.
+
+These are the "ordered Card Pairings".
+This is a natural way that a player would organize their hand: 
+       grouping by card ranking.
+
+This structure will be used to place a hand in a canonical way 
+     by ordering this structure in the following way: 
+       First by pairings (rank, [suits]) will be ranked by rank. 
+
+Within the pair the suits will be ranked in natural order.
+- Step 0: First sort second arg.
+- Step 1: Use the comparison function above to do the sorting.
+
+## Fields
+- `orderedCP :: Vector{Tuple{Rank, Vector{Suit}}}`
+
+## Constructors
+- `SPHRep(ocp::Vector{Tuple{Rank, Vector{Suit}}})`
 """
 struct SPHrep
     orderedCP::Vector{Tuple{Rank, Vector{Suit}}}
@@ -106,10 +177,21 @@ struct SPHrep
 end
 
 """
-    DATA STRUCTURE: Representation of a poker hand. 
-        A rep of the form: (PokerType, SPHrep)
-        The SPHrep is a poker hand in canonical order -- see above.
-        This structure will allow us to compare poker hands.
+    PHrep
+
+A higher level representation of a poker hand. 
+        
+Essentially a rep of the form: `(PokerType, SPHrep)`
+
+The SPHrep is a poker hand in canonical order -- see above.
+This structure will allow us to compare poker hands.
+
+## Fields
+- `pt::PokerType` -- The Type of hand (Single, Pair, TwoPairs, etc.)
+- `subr::SPHrep`  -- The lower level representation.
+
+## Constructors
+-`PHrep(pt::PokerType, sr::SPHrep)`
 """
 struct PHrep
     pt::PokerType
@@ -118,6 +200,10 @@ struct PHrep
         new(pt, sr)
     end
 end
+
+## Extend Test for equality to the poker-hand and sub-poker-hand representations.
+Base.:(==)(s1::SPHrep, s2::SPHrep) = s1.orderedCP == s2.orderedCP
+Base.:(==)(h1::PHrep , h2::PHrep ) = (h1.pt == h2.pt) && (h1.subr == h2.subr)
 
 
 ### ----------- AUGMENT JULIA METHODS TO WORK WITH OUR DATA STRUCTURES ------------------------
@@ -144,15 +230,20 @@ Random.shuffle!(d::Deck) = d.cards = d.cards[Random.shuffle(d.left:DECKSIZE)];
 
 
 """
-    Deal a hand of `n` cards from a Deck.
-    Note: Will mutate the deck, d.
-        
-    param d A deck of Cards.
-    param n The number of Cards to deal.
+    deal!(d, n)
 
-    return A vector of `n` cards.
+Deal a hand of `n` cards from a Deck.
+
+**Note:** Will mutate the deck, d.
+        
+## Arguments
+- `A` -- A deck of Cards.
+- `n` -- The number of Cards to deal.
+
+## Return
+`::Vector{Cards}` -- A vector of `n` cards.
 """
-function deal!(d::Deck, n::Int64)
+function deal!(d::Deck, n::Int64) :: Vector{Cards}
     ## Check to make sure we have enough cards to deal out.
     if n > (DECKSIZE+1 - d.left)
         throw("deal!: Not enough cards to deal.")
@@ -170,13 +261,17 @@ end
 
 
 """
-    Set/reset the deck to be full.
-    That is, gather any outstanding cards from any games and place 
-        them back in the deck.
+    reset!(d)
 
-    param d A deck of Cards.
+Set/reset the deck to be full.
+That is, gather any outstanding cards from any games and place 
+them back in the deck.
 
-    return Nothing
+## Arguments
+- `d :: Deck` --A deck of Cards.
+
+## Return
+nothing
 """
 function reset!(d::Deck)
     d.left = 1
@@ -185,16 +280,21 @@ end
 
 
 """
-    Gets a card ranking and its top suit for the nth element of a 
-        poker hand representation.
-    That is, take the nth grouping based on the 
-        PHrep(ordered as described in the PHrep doc)
-        and return the rank and the top suit in that grouping.
+    get_card_rank_and_top_suit(handRep)
 
-    param handRep A poker hand representation.
-    param n The index into the handRep array.
+Gets a card ranking and its top suit for the ``n^{\\rm th}`` element of a 
+poker hand representation.
 
-    return The card ranking and top suit of the nth poker hand group.
+That is, take the nth grouping based on the 
+    `PHrep`(ordered as described in the `PHrep` doc)
+    and return the rank and the top suit in that grouping.
+
+## Arguments
+- `handRep::PHrep` -- A poker hand representation.
+- `n::Int64` -- The index into the card groupings.
+
+## Return
+`(Rank, Suit)` -- The card ranking and top suit of the nth poker hand group.
 """
 function get_card_rank_and_top_suit(handRep::PHrep, n::Int64)
     ocp = handRep.subr.orderedCP
@@ -205,29 +305,37 @@ function get_card_rank_and_top_suit(handRep::PHrep, n::Int64)
 end
 
 
-
-
 """
-    Takes a poker hand sorted by rank from highest to lowest and converts 
-        it to a sub-representation, SPHrep.
-    Currently, this has the form: [(card-rank, [suits])]
-    Here, these paired elements are sorted from highest to lowest based 
-        on the number of duplicate cards by rank.
-    The "suits" array keeps track of the suits of the duplicate cards 
-        and are ordered from highest to lowest.
-    If a tie appears (2 pairs, singles) sort by the larger of the 
-        card rankings of the paired elements.
-    Example 1: The raw (sorted by rank) hand): 
-        [ Card(Spade, 10), Card(Club, 10), Card(Diamond, 2), Card(Club, 2), Card(Heart, 2) ]
-               becomes: [(2, [Heart, Club, Diamond]), (10, [Club, Spade])]
-    Example 2: The raw (sorted by rank) hand): 
-        [ Card(Spade, 10), Card(Club, 10), Card(Diamond, Ace), Card(Heart, Ace), Card(Club, Jack) ]
-               becomes: [ (Ace, [Heart, Diamond]), (10, [Club, Spade]), (Jack, [Club]) ]
-   
-    ## Heading
-    param vs A rank-sorted Card vector.
+    pokerHandSubRep(vs)
 
-    return A SPHrep -- with ordering as described above.
+Takes a poker hand sorted by rank from highest to lowest and converts 
+  it to a sub-representation, `SPHrep`.
+
+Currently, this has the form: [(card-rank, [suits])]
+Here, these paired elements are sorted from highest to lowest based 
+   on the number of duplicate cards by rank.
+
+The "suits" array keeps track of the suits of the duplicate cards 
+    and are ordered from highest to lowest.
+
+If a tie appears (say with a hand that has type `TwoPairs`) sort by the larger of the 
+    card rankings of the paired elements.
+    
+## Examples
+- Example 1: The raw (sorted by rank) hand): 
+        `[ Card(Spade, 10), Card(Club, 10), Card(Diamond, 2), Card(Club, 2), Card(Heart, 2) ]`
+        
+  Becomes: `[(2, [Heart, Club, Diamond]), (10, [Club, Spade])]`
+- Example 2: The raw (sorted by rank) hand): 
+        `[ Card(Spade, 10), Card(Club, 10), Card(Diamond, Ace), Card(Heart, Ace), Card(Club, Jack) ]`
+
+  Becomes: `[ (Ace, [Heart, Diamond]), (10, [Club, Spade]), (Jack, [Club]) ]`
+   
+## Arguments
+- `vs` -- A rank-sorted Card vector.
+
+## Returns
+`::SPHrep` -- A `SPHrep` with ordering as described above.
 """
 function pokerHandSubRep(vs::Vector{Card})
 
@@ -269,41 +377,51 @@ function pokerHandSubRep(vs::Vector{Card})
     ## We processed all but the last sequence, do that now.
     push!(hsRep, (lrank, csuits))
 
-    ## Give this raw list of pairs, [ (rank, [suits]) ] to the SPHrep constructor to 
-    ## put it into canonical order.
+    ## Give this raw list of pairs, `[ (rank, [suits]) ]` to the `SPHrep` 
+    # constructor to put it into canonical order.
     return(SPHrep(hsRep))
 end
 
 """
-    Get the length of the nth ordered group in a poker hand.
-    Example: Given that we have a poker hand sub rep, hsRep, 
-                representing a full house, 
-             This function would return 3 for the call pokerHandGroupLength(hsRep, 1)
-             and return 2 for the call pokerHandgroupLength(hsRep, 2).
+    pokerHandGroupLength(hsRep, n)
 
-    param hsRep A poker sub-hand representation.
-    param n     The group to examine.
+Get the length of the nth ordered group in a poker hand.
 
-    return The number of Cards in the nth group of the sub-representation.
+Example: Given that we have a poker hand sub rep, hsRep, 
+            representing a full house, 
+        This function would return 3 for the call `pokerHandGroupLength(hsRep, 1)`
+        and return 2 for the call `pokerHandgroupLength(hsRep, 2)`.
+
+## Arguments
+- `hsRep :: SPHrep` --  A poker sub-hand representation.
+- `n :: Int64` -- The group to examine.
+
+## Return
+`::Int64` -- The number of Cards in the ``n^{\\rm th}`` group of the sub-representation.
 """
-function pokerHandGroupLength(hsRep::SPHrep, n::Integer)
+function pokerHandGroupLength(hsRep::SPHrep, n::Int64)
     ocp = hsRep.orderedCP
     return(length(ocp[n][2]))
 end
 
 """
-    Takes a poker hand and converts it to a representation of the form:
-    (hand-type, poker-hand-sub-rep)
-    See the description of poker-hand-sub-rep in the function pokerHandSubRep.
-   
-    param v A vector of Cards.
+    pokerHand(v)
 
-    return A pairing of hand-type with a vector with a sub-representation, 
+Takes a poker hand and converts it to a representation of the form:
+ (hand-type, poker-hand-sub-rep)
+ See the description of poker-hand-sub-rep in the function pokerHandSubRep.
+   
+## Arguments
+- `v` -- A vector of Cards.
+
+## Return
+`::PHrep` -- Essentially, 
+    a pairing of hand-type with a vector with a sub-representation, 
             currently of the form: (rank, [suits]).
            The sub-representation is ordered as described in the 
             function pokerHandSubRep.
            Specifically, the return has the form: 
-            (hand-type, [(card-rank, [card-suits])])
+           PHrep(hand-type, SPHrep([(card-rank, [card-suits])]))
 """
 function pokerHand(v::Vector{Card})
     if length(v) != 5
@@ -487,11 +605,15 @@ end
 
 
 """
-    Get the rank/suit ordered list of cards from a poker hand representation.
+    getOrderedCardsFromRep(phr)
 
-    param phr::PHrep The poker hand representation of a poker hand.
+Get the rank/suit ordered list of cards from a poker hand representation.
 
-    return A new poker hand of Cards in order.
+## Arguments
+- `phr::PHrep`  -- The poker hand representation of a poker hand.
+
+## Return
+`::Vector{Card}` -- A new poker hand of Cards in order.
 """
 function getOrderedCardsFromRep(phr::PHrep)
     ocp = phr.subr.orderedCP
@@ -500,14 +622,18 @@ end
 
 
 """
-    Given a poker hand, h, determine now many cards to replace, 0 to 2,
-    then return the replacement. Return the a copy of the original hand if 
-    no cards needed. If cards are replaced, this will mutate the deck of cards, d.
+    pokerTradeInCards!(d, h)
 
-    param d A deck of cards
-    param h A poker hand.
+Given a poker hand, h, determine now many cards to replace, 0 to 2,
+then return the replacement. Return a copy of the original hand if 
+cards needed. If cards are replaced, this will mutate the deck of cards, d.
 
-    return A pair of a new vector of Cards, and a pokerHand.
+## Arguments
+- `d::Deck` -- A deck of cards
+- `h::Vector{Card}` -- A poker hand.
+
+## Return
+`::Tuple{::PHrep, ::PHrep}` -- Old and new replacement hands.
 """
 function pokerTradeInCards!(d::Deck, h::Vector{Card})
     hr = pokerHand(h)
@@ -554,19 +680,24 @@ end
 
 
 """
-    Play a game of poker with two players.
-    Process:
-        1). Deal each player two 5 card hands.
-        2). Compare two hands to see who would win.
-        3). Each player can then ask for up to 2 cards.
-        4). The two players are compared again to see who wins.
+    playPoker2!(d)
 
-    Note: This function mutates the deck by dealing cards 
+Play a game of poker with two players.
+
+Process:
+- 1. Deal each player two 5 card hands.
+- 2. Compare two hands to see who would win.
+- 3. Each player can then ask for up to 2 cards.
+- 4. The two players are compared again to see who wins.
+
+**Note:** This function mutates the deck by dealing cards 
           to the players.
 
-    param d A deck of cards.
+## Arguments
+`d :: Deck` -- A deck of cards.
 
-    return Nothing
+## Return
+nothing
 """
 function playPoker2!(d::Deck)
     ## Reset the deck -- put back all the cards from previous games.
