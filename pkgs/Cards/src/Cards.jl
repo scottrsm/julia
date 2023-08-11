@@ -685,10 +685,10 @@ end
 Play a game of poker with two players.
 
 Process:
-- 1. Deal each player two 5 card hands.
-- 2. Compare two hands to see who would win.
-- 3. Each player can then ask for up to 2 cards.
-- 4. The two players are compared again to see who wins.
+- Deal each player two 5 card hands.
+- Compare two hands to see who would win.
+- Each player can then ask for up to 2 cards.
+- The two players are compared again to see who wins.
 
 **Note:** This function mutates the deck by dealing cards 
           to the players.
