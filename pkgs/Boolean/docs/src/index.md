@@ -25,7 +25,7 @@ nonZero
 ```
 
 ```@docs
-count_non_zero
+get_non_zero_inputs
 ```
 
 ```@docs
@@ -54,6 +54,10 @@ rle
 
 ```@docs
 redux
+```
+
+```@docs
+isEquiv
 ```
 
 ## Index

@@ -5,8 +5,9 @@ global logic_size = nothing
 global opMap = Dict( :* => :.&, :+ => :.|, :⊕ => :.⊻, :~ => :.~)
 
 import Base
-export Blogic, logicCount, nonZero, count_non_zero, bool_var_rep
+export Blogic, logicCount, nonZero, get_non_zero_inputs, bool_var_rep
 export init_logic, modifyLogicExpr!, simplifyLogic, create_bool_rep
+export isEquiv
 
 
 """
@@ -115,16 +116,16 @@ Get up to `head` inputs that generate true values for a logic function, `l`.
     
 ## Return
 A list of up to `head` input values that will give the 
-logic function, `l`, a value of `true`
+logic function, `l`, a value of `true`.
 """
 function nonZero(l::Blogic; head=1)
     n = logicCount(l)
-    count_non_zero(l.val, l.size[1], num=min(n,head))
+    get_non_zero_inputs(l.val, l.size[1], num=min(n,head))
 end
 
 
 """
-    count_non_zero
+    get_non_zero_inputs
 
 Get `num` inputs that generate true values for a logic function.
 `v` is a boolean vector that indicates which elements of the truth table
@@ -136,9 +137,9 @@ yield a value of `true`.
 - `num :: Int64` -- The desired number of inputs that generate truth values.
 
 ## Returns
-`num` input values that generate truth values for the current function.
+`::BitMatrix` -- Input values that generate truth values for the current function.
 """
-function count_non_zero(v::BitVector, n::Int64; num::Int64=1)
+function get_non_zero_inputs(v::BitVector, n::Int64; num::Int64=1)
     idx = collect(1:2^n)[v]
     return(vars[idx[1:num], :])
 end
@@ -155,7 +156,7 @@ of each of the variables collectively as a `BitArray`.
 - `n` : Number of logical variables.
 
 ## Return
-`BitArray` of the bit representation of all of the logical variables.
+`::BitArray` -- The bit representation of all of the logical variables.
 """
 function bool_var_rep(n::Int64)
     if n > 30
@@ -195,15 +196,15 @@ end
 """
     rle(xs)
 
-Performs an R(un) L(ength) E(ncoding) on an array, 
+Performs a R(un) L(ength) E(ncoding) on an array, 
 grouping like values into arrays.
 The values are **assumed** to be sorted.
     
 ## Arguments
-- `xs :: Vector{T}` -- An array of a sortable type.
+- `xs :: Vector{T}` -- An array that is sortable.
 
 ## Return
-`Vector{Tuple{T, Int64}}` -- A Vector of pairs of the form: `(T, Int64)`
+`::Vector{Tuple{T, Int64}}` -- A Vector of pairs of the form: `(T, Int64)`
 representing values from `xs` and the number of
 their occurrences.
 
@@ -292,29 +293,31 @@ end
 
 
 """
-    redux(::Op{T}, pair)
+    redux(::Op{T}, Tuple{Expr, Int64})
 
 Reduce a pair consisting of an expression and its count to just 
 an expression. The default case is to just return the expression.
 
 ## Arguments
 - `::Op{T}` -- An operator type.
-- `pair :: Tuple(Int64, Expr)` -- Expression and its count.
+- `pair :: Tuple{Expr, Int64}` -- Expression and its count.
 
 ## Return
-Expression count.
+``::Expr`` -- Expression.
 
 """
-function redux(::Op{T}, pair) where T
+function redux(::Op{T}, pair::Tuple{Expr, Int64}) where T
     return(pair[1])
 end
 
 """
-    Reduce a pair consisting of an expression and its count to just 
-    an expression. For an XOR expression, we know that only the expression 
-    survies or the value is 0.
+    redux(::Opt{:⊕}, pair::Tuple{Expr, int64})
+
+Reduce a pair consisting of an expression and its count to just 
+an expression. For an XOR expression, we know that only the expression 
+remains or the value is 0.
 """
-function redux(::Op{:⊕}, pair)
+function redux(::Op{:⊕}, pair::Any)
     if pair[2] % 2 == 0
         return(0)
     else
@@ -333,7 +336,7 @@ to deal with different logical operators.
 - `e :: Expr` -- Logic expression.
 
 ## Return
-Simplified logic expression.
+`::Expr` -- Simplified logic expression.
 
 """
 function simplifyLogic(e::Expr)
@@ -487,16 +490,22 @@ end
     create_bool_rep(s[, simplify])
 
 Turn boolean formula into a `BitVector` representation, `Blogic`.
+- Determine the underlying base variable used in the formula.
+- Parse the formula into an expression, `Expr`.
+- Optionally simplify the logical expression.
+- Walk the expression tree creating a new tree with Julia 
+    mathematical operators substituted for user operators.
+- Evaluate the expression to create a `BitVector`.
 
 ## Arguments 
-- `s`        : A logical string.
-- `simplify` : If `true` simplify the logical expression before 
-                creating the `BitVector`.
+- `s :: String`      -- A logical string.
+- `simplify :: Bool` -- If `true` simplify the logical expression before 
+                        creating the `BitVector`.
 ## Examples
-- `create_bool_rep("(z1 + z2) * z3")
+- `create_bool_rep("(z1 + z2) * z3")`
 
 ## Return
-A `BitVector` representing the logical expression.
+`BitVector` -- representing the logical expression.
 """
 function create_bool_rep(s::String, simplify=false)
     global logic_size
@@ -523,6 +532,25 @@ function create_bool_rep(s::String, simplify=false)
     Blogic(s, String(ar[1]), val)
 end
 
+"""
+    isEquiv(f1::String, f2::String)
 
+Determines if two logical functions are equivalent.
+
+## Arguments
+- `f1 :: String` -- Formula 1.
+- `f2 :: String` -- Formula 2.
+
+## Return
+`Bool` -- `true` if the formulas are equivalent; `false` otherwise.
+
+"""
+function isEquiv(f1::String, f2::String)
+    b = create_bool_rep( "( " * f1 * ") ⊕ " * " ( " * f2 * " )" )
+    lc = logicCount(b)
+    return( lc == 0 ? true : false )
+end
+
+    
 end # module Boolean
 
