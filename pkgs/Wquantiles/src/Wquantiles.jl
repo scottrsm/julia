@@ -20,6 +20,10 @@ end
 
 Finds the `q` weighted quantile values from the vector `x`.
 
+## Type Constraints
+- `S <: Real`
+- `V <: Real`
+
 ## Arguments
 - `x  ::Vector{T}`: Vector(n) of values from which to find quantiles.
 - `w  ::Vector{S}`: Vector(n) of weights to use.
@@ -135,6 +139,10 @@ end
 
 Finds the `q` weighted quantile values from the columns of the matrix `X`.
 
+## Type Constraints
+- `S <: Real`
+- `V <: Real`
+
 ## Arguments
 - `X  ::Matrix{T}`: Matrix(n,m) of values from which to find quantiles.
 - `w  ::Vector{S}`: Vector(n) of weights to use.
@@ -200,6 +208,10 @@ end
     WquantileM(X, w, q[; chk=true])
 
 Finds the `q` weighted quantile values from the columns of the matrix `X`.
+
+## Type Constraints
+- `S <: Real`
+- `V <: Real`
 
 ## Arguments
 - `X  ::Matrix{T}`: Matrix(n,m) of values from which to find quantiles.
