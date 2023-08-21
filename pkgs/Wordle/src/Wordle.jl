@@ -291,6 +291,7 @@ to pass in a guessing strategy function.
                      in the current universe.
 - `ul`             : The lower threshold size of the filtered Wordle universe.
 - `uu`             : The upper threshold size of the filtered Wordle universe.
+- `init_guess`     : The starting guess to use.
 
 Here, 
 - `exact_info` has the form: `[(LETTER, POSITION) ...]`
@@ -311,12 +312,12 @@ Here,
 
 ## Examples
     Input : solve_wordle("taste")
-    Output: (Any[("which", Tuple{Char, Int64, Char}[], 3034), 
-                 ("about", Tuple{Char, Int64, Char}[], 1382), 
-                 ("after", Tuple{Char, Int64, Char}[], 133), 
-                 ("state", [('t', 4, 'E'), ('e', 5, 'E')], 44), 
-                 ("taste", [('t', 1, 'E'), ('a', 2, 'E'), ('s', 3, 'E'), ('t', 4, 'E'), ('e', 5, 'E')], 2)
-                ], 5, :SUCCESS)
+    @test res == (Any[
+                      ("their", [('t', 1)], 3027), 
+                      ("taken", [('t', 1), ('a', 2)], 31), 
+                      ("table", [('t', 1), ('a', 2), ('e', 5)], 5), 
+                      ("taste", [('t', 1), ('a', 2), ('s', 3), ('t', 4), ('e', 5)], 2), 
+                     ], 4, :SUCCESS)  
 
 ###  Input Contract
 - `universe_df` schema is (:word, :freq)
@@ -334,6 +335,7 @@ function solve_wordle(puzzle_word :: String                      , # Puzzle word
                       guess_strategy               = nothing     , # Function to pick the next guess.
                       ul          :: Int64         = 20          , # Used if function guess_strategy given.
                       uu          :: Int64         = 50          , # Used if function guess_strategy given.
+                      init_guess  :: String        = "their"     , # Starting guess to use.
                      ):: Tuple{Any, Int64, Symbol}
 
     ## Check input contract?
@@ -362,7 +364,7 @@ function solve_wordle(puzzle_word :: String                      , # Puzzle word
     ##  in the current universe -- except for the very first guess.
     guess = univs[1]
     if last_guess == ""
-        guess = "their"
+        guess = init_guess
     else 
         univs = filter(x -> x != last_guess, univs)
         if length(univs) == 0
