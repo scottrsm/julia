@@ -63,11 +63,15 @@ Here, the dictionary has the in-exact match information:
     non-exact match info.
 
 ## Examples
-    `(winfo, d) = create_wordle_info("which", "where")`
-    Output: `([('w', 1), ('h', 2)], Dict('h' => (0, 0), 'c' => (0, 0), 'i' => (0, 0)))`
+```jdoctest
+julia> create_wordle_info("which", "where")
+([('w', 1), ('h', 2)], Dict('h' => (0, 0), 'c' => (0, 0), 'i' => (0, 0)))
+```
 
-     `(winfo, d) = create_wordle_info("teens", "where")`
-    Output: `([('e', 3)], Dict('n' => (0, 0), 's' => (0, 0), 't' => (0, 0), 'e' => (1, 1)))`
+```jdoctest
+julia> create_wordle_info("teens", "where")
+([('e', 3)], Dict('n' => (0, 0), 's' => (0, 0), 't' => (0, 0), 'e' => (1, 1)))
+```
 """
 function create_wordle_info(guess :: String, # Guess
                             pword :: String, # Puzzle word
@@ -129,14 +133,18 @@ Filter an existing universe of words based on match info.
    from `wordle_info`.
 
 ## Examples
-    Input : (winfo, d)= create_wordle_info("which", "where")
-             words    = ["state", "which", "where", "child", "there", "taste"]
-    Output: (winfo, d)= 
-    ([('w', 1), ('h', 2)], Dict('h' => (0, 0), 'c' => (0, 0), 'i' => (0, 0)))
-            
-    Input : filter_words = filter_universe((winfo, d), words)
-    Output: filter_words = 1-element Vector{String}:
-                                     "where"
+```jdoctest
+julia> (winfo, d) = create_wordle_info("which", "where")
+
+([('w', 1), ('h', 2)], Dict('h' => (0, 0), 'c' => (0, 0), 'i' => (0, 0)))
+
+julia> words = ["state", "which", "where", "child", "there", "taste"]
+
+julia> filter_universe((winfo, d), words)
+
+1-element Vector{String}:
+ "where"
+```                            
 """
 function filter_universe(wordle_info :: Tuple{Vector{Tuple{Char, Int64}}, Dict{Char, Tuple{Int64, Int64}}},
                          words       :: Vector{String}                                                    ,
@@ -148,7 +156,7 @@ function filter_universe(wordle_info :: Tuple{Vector{Tuple{Char, Int64}}, Dict{C
     end
 
     ## Destructure the `worlde_info`, get the length of the words 
-    ## used in word lists.
+    ## used in word lists.
     (winfo, d) = wordle_info
     word_len = length(words[1])
 
@@ -311,13 +319,14 @@ Here,
               increased by 1, but the function did not recurse.
 
 ## Examples
-    Input : solve_wordle("taste")
-    @test res == (Any[
-                      ("their", [('t', 1)], 3027), 
-                      ("taken", [('t', 1), ('a', 2)], 31), 
-                      ("table", [('t', 1), ('a', 2), ('e', 5)], 5), 
-                      ("taste", [('t', 1), ('a', 2), ('s', 3), ('t', 4), ('e', 5)], 2), 
-                     ], 4, :SUCCESS)  
+```jdoctest
+julia> solve_wordle("taste")
+
+(Any[("their", [('t', 1)], 3027), 
+     ("taken", [('t', 1), ('a', 2)], 31), 
+     ("table", [('t', 1), ('a', 2), ('e', 5)], 5), 
+     ("taste", [('t', 1), ('a', 2), ('s', 3), ('t', 4), ('e', 5)], 2)], 4, :SUCCESS)
+```
 
 ###  Input Contract
 - `universe_df` schema is (:word, :freq)

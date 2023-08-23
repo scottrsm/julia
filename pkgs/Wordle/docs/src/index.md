@@ -1,22 +1,22 @@
-# Wquantiles.jl Documentation
+# Wordle.jl Documentation
 
 ```@meta
-CurrentModule = Wquantiles
+CurrentModule = Wordle
 ```
 
 ## Functions
 
 ```@docs
-wquantile(::Vector{T}, ::Vector{S}, ::Vector{V}; ::Bool = true, ::Bool = true, ::Bool = true) where {T, S <: Real, V <: Real}
+create_wordle_info
 ```
 
 
 ```@docs
-Wquantile
+filter_universe
 ```
 
 ```@docs
-WquantileM
+solve_wordle
 ```
 
 
