@@ -191,7 +191,7 @@ This structure will allow us to compare poker hands.
 - `subr::SPHrep`  -- The lower level representation.
 
 ## Constructors
--`PHrep(pt::PokerType, sr::SPHrep)`
+- `PHrep(pt::PokerType, sr::SPHrep)`
 """
 struct PHrep
     pt::PokerType
@@ -323,13 +323,21 @@ If a tie appears (say with a hand that has type `TwoPairs`) sort by the larger o
     
 ## Examples
 - Example 1: The raw (sorted by rank) hand): 
-        `[ Card(Spade, 10), Card(Club, 10), Card(Diamond, 2), Card(Club, 2), Card(Heart, 2) ]`
-        
-  Becomes: `[(2, [Heart, Club, Diamond]), (10, [Club, Spade])]`
-- Example 2: The raw (sorted by rank) hand): 
-        `[ Card(Spade, 10), Card(Club, 10), Card(Diamond, Ace), Card(Heart, Ace), Card(Club, Jack) ]`
+```jdoctest
+julia> pokerHandSubRep([ Card(♠, Ten), Card(♣, Ten), Card(♦, Two), Card(♣, Two), Card(♥, Two) ])
 
-  Becomes: `[ (Ace, [Heart, Diamond]), (10, [Club, Spade]), (Jack, [Club]) ]`
+    Two   -- [♥, ♣, ♦]
+    Ten   -- [♣, ♠]
+```
+- Example 2: The raw (sorted by rank) hand): 
+
+```jdoctest
+julia> pokerHandSubRep([ Card(♠, Ten), Card(♣, Ten), Card(♦, Ace), Card(♥, Ace), Card(♣, Jack) ])
+
+    Ace   -- [♥, ♦]
+    Ten   -- [♣, ♠]
+    Jack  -- [♣]
+```
    
 ## Arguments
 - `vs` -- A rank-sorted Card vector.
