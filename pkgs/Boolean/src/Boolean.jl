@@ -32,7 +32,14 @@ rather than the one provided here.
 `Blogic(form::String, v::String, value::BitVector)`
 
 ## Examples
-- `Blogic("(z1 + z2) * z3", BitVector(Bool[0, 0, 0, 0, 0, 1, 1, 1]))` 
+```jdoctest
+julia> Blogic("(z1 + z2) * z3", "z", BitVector(Bool[0, 0, 0, 0, 0, 1, 1, 1]))
+
+Formula    = (z1 + z2) * z3
+Variable   = z
+Size       = 3
+Bit vector = Bool[0, 0, 0, 0, 0, 1, 1, 1]
+```
 
 This is the logic (boolean) formula that ORs `z1` and `z2`, 
         then ANDs that with `z3`.
@@ -501,7 +508,14 @@ Turn boolean formula into a `BitVector` representation, `Blogic`.
 - `simplify :: Bool` -- If `true` simplify the logical expression before 
                         creating the `BitVector`.
 ## Examples
-- `create_bool_rep("(z1 + z2) * z3")`
+```jdoctest
+julia> create_bool_rep("(z1 + z2) * z3")
+
+Formula    = (z1 + z2) * z3
+Variable   = z
+Size       = 3
+Bit vector = Bool[0, 0, 0, 0, 0, 1, 1, 1]
+```
 
 ## Return
 `::Blogic` -- Type representing the logical expression.
