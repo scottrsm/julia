@@ -2,14 +2,15 @@ using Test
 using Random
 using Cards
 
-@testset "Cards" begin
+@testset "Test Module Fidelity" begin
+    @test length(detect_ambiguities(Cards)) == 0
+end
+
+@testset "Cards Test" begin
     Random.seed!(1)
     d = Deck()
     shuffle!(d)
 
-    @testset "Ambiguities" begin
-        @test length(detect_ambiguities(Cards)) == 0
-    end
 
     ## Deal two random hands.
     h1 = pokerHand([Card(♥, Four), Card(♦, Jack), Card(♣, Six), Card(♦, King), Card(♠, Six)])

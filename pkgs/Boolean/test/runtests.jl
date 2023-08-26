@@ -2,14 +2,17 @@
 using Test
 using Boolean
 
+
+@testset "Test Module Fidelity" begin
+    @test length(detect_ambiguities(Boolean)) == 0
+end
+
 @testset "Boolean" begin
     ## Set up
     init_logic(3)
     f1 = "x1 + x2 * x3"
     f2 = "(x1 * x3) ⊕ (x2 * x3)"
 
-    ## Test Module for function ambiguities.
-    @test length(detect_ambiguities(Boolean)) == 0
 
     ## Tests Functions
     @test create_bool_rep("z1 + z2") == Blogic("z1 + z2", "z", BitVector(Bool[0, 1, 1, 1, 0, 1, 1, 1]))

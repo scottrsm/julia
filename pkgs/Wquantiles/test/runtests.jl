@@ -1,10 +1,11 @@
 using Test
 using Wquantiles
 
-@testset "wquantiles Types" begin
-
-    ## Test for module ambuiguities.
+@testset "Test Module Fidelity" begin
     @test length(detect_ambiguities(Wquantiles)) == 0
+end
+
+@testset "wquantiles Types" begin
 
     @test wquantile([1,3,5,7,9,11,15,7,9,11], [1,1,2,1,1,2,1,3,5,1], [0.25, 0.5, 0.6, 0.75])             == [7, 9, 11, 11]
     @test wquantile([1,3,5,7,9,11,15,7,9,11], [1.,1.,2.,1.,1.,2.,1.,3.,5.,1.], [1//4, 1//2, 3//5, 3//4]) == [7, 9, 11, 11]

@@ -1,10 +1,11 @@
 using Test
 using Wordle
 
-@testset "create_wordle_info" begin
-
-    ## Test for module ambuiguities.
+@testset "Test Module Fidelity" begin
     @test length(detect_ambiguities(Wordle)) == 0
+end
+
+@testset "create_wordle_info" begin
 
     winfo, d = create_wordle_info("which", "where")
     @test  winfo == [('w', 1), ('h', 2)]
