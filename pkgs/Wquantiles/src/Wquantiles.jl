@@ -40,7 +40,7 @@ Finds the `q` weighted quantile values from the vector `x`.
 
 ### Input Contract
 - The type of `x` implements sortable.
--    `|x|  = |w|`     -- Length of `x` matches length of weights.
+-    `|x| == |w|`     -- Length of `x` matches length of weights.
 - `∀i,  w[i] >= 0`    -- The weights are non-negative.
 -    `Σ w[i] >  0`    -- The sum of the weights is positive.
 - `∀i,  q[i] <= 1`    -- The quantile values are in ``[0,1]``.
@@ -158,7 +158,7 @@ Finds the `q` weighted quantile values from the columns of the matrix `X`.
    **NOTE:** If `sort_q` is `false`, it is *ASSUMED* that `q` is already sorted.
 ### Input Contract
 -  The type of `X` implements sortable.
-- `∀i, |X[:, i]|   = |w|` -- Length of each column of `X` matches length of weights.
+- `∀i, |X[:, i]|  == |w|` -- Length of each column of `X` matches length of weights.
 - `∀i,      w[i]  >= 0`   -- Weights are non-negative.
 - `Σ w[i]  >  0`          -- The sum of the weights is positive.
 - `∀i,      q[i]  <= 1`   -- The quantiles values are in ``[0,1]``.
@@ -223,7 +223,7 @@ Finds the `q` weighted quantile values from the columns of the matrix `X`.
 
 ### Input Contract
 -  The type of `X` is sortable.
-- `∀i, |X[:, i]|  = |w|` -- Length of each column of `X` matches length of weights.
+- `∀i, |X[:, i]| == |w|` -- Length of each column of `X` matches length of weights.
 - `∀i,      w[i] >= 0`   -- Weights are non-negative.
 - `Σ w[i] >  0`          -- The sum of the weights is positive.
 - `∀i, 0 <= q[i] <= 1`   -- The quantiles values are in ``[0,1]``.
