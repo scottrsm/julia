@@ -269,7 +269,7 @@ end
     solve_wordle(puzzle_word, universe_df, rec_count, sol_path, last_guess, 
                     lfa[; chk_inputs, guess_strategy])
 
-Solves a Wordle puzzle.
+Solves a NYT Wordle puzzle.
 
 By default, makes guesses based on the most frequently used 
 word in the universe passed in. However, there is an option
@@ -329,10 +329,12 @@ julia> solve_wordle("taste")
 ```
 
 ###  Input Contract
-- `universe_df` schema is (:word, :freq)
-- If `words` is an N-vector of the words from `universe_df`, then
-    - `∃ m > 0, ∀ i∈[1,N], |words[i]| = m`  (All the words in `universe_df` have the same length.)
-- `words = words[argsort[universe_df[:freq]]]` (Words are sorted from highest to lowest word usage.)
+- `universe_df` schema is (:word, :freq). Define `words`, `freq`, and `N` by: 
+    - `words = universe_df[:words]`; 
+    - `freq  = universe[:freq]`;
+    - `N     = |universe|` 
+- `∃ m > 0, ∀ i∈[1,N], |words[i]| == m` ``\\quad`` (All the words in `universe_df` have the same length. )
+- `words == words[argsort[freq]]`       ``\\quad`` (Words are sorted from highest to lowest word *usage*.)
 """
 function solve_wordle(puzzle_word :: String                      , # Puzzle word.
                       universe_df :: DataFrame     = WORDLE_DF   , # Wordle database as DataFrame.
