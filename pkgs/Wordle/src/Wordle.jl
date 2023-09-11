@@ -5,6 +5,12 @@ export create_wordle_info, filter_universe, freq_letter_strat, solve_wordle
 using DataFrames
 import CSV
 
+struct NotSorted <: Exception
+    var::String
+end
+
+Base.show(io::IO, e::NotSorted) = print(io, "Words are NOT sorted by $(e.var)")
+
 ## LFA is an ordering of the alphabet based on letter frequency 
 ## from some corpus of text.
 const LFA = collect("etaoinshrdlcumwfgypbvkjxqz")
@@ -352,7 +358,8 @@ function solve_wordle(puzzle_word :: String                      , # Puzzle word
     ## Check input contract?
     if chk_inputs && rec_count == 1
         ## 1. Does `universe_df` have the correct schema?
-        @assert(Set(names(universe_df)) == Set(["word", "freq"]))
+        
+        Set(names(universe_df)) != Set(["word", "freq"])   && throw(DomainError(0, "The column names of `universe_df` are not correct."))
 
         ## 2. Do :words from `universe_df` have the same length?
         words = universe_df[!, :word]
@@ -361,11 +368,11 @@ function solve_wordle(puzzle_word :: String                      , # Puzzle word
         for word in words
             dw[word] = 1 + get(dw, word, 0)
         end
-        @assert(length(values(dw)) > 1)
+        length(values(dw)) <= 1   && throw(DomainError(0, "Their is at most one word in the `universe_df`."))
         dw = nothing # Set for garbage collection.
 
         ## 3. Is `universe_df` sorted from highest to lowest word usage?
-        @assert(words[sidx] == words)
+        words[sidx] != words  &&  throw(NotSorted("usage frequency"))
     end
 
     ## Get a reference to the Wordle universe.

@@ -4,6 +4,14 @@ export wquantile, Wquantile, WquantileM
 
 import Folds
 
+## Exception for non-sortable types.
+struct NotSortable <: Exception
+    var::String
+end
+
+## How to print NotSortable Exception.
+Base.show(io::IO, e::NotSortable) = print(io, "Type, \"$(e.var)\", is NOT sortable.")
+
 ## Make a sortable Trait.
 function isSortable(::Type{T}) :: Bool where {T <: Number}
     x = one(T)
@@ -68,8 +76,8 @@ function wquantile(x::Vector{T}, w::Vector{S}, q::Vector{V};
 
     ## Check input contract...
     if chk
-        @assert(isSortable(T))               #  x sortable?
-        @assert(n == length(w))              # |x| = |w| ?
+        !isSortable(T)  && throw(NotSortable(string(T)))
+        n != length(w)  && throw(DomainError(0, "`x` and `w` do not have the same length."))
     end
 
     ## Get the permutation of indices that sort `x`.
@@ -80,9 +88,9 @@ function wquantile(x::Vector{T}, w::Vector{S}, q::Vector{V};
 
     ## Check input contract...
     if chk
-        @assert(all(wsc   .>= zeroq)      )  # ∀i,      w[i] >= 0  -- (Weights are non-negative?)
-        @assert(sum(wsc)    > zeroq       )  #        Σ w[i]  > 0  -- (The sum of the weights is positive?)
-        @assert(all(zeroq .<= q .<= oneq) )  # ∀i, 0 <= q[i] <= 1  -- (Quantile values are in [0,1]?)
+        !all(wsc .>= zeroq)          && throw(DomainError(0, "`wsc`: Some weights are negative."))
+        !(sum(wsc) >  zeroq)         && throw(DomainError(0, "`wsc`: The sum of the weights is NOT > 0."))
+        !all(zeroq .<= q .<= oneq)   && throw(DomainError(0, "`q`  : Some quantiles are NOT in the interval, [0,1].")) 
     end
 
     ## Normalize sorted weights?
@@ -247,8 +255,8 @@ function WquantileM(X::Matrix{T}, w::Vector{S}, q::Vector{V};
 
     ## Check input contract...
     if chk
-        @assert(isSortable(T))               # x sortable?
-        @assert(n == length(w))              # ∀i, |X[:,i]| = |w| ?
+        !isSortable(T)  && throw(NotSortable(string(T)))
+        n != length(w)  && throw(DomainError(0, "`x` and `w` do not have the same length."))
     end
 
     ## Convert weights.
@@ -256,9 +264,9 @@ function WquantileM(X::Matrix{T}, w::Vector{S}, q::Vector{V};
 
     ## Check input contract...
     if chk
-        @assert(all(wc     .>= zeroq         )  )  # ∀i,       wc[i]  >= 0 -- (non-neg weights?)
-        @assert(sum(wc)    .>  zeroq            )  #         Σ wc[i]  >  0 -- (sum of weights is positive?)
-        @assert(all(zeroq  .<= q     .<= oneq)  )  # ∀i,  0 <= q[i]   <= 1 -- (quantile values are in [0,1]?)
+        !all(wc .>= zeroq)           && throw(DomainError(0, "`wc`: Some weights are negative."))
+        !(sum(wc) >  zeroq)          && throw(DomainError(0, "`wc`: The sum of the weights is NOT > 0."))
+        !all(zeroq .<= q .<= oneq)   && throw(DomainError(0, "`q`  : Some quantiles are NOT in the interval, [0,1].")) 
     end
 
     ## Get the permutation of indices that sort the columns of `X`. This will be used to create
