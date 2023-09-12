@@ -1,12 +1,15 @@
 ## Julia Projects
 
-### Module Cards
-Provides code to play a version of poker.
-
 ### Module Boolean
 Provides ways to compare two boolean functions.
 It uses an internal representation of boolean functions as bit-vectors and 
 uses macros to provide a more intuitive external representation.
+
+### Module Cards
+Provides code to play a version of poker.
+
+### Module Finance
+A module containing utilites for some redimentary signal analysis.
 
 ### Module Wordle
 Solves the NYT Wordle puzzle.
