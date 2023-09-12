@@ -1,5 +1,8 @@
 ## Julia Projects
 
+Will add Travis-ci documentation generation soon.
+
+
 ### Module Boolean
 Provides ways to compare two boolean functions.
 It uses an internal representation of boolean functions as bit-vectors and 
