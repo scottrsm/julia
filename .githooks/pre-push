@@ -30,9 +30,16 @@ for module in $MODULES; do
         echo -e "\n${red}ERROR - Tests must pass before push!\n${no_color}"
         exit 1
     else
-        echo -e "\n\n${blue} $module: Tests passed!\n${no_color}"
+        module_base_name=$(basename "$module")
+        echo -e "\n\n${blue} $module_base_name: Tests passed!\n${no_color}"
         echo -e "${yellow} $ok"
     fi
 done
 
-echo -e "\n\n${green}Git hook was SUCCESSFUL!${no_color}\n"
+echo -e "\n\n---------------------------------------------\n"
+echo -e "-------  ${green}Git hook was SUCCESSFUL!${no_color}  -------\n"
+echo -e "---------------------------------------------\n"
+
+## Exit successfully
+exit 0
+
