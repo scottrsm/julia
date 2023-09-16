@@ -4,4 +4,4 @@ julia:
   - nightly
 
 git:
-  depth: falseo
+  depth: false
