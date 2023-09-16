@@ -36,9 +36,9 @@ for module in $MODULES; do
     fi
 done
 
-echo -e "\n\n---------------------------------------------\n"
-echo -e "-------  ${green}Git hook was SUCCESSFUL!${no_color}  -------\n"
-echo -e "---------------------------------------------\n"
+echo -e "\n\n----------------------------------------------"
+echo -e "---------  ${green}Git hook was SUCCESSFUL!${no_color}  ---------"
+echo -e "----------------------------------------------\n"
 
 ## Exit successfully
 exit 0
