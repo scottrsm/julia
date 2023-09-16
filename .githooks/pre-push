@@ -1,41 +1,48 @@
 #!/bin/bash
-#
-# To enable this hook, rename this file to "pre-push".
-# Remember to make it executable with: chmod +x
 
+## Get the top level directory of the repo.
+repo_top=$(git rev-parse --show-toplevel)
+
+## Configuration Parameters for this script.
+JULIA_EXEC=julia
+MODULES="$repo_top/pkgs/*"
+TEST_DIR="test"
+TEST_RUN_SCRIPT="runtests.jl"
+
+
+## ASCII colors.
 red='\033[0;31m'
 green='\033[1;32m'
 yellow='\033[0;33m'
 blue='\033[0;34m'
 no_color='\033[0m'
-reponame=$(git rev-parse --show-toplevel)
 
-MODULES="$reponame/pkgs/*"
-TEST_DIR="test"
-TEST_RUN_SCRIPT="runtests.jl"
-
-
+## 1. ANNOUNCE THE RUNNING OF REPO TESTS.
 echo -e "\n${blue}Running pre-push hook\n${no_color}"
-echo "Testing $reponame"
+echo "Testing $repo_top"
 
+
+## 2. RUN MODULE TESTS...
 ## Loop over all modules...
 for module in $MODULES; do
 
     ## Run the tests for each module.
-    ok=$(julia --project=@. "$module/$TEST_DIR/$TEST_RUN_SCRIPT")
+    ok=$($JULIA_EXEC --project=@. "$module/$TEST_DIR/$TEST_RUN_SCRIPT")
     cmd_status=$?
 
     ## If bad status, error --leave with non-zero exit status (pre-push hook failed).
     if [[ $cmd_status -ne 0 ]]; then
         echo -e "\n${red}ERROR - Tests must pass before push!\n${no_color}"
         exit 1
-    else
+    else # Otherwise, announce module success.
         module_base_name=$(basename "$module")
         echo -e "\n\n${blue} $module_base_name: Tests passed!\n${no_color}"
         echo -e "${yellow} $ok"
     fi
 done
 
+
+### 3. FINISH
 echo -e "\n\n----------------------------------------------"
 echo -e "---------  ${green}Git hook was SUCCESSFUL!${no_color}  ---------"
 echo -e "----------------------------------------------\n"
