@@ -3,7 +3,7 @@ using Test
 using Boolean
 
 
-@testset "Test Module Fidelity" begin
+@testset "Test Module \"Boolean\" Fidelity" begin
     @test length(detect_ambiguities(Boolean)) == 0
 end
 

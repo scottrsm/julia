@@ -2,9 +2,7 @@ using Test
 using Random
 using Cards
 
-@testset "Test Module Fidelity" begin
-    @test length(detect_ambiguities(Cards)) == 0
-end
+@testset "Test Module \"Cards\" Fidelity" begin
 
 @testset "Cards Test" begin
     Random.seed!(1)

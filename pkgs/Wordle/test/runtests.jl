@@ -1,7 +1,7 @@
 using Test
 using Wordle
 
-@testset "Test Module Fidelity" begin
+@testset "Test Module \"Wordle\" Fidelity" begin
     @test length(detect_ambiguities(Wordle)) == 0
 end
 

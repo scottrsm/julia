@@ -1,7 +1,7 @@
 using Test
 using Wquantiles
 
-@testset "Test Module Fidelity" begin
+@testset "Test Module \"Wquantiles\" Fidelity" begin
     @test length(detect_ambiguities(Wquantiles)) == 0
 end
 

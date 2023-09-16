@@ -40,7 +40,7 @@ ema_std_gold[10] = [0.39657167182108954, 0.37089544160218185, 0.3666404749231677
 #--------------      TESTS       ----------------------------------------
 #------------------------------------------------------------------------
 #
-@testset "Test Module Fidelity" begin
+@testset "Test Module \"Finance\" Fidelity" begin
 
     @test length(detect_ambiguities(Finance)) == 0
 end
