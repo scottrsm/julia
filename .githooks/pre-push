@@ -4,7 +4,7 @@
 # Remember to make it executable with: chmod +x
 
 red='\033[0;31m'
-green='\033[0;32m'
+green='\033[1;32m'
 yellow='\033[0;33m'
 blue='\033[0;34m'
 no_color='\033[0m'
@@ -30,7 +30,7 @@ for module in $MODULES; do
         echo -e "\n${red}ERROR - Tests must pass before push!\n${no_color}"
         exit 1
     else
-        echo -e "\n\n${blue} Tests passed!\n${no_color}"
+        echo -e "\n\n${blue} $module: Tests passed!\n${no_color}"
         echo -e "${yellow} $ok"
     fi
 done
