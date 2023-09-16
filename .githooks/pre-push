@@ -10,20 +10,29 @@ blue='\033[0;34m'
 no_color='\033[0m'
 reponame=$(git rev-parse --show-toplevel)
 
+MODULES="$reponame/pkgs/*"
+TEST_DIR="test"
+TEST_RUN_SCRIPT="runtests.jl"
+
 
 echo -e "\n${blue}Running pre-push hook\n${no_color}"
 echo "Testing $reponame"
 
-for module in $reponame/pkgs/*; do
-    ok=$(julia --project=@. "$module/test/runtests.jl")
+## Loop over all modules...
+for module in $MODULES; do
 
-    if [[ $? -ne 0 ]]; then
+    ## Run the tests for each module.
+    ok=$(julia --project=@. "$module/$TEST_DIR/$TEST_RUN_SCRIPT")
+    cmd_status=$?
+
+    ## If bad status, error --leave with non-zero exit status (pre-push hook failed).
+    if [[ $cmd_status -ne 0 ]]; then
         echo -e "\n${red}ERROR - Tests must pass before push!\n${no_color}"
         exit 1
     else
-        echo -e "\n${green} Tests passed!\n${no_color}"
-        echo -e "\n${yellow} $ok"
+        echo -e "\n\n${blue} Tests passed!\n${no_color}"
+        echo -e "${yellow} $ok"
     fi
 done
 
-echo -e "${green}Git hook was SUCCESSFUL!${no_color}\n"
+echo -e "\n\n${green}Git hook was SUCCESSFUL!${no_color}\n"
