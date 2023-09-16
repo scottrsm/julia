@@ -25,18 +25,35 @@ echo -e "\n${blue}Running pre-push hook for REPO: ${yellow}\"${repo_top}\"\n${no
 ## Loop over all modules...
 for module in $MODULES; do
 
-    ## Run the tests for each module.
+    ## Check module directory structure...
+    ## Need module to be a directory with a test subdirectory and a runscript.
+    if [[ ! -d $module ]]; then
+        echo -e "${red}ERROR: \"$module\" is NOT a directory.${no_color}"
+        exit 1
+    fi
+    if [[ ! -d $module/$TEST_DIR ]]; then
+        echo -e "${red}ERROR: \"$module/$TEST_DIR\" is NOT a directory.${no_color}"
+        exit 2
+    fi
+    if [[ ! -f $module/$TEST_DIR/$TEST_RUN_SCRIPT ]]; then
+        echo -e "${red}\"$module/$TEST_DIR/$TEST_RUN_SCRIPT\" does NOT exist.${no_color}"
+        exit 3
+    fi
+
+    ## Run the tests for this module.
     ok=$($JULIA_EXEC --project=@. "$module/$TEST_DIR/$TEST_RUN_SCRIPT")
     cmd_status=$?
 
-    ## If bad status, error --leave with non-zero exit status (pre-push hook failed).
+    ## If any test failed, error --leave with non-zero exit status (pre-push hook failed).
     if [[ $cmd_status -ne 0 ]]; then
-        echo -e "\n${red}ERROR - Tests must pass before push!\n${no_color}"
-        exit 1
+        echo -e "\n${red}ERROR: Some tests failed. All tests must pass before push to remote is allowed!\n${no_color}"
+        echo -e "${red}Details of Failure:\n${no_color}"
+        echo -e "$ok"
+        exit 4
     else # Otherwise, announce module success.
         module_base_name=$(basename "$module")
         echo -e "\n\n${blue} ${module_base_name}: Tests passed!\n${no_color}"
-        echo -e "${yellow} $ok"
+        echo -e "${yellow}$ok"
     fi
 done
 
