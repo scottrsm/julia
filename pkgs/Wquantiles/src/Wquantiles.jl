@@ -60,7 +60,7 @@ Letting `qs` be the sorted quantiles of `q`.
 The entry `i` is the ``i^{\\rm th}`` quantile (in `qs`) of `x`.
 
 """
-function wquantile(x::Vector{T}, w::Vector{S}, q::Vector{V};
+@noinline function wquantile(x::Vector{T}, w::Vector{S}, q::Vector{V};
                    chk::Bool = true, norm_wgt::Bool = true, sort_q::Bool = true) :: Vector{T} where {T, S <: Real, V <: Real}
     ## We report back the quantiles of `x` in sorted `q` order, so we need to sort `q`.
     ## **NOTE:** If we don't explicitly sort `q`, it means that you are *ASSUMING* `q` is sorted.

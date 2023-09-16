@@ -60,7 +60,7 @@ The inputs are assumed to satisfy the constraints below.
 ## Return
 :: Vector{T}
 """
-function tic_diff1(t::Vector{S}         , 
+@noinline function tic_diff1(t::Vector{S}         , 
                    x::Vector{T}         ;
                    chk_inp::Bool = false,
                   ) :: Vector{T} where {S <: Real, T <: Real}
@@ -74,7 +74,7 @@ function tic_diff1(t::Vector{S}         ,
 
     tc = map(x -> convert(T, x), t)
     df = zeros(T, n-2)
-    for i in 2:(n-1)
+    @simd for i in 2:(n-1)
         @inbounds h1 = tc[i  ] - tc[i-1]
         @inbounds h2 = tc[i+1] - tc[i  ]
         @inbounds df[i] = (x[i+1] - x[i-1]) / (h1 + h2)
@@ -113,7 +113,7 @@ The inputs are assumed to satisfy the constraints below.
 ## Return
 :: Vector{T}
 """
-function tic_diff2(t::Vector{S}, 
+@noinline function tic_diff2(t::Vector{S}, 
                    x::Vector{T};
                    chk_inp::Bool = false,
                   ) :: Vector{T} where {S <: Real, T <: Real}
@@ -127,7 +127,7 @@ function tic_diff2(t::Vector{S},
 
     tc = map(x -> convert(T, x), t)
     df = zeros(T, n-2)
-    for i in 2:(n-1)
+    @simd for i in 2:(n-1)
         @inbounds h1 = tc[i  ] - tc[i-1]
         @inbounds h2 = tc[i+1] - tc[i  ]
         @inbounds df[i] = (h2 * x[i+1] - (h1 + h2) * x[i] + h1 * x[i-1]) / (h1 * h2 * (h1 + h2))
@@ -263,7 +263,7 @@ The inputs are assumed to satisfy the constraints below.
 ema::Vector{T}
 
 """
-function ema(x :: Vector{T}              , 
+@noinline function ema(x :: Vector{T}    , 
              m :: Int64                  ; 
              h = div(m, 2) :: Int64      ,
             ) :: Vector{T} where { T <: Real }
@@ -283,14 +283,14 @@ function ema(x :: Vector{T}              ,
     l = exp(-log(2 * one(T)) / h)
 
     w[1] = l
-    for i in 2:m
+    @simd for i in 2:m
         @inbounds w[i] = l * w[i-1]
     end
     w ./= sum(w)
 
     ## Compute the EMA using the difference equation recursion.
     ma[1] = xadj[m+1]
-    for i in 2:N
+    @simd for i in 2:N
         @inbounds ma[i] =  l * (ma[i-1] - w[m] * xadj[i]) + w[1] * xadj[i+m]     
     end
 
@@ -336,10 +336,10 @@ The inputs are assumed to satisfy the constraints below.
 ## Return
 stda::Vector{T}
 """
-function ema_std(x                  :: Vector{T}        ,
-                 m                  :: Int64            ;
-                 h = div(m, 2)      :: Int64            ,
-                 init_sig = nothing :: Union{T, Nothing},
+@noinline function ema_std(x                  :: Vector{T}        ,
+                           m                  :: Int64            ;
+                           h = div(m, 2)      :: Int64            ,
+                           init_sig = nothing :: Union{T, Nothing},
                 )  :: Vector{T} where {T <: Real}
 
     N = length(x)
@@ -379,14 +379,14 @@ function ema_std(x                  :: Vector{T}        ,
     ## Use this to define the weights; then normalize.
     ## Weights go from large to small.
     w[1] = l
-    for i in 2:m
+    @simd for i in 2:m
         @inbounds w[i] = l * w[i-1]
     end
     w ./= sum(w)
     w2 = sum(w .* w)
 
     ## Recursive formula for variance.
-    for n in 1:(N-1)
+    @simd for n in 1:(N-1)
         @inbounds mvar[n+1] = l * (mvar[n] - xadj[n+1] * w[m]) + xadj[n+m+1] * w[1] 
     end
 
@@ -433,7 +433,7 @@ The inputs are assumed to satisfy the constraints below.
 ## Return
 stat::Matrix{T}
 """
-function ema_stats(x                :: Vector{T}        ,
+@noinline function ema_stats(x      :: Vector{T}        ,
                    m                :: Int64            ;
                    h                :: Int64 = div(m, 2),
                    init_sig=nothing :: Union{Nothing, T},
@@ -484,7 +484,7 @@ function ema_stats(x                :: Vector{T}        ,
     W3 = zero(T)
     W4 = zero(T)
     W5 = zero(T)
-    for i in 1:m
+    @simd for i in 1:m
         @inbounds wt = w[i]
         w2 = wt * wt
         W2 += w2
@@ -500,7 +500,7 @@ function ema_stats(x                :: Vector{T}        ,
 
     ## Recursion to compute the moving stats.
     for i in 1:4
-        for n in 1:(N-1)
+        @simd for n in 1:(N-1)
             @inbounds mstat[n+1, i] = l * (mstat[n,i] - xadj[n+1,i] * w[m]) + xadj[n+m+1,i] * w[1] 
         end
     end
@@ -535,16 +535,16 @@ The inputs are assumed to satisfy the constraints below.
 ## Return
 std::T -- The sample standard deviation.
 """
-function std(x::Vector{T}) where {T <: Real}
+@noinline function std(x::Vector{T}) where {T <: Real}
     sd = zero(T)
     mn = zero(T)
     N = length(x)
-    for i in 1:N
+    @simd for i in 1:N
         @inbounds mn += x[i]
     end
     mn /= N
 
-    for i in 1:N
+    @simd for i in 1:N
         @inbounds sd += (x[i] - mn) * (x[i] - mn)
     end
     return( sqrt(sd / (N-1)) )
@@ -567,13 +567,13 @@ Here, `N = |w|`.
 The above sum.
 
 """
-function WWsum(w::Vector{T}) :: T  where {T <: Real}
+@noinline function WWsum(w::Vector{T}) :: T  where {T <: Real}
     WW = zero(T)
     m = length(w)
     for i in 1:(m-1)
         @inbounds wwi = w[i] * w[i]
         wwj = zero(T)
-        for j in (i+1):m
+        @simd for j in (i+1):m
             @inbounds wwj += w[j] * w[j] 
         end
         WW += wwi * wwj
