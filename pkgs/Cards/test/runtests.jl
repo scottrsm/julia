@@ -3,6 +3,8 @@ using Random
 using Cards
 
 @testset "Test Module \"Cards\" Fidelity" begin
+    @test length(detect_ambiguities(Cards)) == 0
+end
 
 @testset "Cards Test" begin
     Random.seed!(1)
