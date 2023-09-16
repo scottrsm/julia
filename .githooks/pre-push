@@ -14,14 +14,15 @@ reponame=$(git rev-parse --show-toplevel)
 echo -e "\n${blue}Running pre-push hook\n${no_color}"
 echo "Testing $reponame"
 
-for module in $reponame/pkgs; do
+for module in $reponame/pkgs/*; do
     ok=$(julia --project=@. "$module/test/runtests.jl")
 
-    if [[ $ok -ne 0 ]]; then
+    if [[ $? -ne 0 ]]; then
         echo -e "\n${red}ERROR - Tests must pass before push!\n${no_color}"
         exit 1
     else
         echo -e "\n${green} Tests passed!\n${no_color}"
+        echo -e "\n${yellow} $ok"
     fi
 done
 
