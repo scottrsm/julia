@@ -33,3 +33,9 @@ of using data parallelization.
                          that your notebooks are running julia with multiple threads.
 
 
+DEV NOTES:
+
+You need to configure git using the following command:
+
+git config --local core.hooksPath .githooks/
+
