@@ -44,7 +44,8 @@ for module in $MODULES; do
     ok=$($JULIA_EXEC --project=@. "$module/$TEST_DIR/$TEST_RUN_SCRIPT")
     cmd_status=$?
 
-    ## If any test failed, error --leave with non-zero exit status (pre-push hook failed).
+    ## If any test failed, error -- leave with non-zero exit status 
+    ## THIS MEANS THAT THIS PRE-PUSH HOOK WILL FAIL.
     if [[ $cmd_status -ne 0 ]]; then
         echo -e "\n${red}ERROR: Some tests failed. All tests must pass before push to remote is allowed!\n${no_color}"
         echo -e "${red}Details of Failure:\n${no_color}"
@@ -58,11 +59,11 @@ for module in $MODULES; do
 done
 
 
-### 3. FINISH
+### 3. FINISH (if we get this far...)
 echo -e "\n\n---------------------------------------------------------"
 echo -e "---------  ${green}Git \"PRE-PUSH\" hook was SUCCESSFUL!${no_color}  ---------"
 echo -e "---------------------------------------------------------\n"
 
-## Exit successfully
+## PRE-PUSH HOOK SUCCESSFULL.
 exit 0
 
