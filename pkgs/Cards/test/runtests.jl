@@ -9,29 +9,29 @@ end
 @testset "Cards Test" begin
     Random.seed!(1)
     d = Deck()
-    shuffle!(d)
+    shuffle_deck!(d)
 
-
-    ## Deal two random hands.
-    h1 = pokerHand([Card(♥, Four), Card(♦, Jack), Card(♣, Six), Card(♦, King), Card(♠, Six)])
-    h2 = pokerHand([Card(♠, Two), Card(♥, Jack), Card(♠, Ten), Card(♦, Eight), Card(♦, Ten)])
-
-    ## Manually construct 4 more hands...
-    h3 = pokerHand([Card(♣, Ace), Card(♠, King), Card(♦, Queen), Card(♥, Jack), Card(♣, Ten)])
-    h4 = pokerHand([Card(♣, Ace), Card(♣, King), Card(♣, Queen), Card(♣, Jack), Card(♣, Ten)])
-    h5 = pokerHand([Card(♦, Ace), Card(♦, King), Card(♦, Queen), Card(♦, Jack), Card(♦, Ten)])
-    h6 = pokerHand([Card(♦, King), Card(♦, Queen), Card(♦, Jack), Card(♦, Ten), Card(♦, Nine)])
+    ## Manually construct 6 hands...
+    h1 = PokerHand([Card(Four, ♥ ), Card(Jack, ♦ ), Card(Six, ♣ ), Card(King, ♦ ), Card(Six, ♠ )])
+    h2 = PokerHand([Card(Two, ♠ ), Card(Jack, ♥ ), Card(Ten, ♠ ), Card(Eight, ♦ ), Card(Ten, ♦ )])
+    h3 = PokerHand([Card(Ace, ♣ ), Card(King, ♠ ), Card(Queen, ♦ ), Card(Jack, ♥ ), Card(Ten, ♣ )])
+    h4 = PokerHand([Card(Ace, ♣ ), Card(King, ♣ ), Card(Queen, ♣ ), Card(Jack, ♣ ), Card(Ten, ♣ )])
+    h5 = PokerHand([Card(Ace, ♦ ), Card(King, ♦ ), Card(Queen, ♦ ), Card(Jack, ♦ ), Card(Ten, ♦ )])
+    h6 = PokerHand([Card(King, ♦ ), Card(Queen, ♦ ), Card(Jack, ♦ ), Card(Ten, ♦ ), Card(Nine, ♦ )])
     
-    @testset "Testing poker hand comparisons of hands 0-6..." begin
-        @test pokerHandCmp(h1, h2) == true
-        @test pokerHandCmp(h1, h3) == true
-        @test pokerHandCmp(h2, h4) == true
-        @test pokerHandCmp(h4, h4) == true
-        @test pokerHandCmp(h5, h5) == true
-    end
+
+    dh1 = deal_hand!(d)
+    restore_deck!(d)
+    dh2 = deal_hand!(d)
 
     @test h1 == h1
     @test h1 != h2
-    @test h1 == PHrep(Cards.Pair, SPHrep([(Six, [♣, ♠]), (King, [♦]), (Jack, [♦]), (Four, [♥])]))
-    @test h2 == PHrep(Cards.Pair, SPHrep([(Ten, [♦, ♠]), (Jack, [♥]), (Eight, [♦]), (Two, [♠])]))
+    @test h1 < h2
+    @test h2 < h3
+    @test h3 < h4
+    @test h5 < h4
+    @test h6 < h5
+
+    @test dh1 == dh2
+
 end

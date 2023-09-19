@@ -5,22 +5,57 @@
     Can reset the deck, pulling in all cards from a previous game.
     Additionally, can play a round of vanilla poker with two players.
 """
+
 module Cards
 
-export PHrep, SPHrep, Card, Deck, show, deal!, reset!, pokerHand
-export pokerHandCmp, pokerTradeInCards!, playPoker2!
-export pokerHandGroupLength, pokerHandSubRep
-export get_card_rank_and_top_suit, getOrderedCardsFromRep
+## -------- FOR EXPORT -------------
+## Enums.
+export Suit, Rank, PokerType 
 export ♣, ♠, ♦, ♥
 export Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Jack, Queen, King, Ace
-export Singles, Pair, TwoPair, ThreeOfAKind, FullHouse, FourOfAKind, Flush, Straight, StraightFlush
+export Singles, OnePair, TwoPair, ThreeOfKind, FullHouse, FourOfKind, Flush, Straight, StraightFlush
 
+## Structs.
+export Card, PokerHand, Deck
+
+## Deck Manipulation.
+export shuffle_deck!, restore_deck!, num_cards_left_in_deck
+
+## Drawing Cards from Deck.
+export draw_cards!, deal_hand!, make_secondary_draw! 
+
+## Play Poker.
+export play_poker!
+
+## Lower level functions
+export classify_hand, grouped_rank_rep, poker_hand_contract
+
+## Imports.
 import Random
-import LinearAlgebra
-import Printf
 
 
-## Enums for card ranking and for Suits. The ranking is based on poker.
+#---------------------------------------------------------------------------
+# ---------------------  CONSTS, ENUMS  ------------------------------------
+#---------------------------------------------------------------------------
+const NO_CARDS_IN_DECK=52
+
+## Enums for poker card ranking, `Rank`, `Suits`, `PokerType`.
+
+"""
+    Rank (Enum)
+
+Card ranks in poker; ordered by strength from lowest to highest.
+
+## Fields
+- `Two` `Three` `Four` `Five` `Six` `Seven` `Eight` `Nine` `Ten`
+- `Jack`
+- `Queen`
+- `King`
+- `Ace`
+"""
+@enum Rank Two Three Four Five Six Seven Eight Nine Ten Jack Queen King Ace
+
+
 """
     Suit (Enum)
 
@@ -32,23 +67,10 @@ Allowable suits in poker; ordered by strength from lowest to highest.
 - ♣  
 - ♥ 
 """
-@enum Suit ♠ ♦ ♣ ♥
+@enum Suit  ♠ ♦ ♣ ♥
 
-"""
-    Rank (Enum)
 
-Card ranks in poker; ordered by strength from lowest to highest.
 
-## Fields
-- `Two -- Nine`
-- `Jack`
-- `Queen`
-- `King`
-- `Ace`
-"""
-@enum Rank Two Three Four Five Six Seven Eight Nine Ten Jack Queen King Ace
-
-## `Enum` for the ranking of poker hands.
 """
     PokerType (Enum)
 
@@ -57,7 +79,7 @@ from lowest to highest.
 
 ## Fields
 - Singles
-- Pair
+- OnePair
 - TwoPair
 - ThreeOfAKind
 - FullHouse
@@ -66,18 +88,12 @@ from lowest to highest.
 - Straight
 - StraightFlush
 """
-@enum PokerType Singles Pair TwoPair ThreeOfAKind FullHouse FourOfAKind Flush Straight StraightFlush
-
-const SUITSIZE = 4
-const RANKSIZE = 13
-const DECKSIZE = RANKSIZE * SUITSIZE
-const DIFFMAT  = LinearAlgebra.Bidiagonal([1,1,1,1,1], [-1, -1, -1, -1], :U)
+@enum PokerType Singles OnePair TwoPair ThreeOfKind Straight Flush FullHouse FourOfKind StraightFlush
 
 
-### -------------------------------------------------------------
-### ---- User Defined Structures  -------------------------------
-### -------------------------------------------------------------
-
+#---------------------------------------------------------------------------
+# ---------------------  STRUCTS   -----------------------------------------
+#---------------------------------------------------------------------------
 """
     Card
 
@@ -91,604 +107,446 @@ DATA STRUCTURE: Representation of a Card.
 - Card(::Suit, ::Rank)
 """
 struct Card
-    suit::Suit
     rank::Rank
-    Card(s::Suit, r::Rank) = new(s, r)
+    suit::Suit
 end
 
 
 """
-    Deck (mutable)
+    PokerHand
 
-DATA STRUCTURE: Representation of a Desk of Cards.
+DATA STRUCTURE: Representation of a Card.
+    
+This inner constructor takes a vector of cards:
+- Checks the input contract:
+    - Checks that the number of cards is correct;
+    - Checks that there are no duplicates.
+- Sorts the cards (`isless` is defined for `Card`).
+- Creates an internal representation grouping cards by `Rank`.
+- Classifies the hand into one of the poker types: `PokerType`.
+  These are the familiar names of poker hands: `TwoPair`, `FullHouse`, etc.
 
-## Fields
-- cards :: Vector{Card}
-- left  :: UInt8 (position in deck where next to draw.)
+## Fields 
+- `cards  :: Vector{Card}`
+- `gr_rep :: Vector{Tuple{Int64, Rank}}`
+- `class  :: PokerType`
+
+## Constructor
+- `PokerHand(::Vector{Card}; N::Int64=5)`
+"""
+struct PokerHand
+    cards  :: Vector{Card}
+    gr_rep :: Vector{Tuple{Int64, Rank}}
+    class  :: PokerType 
+
+    ## Constructor
+    function PokerHand(cds::Vector{Card}; N::Int64=5)
+        scds   = poker_hand_contract(cds; N) ? sort(cds, rev=true) : throw(DomainError(cds, "Not a valid poker hand.\nEither duplicate cards or not the right number.\n"))
+        gr_rep = grouped_rank_rep(scds)
+        class  = classify_hand(gr_rep, scds)
+        return(new(scds, gr_rep, class))
+    end
+end
+
+
+"""
+    Deck
+
+MUTABLE DATA STRUCTURE: Representation of a deck of cards.
+
+## Fields 
+- place :: Int64        -- The place in the deck beyond which we may draw.
+- cds   :: Vector{Card} -- A vector of cards.
 
 ## Constructors
-- Deck()
+- Deck() -- Creates the standard 52 card deck using the standard Card ordering.
+- Deck(place::Int64, cards::Vector{Card}) -- Create a deck of cards manually.
 """
 mutable struct Deck
+    place::Int64
     cards::Vector{Card}
-    left::UInt8
-    function Deck()
-        new(reshape([Card(Suit(suit), Rank(num)) for num in 0:(RANKSIZE-1), suit in 0:(SUITSIZE-1)], (DECKSIZE,)), UInt8(1))
+
+    ## Constructors
+    Deck() = new(0, [Card(r, s) for s in instances(Suit) for r in instances(Rank)])
+    function Deck(p::Int64, cds::Vector{Card}) 
+        if length(cds) != length(Set(cds))
+            throw(DomainError(cds, "There are duplicate cards in this prospective deck!"))
+        end
+        new(p, cds)
     end
 end
 
-"""
-   Comparison function used for slot.
-   Assumes that the vector of suits are sorted from highest to lowest.
-"""
-function isPSRLess(cr1::Tuple{Rank, Vector{Suit}}, cr2::Tuple{Rank, Vector{Suit}})
-    if length(cr1[2]) < length(cr2[2])      # Length of the vector1 is less than vector2 (second hand-piece has more-of-a-kind)
+
+
+#---------------------------------------------------------------------------
+# ---------------------  AUGMENT BASE: isless, show   ----------------------
+#---------------------------------------------------------------------------
+## Define `isless` for `Card`. 
+Base.isless(c1::Card, c2::Card) = c1.rank < c2.rank ? true : (c1.rank == c2.rank) ? (c1.suit < c2.suit) : false
+
+## Define `isless` for `PokerHand` 
+function Base.isless(p1::PokerHand, p2::PokerHand)  
+    if p1.class < p2.class
         return(true)
-    elseif length(cr1[2]) > length(cr2[2])  # Or not...
-        return(false)
-    # Otherwise, hand-piece has same number of-a-kind...
-    elseif cr1[1] < cr2[1]                  # Check that rank1 < rank2
-        return(true)
-    elseif cr1[1] > cr2[1]                  # Or, not...
-        return(false)                
-    # Now, h1 piece has the rank and same number of cards with this rank with h2 piece.
-    elseif cr1[2][1] < cr2[2][1]            # Is the largest suit (vector is ordered) hand-piece1 less than the largest suit of hand piece2 
-        return(true)
-    elseif cr1[2][1] > cr2[2][1]            # Or not...
-        return(false)
+    elseif p1.class == p2.class
+        if p1.gr_rep < p2.gr_rep
+            return(true)
+        elseif p1.gr_rep == p2.gr_rep
+            return(p1.cards < p2.cards)
+        else
+            return(false)
+        end
     else
-        return(false)                       # Default will be to say first piece is not less than second piece -- should not happen.
+        return(false)
     end
 end
 
+## Show methods for `Card` and `PokerHand`.
+Base.show(io::IO, c::Card)       = print(io, "$(c.suit) $(c.rank)")
+Base.show(io::IO, ph::PokerHand) = print(io, "Cards = $([c for c in ph.cards])\nGrouped_Rank_Rep = $(ph.gr_rep)\nClassification = $(ph.class)")
+
+## Define `(==)` for PokerHand
+Base.:(==)(ph1::PokerHand, ph2::PokerHand) = (ph1.cards == ph2.cards) && (ph1.gr_rep == ph2.gr_rep) && (ph1.class == ph2.class)
+
+
+#---------------------------------------------------------------------------
+# ---------------------  FUNCTIONS   ---------------------------------------
+#---------------------------------------------------------------------------
 """
-    SPHrep
+    poker_hand_contract(cds[;N])
 
-A lower level representation of a poker hand. 
+Checks that a poker hand is valid.
+Checks the following are true for `cds`:
+- They are unique.
+- Their number is `N`. 
 
-A rep containing the data: `[(rank, [Suits])]`.
-
-These are the "ordered Card Pairings".
-This is a natural way that a player would organize their hand: 
-       grouping by card ranking.
-
-This structure will be used to place a hand in a canonical way 
-     by ordering this structure in the following way: 
-       First by pairings (rank, [suits]) will be ranked by rank. 
-
-Within the pair the suits will be ranked in natural order.
-- Step 0: First sort second arg.
-- Step 1: Use the comparison function above to do the sorting.
-
-## Fields
-- `orderedCP :: Vector{Tuple{Rank, Vector{Suit}}}`
-
-## Constructors
-- `SPHRep(ocp::Vector{Tuple{Rank, Vector{Suit}}})`
-"""
-struct SPHrep
-    orderedCP::Vector{Tuple{Rank, Vector{Suit}}}
-    function SPHrep(ocp::Vector{Tuple{Rank, Vector{Suit}}})
-        x = copy(ocp)
-        map(z -> sort!(z[2], rev=true), x)
-        sort!(x, lt = isPSRLess, rev=true)
-        new(x)
-    end
-end
-
-"""
-    PHrep
-
-A higher level representation of a poker hand. 
-        
-Essentially a rep of the form: `(PokerType, SPHrep)`
-
-The SPHrep is a poker hand in canonical order -- see above.
-This structure will allow us to compare poker hands.
-
-## Fields
-- `pt::PokerType` -- The Type of hand (Single, Pair, TwoPairs, etc.)
-- `subr::SPHrep`  -- The lower level representation.
-
-## Constructors
-- `PHrep(pt::PokerType, sr::SPHrep)`
-"""
-struct PHrep
-    pt::PokerType
-    subr::SPHrep
-    function PHrep(pt::PokerType, sr::SPHrep)
-        new(pt, sr)
-    end
-end
-
-## Extend Test for equality to the poker-hand and sub-poker-hand representations.
-Base.:(==)(s1::SPHrep, s2::SPHrep) = s1.orderedCP == s2.orderedCP
-Base.:(==)(h1::PHrep , h2::PHrep ) = (h1.pt == h2.pt) && (h1.subr == h2.subr)
-
-
-### ----------- AUGMENT JULIA METHODS TO WORK WITH OUR DATA STRUCTURES ------------------------
-## Define how to show a Card and a Deck.
-Base.show(io::Base.IO, c::Card)         = print(io, c.suit, "/", c.rank)
-Base.show(io::Base.IO, d::Deck)         = ([mod(i, 7) == 0 ? println(io, "") : print(io, card, " ") for (i, card) in enumerate(d.cards[d.left:end])]; println(""))
-Base.show(io::Base.IO, h::Vector{Card}) = ([print(io, c, ", ") for c in h[1:end-1]]; print(io, h[end]);)
-Base.show(io::Base.IO, h::Vector{Suit}) = ([print(io, s, ", ") for s in h[1:end-1]]; print(io, h[end]);)
-Base.show(io::Base.IO, h::PHrep)        = print(io, "\n", h.pt, " => ", h.subr);
-Base.show(io::Base.IO, h::SPHrep)       = ([Printf.@printf(io, "%s %-5s -- [%s]", "\n\t", r, cs) for (r, cs) in h.orderedCP[1:end-1]];
-                                           Printf.@printf(io, "%s %-5s -- [%s]\n", "\n\t", h.orderedCP[end][1], h.orderedCP[end][2]));
-
-## Define the length of a Deck.
-Base.length(d::Deck) = length(d.cards) + 1 - d.left
-
-## Define the length of a Poker Hand Sub-representation.
-Base.length(phr::SPHrep) = length(phr.orderedCP)
-
-## Define the length of a Poker Hand.
-Base.length(phr::PHrep) = length(phr.subr)
-
-## Define how to do a random shuffle of the Deck.
-Random.shuffle!(d::Deck) = d.cards = d.cards[Random.shuffle(d.left:DECKSIZE)];
-
-
-"""
-    deal!(d, n)
-
-Deal a hand of `n` cards from a Deck.
-
-**Note:** Will mutate the deck, d.
-        
 ## Arguments
-- `A` -- A deck of Cards.
-- `n` -- The number of Cards to deal.
+- `cds :: Vector{Card}` -- A vector of cards.
+
+## Optional Arguments
+- `N :: Int64` -- The number of cards that the hand should have.
 
 ## Return
-`::Vector{Cards}` -- A vector of `n` cards.
+`::Bool` -- `true` if `cds` are valid.
 """
-function deal!(d::Deck, n::Int64) :: Vector{Cards}
-    ## Check to make sure we have enough cards to deal out.
-    if n > (DECKSIZE+1 - d.left)
-        throw("deal!: Not enough cards to deal.")
-    end
-
-    ## Get the next cards from where we left off dealing.
-    cards = d.cards[d.left:(d.left + n-1)]
-
-    ## Change our internal marker.
-    d.left = d.left + n
-
-    ## Return the dealt cards.
-    return(cards)
+function poker_hand_contract(cds :: Vector{Card}; N::Int64=5)
+    ucds = collect(Set(cds))
+    n = length(ucds)
+    n != length(cds) && return(false)
+    n != N           && return(false)
+    return(true)
 end
 
 
 """
-    reset!(d)
+    shuffle_deck!(d)
 
-Set/reset the deck to be full.
-That is, gather any outstanding cards from any games and place 
-them back in the deck.
+Shuffles the Deck, `d`, destructively; that is, the deck is changed as 
+a result of this function.
+
+This function only shuffles "what's left" of the deck. It will not
+interfere with the function `restore_deck!`, in the sense
+that all of the cards will put back, but the "restore" does
+not interfere with current and previous `shuffle_deck!`.
 
 ## Arguments
-- `d :: Deck` --A deck of Cards.
+- `d :: Deck` -- The deck to shuffle.
 
 ## Return
-nothing
+`nothing`
 """
-function reset!(d::Deck)
-    d.left = 1
+function shuffle_deck!(d::Deck) :: Nothing
+    Random.shuffle!(@view d.cards[(1+d.place):end])
+    return(nothing)
 end
 
 
 
 """
-    get_card_rank_and_top_suit(handRep)
+    deal_hand!(d[;N])
 
-Gets a card ranking and its top suit for the ``n^{\\rm th}`` element of a 
-poker hand representation.
-
-That is, take the nth grouping based on the 
-    `PHrep`(ordered as described in the `PHrep` doc)
-    and return the rank and the top suit in that grouping.
+Deals a hand from a deck, `d`, creating a PokerHand.
+In the process, removes `N` cards from the deck, `d`.
 
 ## Arguments
-- `handRep::PHrep` -- A poker hand representation.
-- `n::Int64` -- The index into the card groupings.
+- `d :: Deck` -- A Deck from which to deal.
+
+## Optional Arguments
+- `N :: Int64` -- The number of cards to deal.
 
 ## Return
-`(Rank, Suit)` -- The card ranking and top suit of the nth poker hand group.
+`::PokerHand` -- A poker hand
 """
-function get_card_rank_and_top_suit(handRep::PHrep, n::Int64)
-    ocp = handRep.subr.orderedCP
-    if length(ocp) < n
-        throw("get_card_rank_and_top_suit: Element \"$n\", is longer than the length of the poker hand representation: $ocp")
-    end
-    return(ocp[n][1], ocp[n][2][1])
+function deal_hand!(d::Deck; N::Int64=5) :: PokerHand
+    return(PokerHand(draw_cards!(d, N)))
 end
 
 
 """
-    pokerHandSubRep(vs)
+    draw_cards!(d, N)
 
-Takes a poker hand sorted by rank from highest to lowest and converts 
-  it to a sub-representation, `SPHrep`.
+Draws `N` cards from a deck, `d`.
+In the process, removes `N` cards from the deck, `d`.
 
-Currently, this has the form: [(card-rank, [suits])]
-Here, these paired elements are sorted from highest to lowest based 
-   on the number of duplicate cards by rank.
-
-The "suits" array keeps track of the suits of the duplicate cards 
-    and are ordered from highest to lowest.
-
-If a tie appears (say with a hand that has type `TwoPairs`) sort by the larger of the 
-    card rankings of the paired elements.
-    
-## Examples
-- Example 1: The raw (sorted by rank) hand): 
-```jdoctest
-julia> pokerHandSubRep([ Card(♠, Ten), Card(♣, Ten), Card(♦, Two), Card(♣, Two), Card(♥, Two) ])
-
-    Two   -- [♥, ♣, ♦]
-    Ten   -- [♣, ♠]
-```
-- Example 2: The raw (sorted by rank) hand): 
-
-```jdoctest
-julia> pokerHandSubRep([ Card(♠, Ten), Card(♣, Ten), Card(♦, Ace), Card(♥, Ace), Card(♣, Jack) ])
-
-    Ace   -- [♥, ♦]
-    Ten   -- [♣, ♠]
-    Jack  -- [♣]
-```
-   
 ## Arguments
-- `vs` -- A rank-sorted Card vector.
+- `d :: Deck`  -- A Deck from which to draw.
+- `N :: Int64` -- The number of cards to draw.
+
+## Return
+`::Vector{Card}` -- A vector of Cards.
+"""
+function draw_cards!(d::Deck, N::Int64) :: Vector{Card}
+    if (d.place + N) > (length(d.cards) + d.place)
+        throw(DomainError("Deck does not have enough cards left to draw $N cards."))
+    end
+    cds = [d.cards[d.place + i] for i in 1:N]  
+    d.place += N
+    return(cds)
+end
+
+
+"""
+    restore_deck!(d)
+
+Reset the Deck, `d`, to have all of the cards placed back into the deck.
+
+## Assumptions
+- The deck `d` has not been directly manipulated; that is,
+  only the functions in this module should be used to manipulate
+  a Deck.
+
+## Note
+- The cards that have been previous delt will be replaced; however,
+previous calls to shuffle_deck! will remain in effect.
+
+## Arguments
+- `d :: Deck` -- The Deck to operate on.
+
+## Return
+`::Nothing`
+"""
+function restore_deck!(d::Deck) :: Nothing
+    d.place = 0
+    return(nothing)
+end
+
+
+"""
+    num_cards_left_in_deck(d)
+
+Computes the number of cards left in deck, `d`.
+
+## Arguments
+- `d :: Deck` -- The deck to query.
+
+## Return
+The number of cards left in the deck.
+"""
+num_cards_left_in_deck(d::Deck) :: Int64 = NO_CARDS_IN_DECK - d.place
+
+
+
+"""
+    grouped_rank_rep(cds)
+
+Creates a representation of a Poker hand.
+
+The representation is a vector of two-tuples of the form:
+(N, Card-Rank) -- Here, N is the number of times a card with Card-Rank appears in the hand.
+The tuple representation is ordered from highest to lowest.
+
+**NOTE:** When `N==1` the corresponding rank *uniquely* determines the card in the hand.
+
+## Input Contract
+- Cards are *ASSUMED* sorted via Base.isless(Card, Card)
+
+## Arguments
+- `cds :: Vector{Card}` -- A Vector of Card.
+
+## Examples: The poker hand `(♣ King, ♦ Jack, ♥ Nine, ♠ Nine, ♣ Three)`
+becomes: `[(2, Nine), (1, King), (1, Jack), (1, Three)]`
+
+## Return
+`::Vector{Tuple{Int64, Rank}}` -- A Vector of two-tuples. 
+"""
+function grouped_rank_rep(cds::Vector{Card}) :: Vector{Tuple{Int64, Rank}}
+    lastRank = nothing
+    lastSuit = nothing
+    sameCnt  = 0
+    gr_rep   = []
+    curRnk   = Two
+    curSuit  = ♠
+    for i in eachindex(cds)
+        curRnk, curSuit = (cds[i].rank, cds[i].suit)
+        if lastRank === curRnk
+            sameCnt += 1
+        else 
+            if sameCnt != 0
+                push!(gr_rep, (sameCnt, lastRank))
+            end
+            sameCnt  = 1
+            lastRank = curRnk
+            lastSuit = curSuit
+        end
+    end
+    if sameCnt != 0
+        push!(gr_rep, (sameCnt, lastRank))
+    end
+
+    return(sort(gr_rep, rev=true))
+end
+
+
+"""
+    classify_hand(gr_rep)
+
+Classifies a poker hand into one of the standard classes given by the enumeration: `PokerType`
+This is done by first examining the length of the grouped rank representation, `gr_rep`.
+
+We know the following:
+- `|gr_rep| == 2` ``\\implies`` `FourOfKind  | FullHouse`
+- `|gr_rep| == 3` ``\\implies`` `ThreeOfKind | TwoPair`
+- `|gr_rep| == 4` ``\\implies`` `OnePair`
+- `|gr_rep| == 5` ``\\implies`` `Singles     | Flush  | Straight | StraightFlush` 
+
+## Arguments
+- `gr_rep :: Vector{Tuple{Int64, Rank}}`  -- The internal representation of the hand. (See `grouped_rank_rep`).
+- `cds    :: Vector{Card}`                -- Cards sorted by rank then suit.
 
 ## Returns
-`::SPHrep` -- A `SPHrep` with ordering as described above.
+`::PokerType`
 """
-function pokerHandSubRep(vs::Vector{Card})
-
-    ## Temp vars used below.
-    local lrank::Rank
-    local csuits::Vector{Suit}
-
-    ## Create a structure of the form: [(rank, [suits])]
-    ## NOTE: If we don't specify the type here, the constructor
-    ##       SPHrep will not know what to do with a raw list.
-    local hsRep::Vector{Tuple{Rank, Vector{Suit}}} = []
-
-    ## Loop over the vector collecting run-lengths for the unique strings.
-    ## Start by taking the first card.
-    lrank  = vs[1].rank
-    csuits = [vs[1].suit]
-
-    ## Now group by card "runs" by card rank.
-    for v in vs[2:end]
-
-        ## Get the rank and suit of the current card.
-        crank = v.rank
-        csuit = v.suit
-        
-        ## If current and last rank differ, we have finished a "run".
-        ## Push the last rank and corresponding suits to hsRep.
-        ## Start the "run" over with the current card suit.
-        if crank != lrank
-            push!(hsRep, (lrank, csuits))
-            csuits = [csuit]
-        else  ## Otherwise, gather more suits for the current card "run".
-            push!(csuits, csuit)
+function classify_hand(gr_rep::Vector{Tuple{Int64, Rank}}, cds::Vector{Card}) :: PokerType
+    ## FourOfKind | FullHouse
+    if length(gr_rep) == 2
+        if length(gr_rep[1]) == 4
+            return(FourOfKind)
+        else
+            return(FullHouse )
         end
-        
-        ## Update the last rank.
-        lrank = crank
+
+    ## TwoPair | ThreeOfKind
+    elseif length(gr_rep) == 3
+        if length(gr_rep[1]) == 3
+            return(ThreeOfKind)
+        else
+            return(TwoPair    )
+        end
+
+    ## OnePair
+    elseif length(gr_rep) == 4
+        return(OnePair)
+
+    ## Singles | Flush | Straight | StraightFlish
+    elseif length(gr_rep) == 5
+        isFlush    = false
+        isStraight = false
+
+        ## Test for Flush -- should only have 1 suit.
+        if length(Set([cd.suit for cd in cds])) == 1
+            isFlush = true
+        end
+
+        ## Test for Straight (cds cards are ordered from high to low)
+        ## Therefore, diff should yield 4 -1's, the sum of that vector should be -4.
+        if sum(diff([Int(cd.rank) for cd in cds])) == -4
+            isStraight = true
+        end
+
+        ## Continue to classify...
+        if isFlush && isStraight
+            return(StraightFlush)
+        elseif isFlush
+            return(Flush        )
+        elseif isStraight
+            return(Straight     )
+        else
+            return(Singles      )
+        end
     end
 
-    ## We processed all but the last sequence, do that now.
-    push!(hsRep, (lrank, csuits))
-
-    ## Give this raw list of pairs, `[ (rank, [suits]) ]` to the `SPHrep` 
-    # constructor to put it into canonical order.
-    return(SPHrep(hsRep))
 end
 
+
 """
-    pokerHandGroupLength(hsRep, n)
+    make_secondary_draw!(h, d)
 
-Get the length of the nth ordered group in a poker hand.
+This function examines a poker hand, `h`, and decides
+(given that we can draw up to two cards from the deck)
+what cards (if any) to eliminate and then draw from the deck, `d`.
 
-Example: Given that we have a poker hand sub rep, hsRep, 
-            representing a full house, 
-        This function would return 3 for the call `pokerHandGroupLength(hsRep, 1)`
-        and return 2 for the call `pokerHandgroupLength(hsRep, 2)`.
+Although one may stick with the current hand, and consequently, 
+not draw from the deck, we mark this function as mutable as 
+it has the potential to mutate the deck, `d`. 
 
 ## Arguments
-- `hsRep :: SPHrep` --  A poker sub-hand representation.
-- `n :: Int64` -- The group to examine.
+- `h :: PokerHand` -- The current poker hand to examine.
+- `d :: Deck`      -- The deck to work with.
 
 ## Return
-`::Int64` -- The number of Cards in the ``n^{\\rm th}`` group of the sub-representation.
+`::PokerHand` -- A new poker hand. Potentially a copy of the original hand.
 """
-function pokerHandGroupLength(hsRep::SPHrep, n::Int64)
-    ocp = hsRep.orderedCP
-    return(length(ocp[n][2]))
-end
+function make_secondary_draw!(h::PokerHand, d::Deck) :: PokerHand
+    ## Will be new cards for hand after the potential draw. 
+    nh = Card[]
 
-"""
-    pokerHand(v)
+    ## This will be the list of cards to eliminate.
+    ## The cards will be represented by their rank as this
+    ## uniquely defines (as the doc for grouped_rank_rep makes clear)
+    ## cards that are not grouped. As these are the cards
+    ## that we will look to for elimination the rank representation
+    ## is a good one.
+    eliminate_cards_by_rank = []
 
-Takes a poker hand and converts it to a representation of the form:
- (hand-type, poker-hand-sub-rep)
- See the description of poker-hand-sub-rep in the function pokerHandSubRep.
-   
-## Arguments
-- `v` -- A vector of Cards.
+    ## FourOfKind
+    if (length(h.gr_rep) == 2) && (h.gr_rep[1][1] == 4)
+        if h.gr_rep[2][1] < Seven
+            ## Eliminate 1 card.
+            push!(eliminate_cards_by_rank, h.gr_rep[2][2]) 
+        end
 
-## Return
-`::PHrep` -- Essentially, 
-    a pairing of hand-type with a vector with a sub-representation, 
-            currently of the form: (rank, [suits]).
-           The sub-representation is ordered as described in the 
-            function pokerHandSubRep.
-           Specifically, the return has the form: 
-           PHrep(hand-type, SPHrep([(card-rank, [card-suits])]))
-"""
-function pokerHand(v::Vector{Card})
-    if length(v) != 5
-        throw("pokerHand: Poker hand must have 5 cards.")
-    end
-
-    ## Sort the vector by card rank from highest to lowest.
-    local vs = sort(v, by=x -> x.rank, rev=true)
-    local flushFlag = false
-    local hsrep
-
-    ## Look at sequential differences based on rank -- if all ones 
-    ##   then we have a straight or straight-flush.
-    local rankDiff = DIFFMAT * map(x -> Int64(x.rank), vs)
-    pop!(rankDiff)
-
-    if length(unique(map(x -> x.suit, vs))) == 1
-        flushFlag = true
-    end
-
-    
-    ## Check for straights, flushes, and straight-flushes.
-    if rankDiff == [1,1,1,1]
-        hsrep = map(x -> (x.rank, [x.suit]), vs)
-        if flushFlag
-            return(PHrep(StraightFlush, SPHrep(hsrep)))
+    ## TwoPair | ThreeOfKind
+    elseif length(h.gr_rep) == 3
+        if h.gr_rep[1][1] == 3 
+            ## Eliminate 2 cards. ThreeOfKind
+            push!(eliminate_cards_by_rank, h.gr_rep[2][2]) 
+            push!(eliminate_cards_by_rank, h.gr_rep[3][2]) 
         else
-            return(PHrep(Straight, SPHrep(hsrep)))
+            ## Eliminate 1 card. TwoPair.
+            push!(eliminate_cards_by_rank, h.gr_rep[3][2]) 
         end
-    elseif flushFlag
-        return(PHrep(Flush, SPHrep(hsrep)))
+
+    ## OnePair
+    elseif length(h.gr_rep) == 4
+        ## Eliminate 2 cards. OnePair.
+        push!(eliminate_cards_by_rank, h.gr_rep[3][2]) 
+        push!(eliminate_cards_by_rank, h.gr_rep[4][2]) 
+
+    ## Singles
+    elseif length(h.gr_rep) == 5
+        ## Eliminate 2 cards. OnePair.
+        push!(eliminate_cards_by_rank, h.gr_rep[4][2]) 
+        push!(eliminate_cards_by_rank, h.gr_rep[5][2]) 
     end
-    
-    ## Now we have to check for: 
-    ##  Singles, Pair, TwoPair, ThreeOfAKind, FullHouse, and FourOfAKind.
-    ## To do this classification, we first create a 
-    ##  [ (card-rank, [suits]) ] sub-representation for the hand.
-    hsrep = pokerHandSubRep(vs)
 
-    ## Classify the hand using this sub-representation
-    ##  and return with the pokerRep -- a pairing of the poker hand-type 
-    ##  with the sub rep.
-    hsLen = length(hsrep)
-    if hsLen == 5                               ## Singles -- 5 groups of 1                     Total:       = 5 groups.
-        return(PHrep(Singles, hsrep))
-    elseif hsLen == 4                           ## Pair    -- 1 group of 2 and 3 singles.       Total: 1 + 3 = 4 groups.
-        return(PHrep(Pair, hsrep))
-    elseif hsLen == 3                           ## Triple OR TwoPair 
-        if pokerHandGroupLength(hsrep, 1) == 3  ##    Triple  -- 1 group  of 3 and 2 singles.   Total: 1 + 2 = 3 groups.
-            return(PHrep(ThreeOfAKind, hsrep))  
-        else
-            return(PHrep(TwoPair, hsrep))       ##    TwoPair -- 2 groups of 2 and 1 single.    Total: 2 + 1 = 3 groups.
-        end
-    elseif hsLen == 2                           ## Four OR FullHouse
-        if pokerHandGroupLength(hsrep, 1) == 4  ##  Four      -- 1 group of 4 and 1 single.     Total: 1 + 1 = 2 groups.
-            return(PHrep(FourOfAKind, hsrep))   
-        else
-            return(PHrep(FullHouse, hsrep))     ##  FullHouse -- 1 group of 3 and 1 group of 2. Total: 1 + 1 = 2 groups.
-        end
-    end
-end
-
-
-function get_hand_piece(hrep, n)
-    return(hrep[n])
-end
-
-
-"""
-    Compare two poker hands. 
-    First construct their poker-hand-representations: 
-        (poker-hand-type, [(card-h1, [ordered-suits]), (card-h2, [ordered-suits])...]).
-    Use this to determine if hr1 < hr2. Do this first by using the ranking 
-        of the poker-hand-type (i.e., Pair, TwoPair, FullHouse, etc.)
-    If two hands have the same type, then use ranking and their suits or 
-        other means according to the rules of poker to make the determination.
-
-    param hr1 PHrep.
-    param hr2 PHrep.
-
-    return Bool `true` if `hr1 < hr2`, otherwise `false`.
-"""
-function pokerHandCmp(hr1::PHrep, hr2::PHrep)
-
-    handType1  = hr1.pt
-    handType2 = hr2.pt
-
-    ## Decide based on handType
-    if handType1 < handType2
-        return(true)
-    end
-    
-    if handType1 > handType2
-        return(false)
-    end
-    
-    
-    ## The hands are of the same type.
-    r1, s1 = get_card_rank_and_top_suit(hr1, 1)
-    r2, s2 = get_card_rank_and_top_suit(hr2, 1)
-    
-    if handType1 == FourOfAKind
-        if r1 < r2
-            return(true)
-        elseif r1 > r2
-            return(false)
-        end
-    end
-    
-    if handType1 in [ThreeOfAKind, FullHouse]
-        if r1 < r2
-          return(true)
-        elseif r1 > r2
-          return(false)
-        elseif s1 < s2
-          return(true)
-        elseif s1 > s2
-          return(false)
-        end
-    end    
-    
-    
-    ## Now the hands are of the same type and the first group of each hand 
-    ##      has the same ranking.
-    ## This can only happen for: 
-    ##      Singles, Pair, TwoPair, Flush, Straight, StraightFlush
-    if handType1 in [Singles, Flush, Straight, StraightFlush]  # Compare the highest cards by suit.
-        if r1 < r2
-          return(true)
-        elseif r1 > r2
-          return(false)
-        elseif s1 <= s2 
-          return(true)
-        else
-          return(false)
+    ## Now gather all cards in the current hand that are NOT in the elimination set.
+    ## Push them onto the new list of cards.
+    for c in h.cards
+        if ~ (c.rank in eliminate_cards_by_rank)
+            push!(nh, c)
          end
-    elseif handType1 == Pair  # Compare the next highest card by card rank, if the same, compare by suit.
-        if r1 < r2
-            return(true)
-        elseif r1 > r2
-            return(false)
-        else
-            rr1, ss1 = get_card_rank_and_top_suit(hr1, 2)
-            rr2, ss2 = get_card_rank_and_top_suit(hr2, 2)
-            if rr1 < rr2
-                return(true)
-            elseif rr1 > rr2
-                return(false)
-            else
-                if ss1 < ss2
-                    return(true)
-                elseif ss1 > ss2
-                    return(false)
-                end
-            end
-        end
-    elseif handType1 == TwoPair # Compare the next highest pair by card rank, 
-                                # if the same, compare by the next single card: first by rank and then by suit.
-        rr1, ss1 = get_card_rank_and_top_suit(hr1, 2)
-        rr2, ss2 = get_card_rank_and_top_suit(hr2, 2)
-        if rr1 < rr2
-            return(true)
-        elseif rr1 > rr2
-            return(false)
-        else ## Look at the third card and compare by rank and then by suit.
-            rrr1, sss1 = get_card_rank_and_top_suit(hr1, 3)
-            rrr2, sss2 = get_card_rank_and_top_suit(hr2, 3)
-            if rrr1 < rrr2
-                return(true)
-            elseif rrr1 > rrr2
-                return(false)
-            else
-                return(sss1 < sss2)
-            end
-        end
-    else
-        throw("pokerHandCmp: The following handType should not occur at this stage: $handType1")
     end
-    throw("pokerHandCmp: Should not have reached here, there is a gap in our processing. The handType is $handType1")
+
+    ## Augment this new list of cards with draws from the deck.
+    append!(nh, draw_cards!(d, length(eliminate_cards_by_rank)))
+
+    ## Return the new poker hand.
+    return(PokerHand(nh))
 end
 
 
 """
-    getOrderedCardsFromRep(phr)
-
-Get the rank/suit ordered list of cards from a poker hand representation.
-
-## Arguments
-- `phr::PHrep`  -- The poker hand representation of a poker hand.
-
-## Return
-`::Vector{Card}` -- A new poker hand of Cards in order.
-"""
-function getOrderedCardsFromRep(phr::PHrep)
-    ocp = phr.subr.orderedCP
-    return(vcat([Card(c, r) for (r, cs) in ocp for c in cs]...))
-end
-
-
-"""
-    pokerTradeInCards!(d, h)
-
-Given a poker hand, h, determine now many cards to replace, 0 to 2,
-then return the replacement. Return a copy of the original hand if 
-cards needed. If cards are replaced, this will mutate the deck of cards, d.
-
-## Arguments
-- `d::Deck` -- A deck of cards
-- `h::Vector{Card}` -- A poker hand.
-
-## Return
-`::Tuple{::PHrep, ::PHrep}` -- Old and new replacement hands.
-"""
-function pokerTradeInCards!(d::Deck, h::Vector{Card})
-    hr = pokerHand(h)
-    hType = hr.pt
-    
-    local nh 
-    local nhr
-
-    ## Decide if we replace cards and how many.
-    if hType in [Flush, Straight, StraightFlush, FullHouse] # Do nothing.
-        nh  = deepcopy(h)
-        nhr = deepcopy(hr)
-    elseif hType in [Singles, Pair, ThreeOfAKind]           # Take two cards.
-        cards = getOrderedCardsFromRep(hr)
-        deleteat!(cards, [4,5])
-        ncards = deal!(d, 2)
-        append!(cards, ncards)
-        nh  = deepcopy(cards)
-        nhr = pokerHand(nh)
-    elseif hType == TwoPair                                 # Take one card.
-        cards = getOrderedCardsFromRep(hr)
-        deleteat!(cards, [5])
-        ncards = deal!(d, 1)
-        append!(cards, ncards)
-        nh  = deepcopy(cards)
-        nhr = pokerHand(nh)
-    elseif hType == FourOfAKind                             # Take one card if...
-        cards = getOrderedCardsFromRep(hr)
-        if Int64(cards[5].rank) < 8
-            deleteat!(cards, [5])
-            ncards = deal!(d, 1)
-            append!(cards, ncards)
-            nh  = deepcopy(cards)
-            nhr = pokerHand(nh)
-        else
-            nh  = deepcopy(h)
-            nhr = deepcopy(hr)
-        end
-    end
-    
-    return(nh, nhr)
-end
-
-
-
-"""
-    playPoker2!(d)
+    play_poker!(d)
 
 Play a game of poker with two players.
 
@@ -705,54 +563,42 @@ Process:
 `d :: Deck` -- A deck of cards.
 
 ## Return
-nothing
+`::Nothing`
 """
-function playPoker2!(d::Deck)
+function play_poker!(d::Deck) :: Nothing
     ## Reset the deck -- put back all the cards from previous games.
-    reset!(d)
+    restore_deck!(d)
 
     ## Shuffle the deck.
-    Random.shuffle!(d)
+    shuffle_deck!(d)
 
     ## Deal poker hands for two players.
-    h1 = deal!(d, 5)
-    h2 = deal!(d, 5)
+    h1 = deal_hand!(d)
+    h2 = deal_hand!(d)
     println("hand 1 = $h1")
     println("hand 2 = $h2")
-
-    ## Get the poker hand representations.
-    hr1 = pokerHand(h1)
-    hr2 = pokerHand(h2)
-    println("")
-    println("hand 1 rep = $hr1")
-    println("hand 2 rep = $hr2")
 
     println("")
 
     ## Compare the hands.
-    islessFlag = pokerHandCmp(hr1, hr2)
     println("BEFORE Players are given a chance at card replacement:")
-    if islessFlag
+    if h1 < h2
         println("Player 2 wins!")
     else
         println("Player 1 wins!")
     end
 
     ## Allow each player a chance at replacing up to two cards.
-    local nh1, nhr1 = pokerTradeInCards!(d, h1)
-    local nh2, nhr2 = pokerTradeInCards!(d, h2)
+    nh1 = make_secondary_draw!(h1, d) 
+    nh2 = make_secondary_draw!(h2, d) 
 
     println("\nAFTER Players are given a chance at card replacement:")
     println("Updated hand 1 = $nh1")
     println("Updated hand 2 = $nh2")
 
-    println("\nNew hand 1 rep = $nhr1")
-    println("New hand 2 rep = $nhr2")
-    
     println("")
     ## Now compare the new hands.
-    islessFlag = pokerHandCmp(nhr1, nhr2)
-    if islessFlag
+    if nh1 < nh2
         println("Player 2 wins!")
     else
         println("Player 1 wins!")
@@ -761,5 +607,6 @@ function playPoker2!(d::Deck)
     return(nothing)
 end
 
-end # Module
+end # module Cards
+
 
