@@ -184,15 +184,65 @@ end
 ## Define `isless` for `Card`. 
 Base.isless(c1::Card, c2::Card) = c1.rank < c2.rank ? true : (c1.rank == c2.rank) ? (c1.suit < c2.suit) : false
 
+
+"""
+    get_single_cards(ph)
+
+Get the single cards from the poker hand, `ph`.
+
+## Arguments
+-ph::PokerHand -- A given poker hand.
+
+## Return
+`::Vector{Card}` -- List of single cards.
+"""
+function get_single_cards(ph)
+    cds = ph.cards
+    rep = ph.gr_rep
+    single_rnks = [r for (n, r) in rep if n == 1]
+    singles = Card[]
+    for c in cds
+       if c.rank in single_rnks
+           push!(singles, c)
+       end
+    end
+
+    return(singles)
+end
+
 ## Define `isless` for `PokerHand` 
+"""
+    Base.isless(p1,p2)
+
+Defines `isless` between two poker hands.
+Not if the poker type and the groupings by 
+rank are the same, we use the fact 
+that there are the same number of single cards
+for each hand. We then compare the cards from 
+highest to lowest. The Card comparison uses 
+rank first and then suit to determine which 
+card is higher.
+
+## Arguments
+- `p1::PokerHand` -- First poker hand.
+- `p2::PokerHand` -- Second poker hand.
+
+## Return
+`::Bool`
+"""
 function Base.isless(p1::PokerHand, p2::PokerHand)  
     if p1.class < p2.class
         return(true)
     elseif p1.class == p2.class
         if p1.gr_rep < p2.gr_rep
             return(true)
+        ## This means that even the single cards have the same rank.
+        ## We now decide who is higher by suit 
+        ## (actually done by comparing Cards as Suit is a secondary comparator.)
         elseif p1.gr_rep == p2.gr_rep
-            return(p1.cards < p2.cards)
+            p1_singles = get_single_cards(p1)
+            p2_singles = get_single_cards(p2)
+            return(p1_singles < p2_singles)
         else
             return(false)
         end
