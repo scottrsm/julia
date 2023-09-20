@@ -12,7 +12,7 @@ uses macros to provide a more intuitive external representation.
 Provides code to play a version of poker.
 
 ### Module Finance
-A module containing utilites for some redimentary signal analysis.
+A module containing utilities for some rudimentary signal analysis.
 
 ### Module Wordle
 Solves the NYT Wordle puzzle.
@@ -33,9 +33,19 @@ of using data parallelization.
                          that your notebooks are running julia with multiple threads.
 
 
-DEV NOTES:
+**DEV NOTES:**
 
 You need to configure git using the following command:
 
-git config --local core.hooksPath .githooks/
+`git config --local core.hooksPath .githooks/`
+
+
+**Documentation:**
+Given that your local repo path is <REPO>,
+you may create and view documentation for a given module, <Module>, 
+by doing the following:
+- cd <REPO>/pkgs/<Module>/docs
+- `julia make.jl`
+- Point your browser to <REPO>/pkgs/<Module>/docs/build/index.html .
+
 

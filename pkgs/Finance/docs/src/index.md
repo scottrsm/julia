@@ -5,7 +5,7 @@ CurrentModule = Finance
 ```
 
 # Overview
-Below is a collection of functions are useful to find signals 
+Below is a collection of functions which are useful to find signals 
 in time series data.
 - `sigcumsum:` This function looks for imbalance in tics.
 - `isConvertible:` This function determines if one type can be converted to another.

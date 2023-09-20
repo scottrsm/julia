@@ -3,6 +3,13 @@
 ```@meta
 CurrentModule = Boolean
 ```
+# Overview
+This module contains functions to compare Boolean functions.
+It does this by using a bit-vector representation and 
+comparing bits. The drawback with this representation is that it 
+grows exponentially with the number of variables in a boolean expression.
+
+There is an associated Jupyter notebook at src/BoolTest.ipynb.
 
 ## Types
 
