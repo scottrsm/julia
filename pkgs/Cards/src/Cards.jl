@@ -13,7 +13,7 @@ module Cards
 export Suit, Rank, PokerType 
 export ♣, ♠, ♦, ♥
 export Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Jack, Queen, King, Ace
-export Singles, OnePair, TwoPair, ThreeOfKind, FullHouse, FourOfKind, Flush, Straight, StraightFlush
+export HighCard, OnePair, TwoPair, ThreeOfKind, FullHouse, FourOfKind, Flush, Straight, StraightFlush
 
 ## Structs.
 export Card, PokerHand, Deck
@@ -78,17 +78,17 @@ Enumeration describing a classification of hands for poker; ordered by strength
 from lowest to highest.
 
 ## Fields
-- Singles
+- HighCard
 - OnePair
 - TwoPair
 - ThreeOfAKind
+- Straight
+- Flush
 - FullHouse
 - FourOfAKind
-- Flush
-- Straight
 - StraightFlush
 """
-@enum PokerType Singles OnePair TwoPair ThreeOfKind Straight Flush FullHouse FourOfKind StraightFlush
+@enum PokerType HighCard OnePair TwoPair ThreeOfKind Straight Flush FullHouse FourOfKind StraightFlush
 
 
 #---------------------------------------------------------------------------
@@ -457,7 +457,7 @@ We know the following:
 - `|gr_rep| == 2` ``\\implies`` `FourOfKind  | FullHouse`
 - `|gr_rep| == 3` ``\\implies`` `ThreeOfKind | TwoPair`
 - `|gr_rep| == 4` ``\\implies`` `OnePair`
-- `|gr_rep| == 5` ``\\implies`` `Singles     | Flush  | Straight | StraightFlush` 
+- `|gr_rep| == 5` ``\\implies`` `HighCard     | Flush  | Straight | StraightFlush` 
 
 ## Arguments
 - `gr_rep :: Vector{Tuple{Int64, Rank}}`  -- The internal representation of the hand. (See `grouped_rank_rep`).
@@ -487,7 +487,7 @@ function classify_hand(gr_rep::Vector{Tuple{Int64, Rank}}, cds::Vector{Card}) ::
     elseif length(gr_rep) == 4
         return(OnePair)
 
-    ## Singles | Flush | Straight | StraightFlish
+    ## HighCard | Flush | Straight | StraightFlish
     elseif length(gr_rep) == 5
         isFlush    = false
         isStraight = false
@@ -511,7 +511,7 @@ function classify_hand(gr_rep::Vector{Tuple{Int64, Rank}}, cds::Vector{Card}) ::
         elseif isStraight
             return(Straight     )
         else
-            return(Singles      )
+            return(HighCard      )
         end
     end
 
@@ -572,7 +572,7 @@ function make_secondary_draw!(h::PokerHand, d::Deck) :: PokerHand
         push!(eliminate_cards_by_rank, h.gr_rep[3][2]) 
         push!(eliminate_cards_by_rank, h.gr_rep[4][2]) 
 
-    ## Singles
+    ## HighCard
     elseif length(h.gr_rep) == 5
         ## Eliminate 2 cards. OnePair.
         push!(eliminate_cards_by_rank, h.gr_rep[4][2]) 
