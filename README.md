@@ -41,11 +41,11 @@ You need to configure git using the following command:
 
 
 **Documentation:**
-Given that your local repo path is <REPO>,
-you may create and view documentation for a given module, <Module>, 
+Given that your local repo path is `<REPO>`,
+you may create and view documentation for a given module, `<Module>`, 
 by doing the following:
-- cd <REPO>/pkgs/<Module>/docs
+- cd `<REPO>/pkgs/<Module>/docs`
 - `julia make.jl`
-- Point your browser to <REPO>/pkgs/<Module>/docs/build/index.html .
+- Point your browser to `<REPO>/pkgs/<Module>/docs/build/index.html` .
 
 
