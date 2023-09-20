@@ -1,7 +1,7 @@
 name = "Cards"
 uuid = "a04d8b7c-1e71-4064-9bba-89a66090151d"
 authors = ["Scott McIntire <scottrsm@gmail.com>"]
-version = "0.2.0"
+version = "0.2.1"
 
 [deps]
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
