@@ -1,7 +1,5 @@
 ## Julia Projects
 
-Will add Travis-ci documentation generation soon.
-
 
 ### Module Boolean
 Provides ways to compare two boolean functions.
@@ -16,6 +14,14 @@ A module containing utilities for some rudimentary signal analysis.
 
 ### Module Wordle
 Solves the NYT Wordle puzzle.
+To be successful, one has to guess the hidden word by no more than six guesses.
+The stats for the solver are:
+- Overall: The mean number of guesses to solve: 4.49.
+- Overall: The mean number of guesses (weighted by word usage) to solve: 2.93.
+- When Successful: The mean number of guesses to solve: 4.31.
+- When Successful: The mean number of guesses (weighted by word frequency) to solve: 2.92.
+- Percent unsuccessful: %5.78.
+- Percent unsuccessful (weighted by word frequency): %0.26.
 
 ### Module Wquantiles
 A few versions of weighted quantiles with examples and comparisons 
