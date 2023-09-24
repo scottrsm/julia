@@ -33,13 +33,13 @@ Finds the `q` weighted quantile values from the vector `x`.
 - `V <: Real`
 
 ## Arguments
-- `x  ::Vector{T}`: Vector(n) of values from which to find quantiles.
-- `w  ::Vector{S}`: Vector(n) of weights to use.
-- `q  ::Vector{V}`: Vector(l) of quantile values.
+- `x  ::AbstractVector{T}`: Vector(n) of values from which to find quantiles.
+- `w  ::AbstractVector{S}`: Vector(n) of weights to use.
+- `q  ::AbstractVector{V}`: Vector(l) of quantile values.
 
 ## Keyword Args
-- `chk     ::Bool`: If `true`, check the input contract described below.
-- `norm_wgt::Bool`: If `true`, normalize the weights.
+- `chk     :: Bool`: If `true`, check the input contract described below.
+- `norm_wgt:: Bool`: If `true`, normalize the weights.
 
    **NOTE:** If `norm_wgt` is `false`, it is *ASSUMED* that `w` is already normalized.
 - `sort_q  ::Bool`: If `true`, sort the quantile vector, `q`.
@@ -60,8 +60,12 @@ Letting `qs` be the sorted quantiles of `q`.
 The entry `i` is the ``i^{\\rm th}`` quantile (in `qs`) of `x`.
 
 """
-@noinline function wquantile(x::Vector{T}, w::Vector{S}, q::Vector{V};
-                   chk::Bool = true, norm_wgt::Bool = true, sort_q::Bool = true) :: Vector{T} where {T, S <: Real, V <: Real}
+@noinline function wquantile(x::AbstractVector{T} , 
+                             w::AbstractVector{S} , 
+                             q::AbstractVector{V} ;
+                             chk::Bool = true     , 
+                             norm_wgt::Bool = true, 
+                             sort_q::Bool = true   ) :: AbstractVector{T} where {T, S <: Real, V <: Real}
     ## We report back the quantiles of `x` in sorted `q` order, so we need to sort `q`.
     ## **NOTE:** If we don't explicitly sort `q`, it means that you are *ASSUMING* `q` is sorted.
     if sort_q
@@ -84,7 +88,7 @@ The entry `i` is the ``i^{\\rm th}`` quantile (in `qs`) of `x`.
     idx = sortperm(x)
 
     ## Convert sorted weights.
-    @inbounds wsc = convert(Vector{promote_type(eltype(w[1]), eltype(q[1]))}, w[idx])
+    @inbounds wsc = convert(AbstractVector{promote_type(eltype(w[1]), eltype(q[1]))}, w[idx])
 
     ## Check input contract...
     if chk
@@ -153,8 +157,8 @@ Finds the `q` weighted quantile values from the columns of the matrix `X`.
 
 ## Arguments
 - `X  ::Matrix{T}`: Matrix(n,m) of values from which to find quantiles.
-- `w  ::Vector{S}`: Vector(n) of weights to use.
-- `q  ::Vector{V}`: Vector(l) of quantile values.
+- `w  ::AbstractVector{S}`: Vector(n) of weights to use.
+- `q  ::AbstractVector{V}`: Vector(l) of quantile values.
 
 ## Keyword Args
 - `chk     ::Bool`: If `true`, check the input contract described below.
@@ -178,15 +182,18 @@ Letting `qs` be the sorted quantiles of `q`.
 The entry `(i,j)` is the ``i^{\\rm th}`` quantile (in `qs`) from the ``j^{\\rm th}`` column of `X`.
 
 """
-function Wquantile(X::Matrix{T}, w::Vector{S}, q::Vector{V};
-                   chk::Bool = true, norm_wgt::Bool = true, 
-                   sort_q::Bool = true) :: Matrix{T} where {T, S <: Real, V <: Real}
+function Wquantile(X::Matrix{T}         , 
+                   w::AbstractVector{S} , 
+                   q::AbstractVector{V} ;
+                   chk::Bool = true     , 
+                   norm_wgt::Bool = true, 
+                   sort_q::Bool = true   ) :: Matrix{T} where {T, S <: Real, V <: Real}
 
     _, m = size(X)
 
     ## Normalize the weights if needed.
     if norm_wgt
-        w = convert(Vector{promote_type(eltype(w[1]), eltype(q[1]))}, w)
+        w = convert(AbstractVector{promote_type(eltype(w[1]), eltype(q[1]))}, w)
         w ./= sum(w)
     end
 
@@ -222,9 +229,9 @@ Finds the `q` weighted quantile values from the columns of the matrix `X`.
 - `V <: Real`
 
 ## Arguments
-- `X  ::Matrix{T}`: Matrix(n,m) of values from which to find quantiles.
-- `w  ::Vector{S}`: Vector(n) of weights to use.
-- `q  ::Vector{V}`: Vector(l) of quantile values.
+- `X  ::Matrix{T}`        : Matrix(n,m) of values from which to find quantiles.
+- `w  ::AbstractVector{S}`: Vector(n) of weights to use.
+- `q  ::AbstractVector{V}`: Vector(l) of quantile values.
 
 ## Keyword Args
 - `chk::Bool`     : If `true`, check the input contract described below.
@@ -242,7 +249,7 @@ Letting `qs` be the sorted quantiles of `q`.
 The entry `(i,j)` is the ``i^{\\rm th}`` quantile (in `qs`) from the ``j^{\\rm th}`` column of `X`.
 
 """
-function WquantileM(X::Matrix{T}, w::Vector{S}, q::Vector{V}; 
+function WquantileM(X::Matrix{T}, w::AbstractVector{S}, q::AbstractVector{V}; 
                     chk::Bool = true) :: Matrix{T} where {T, S <: Real, V <: Real}
     ## We report back the quantiles of `X` in sorted `q` order, so we sort `q`.
     qs    = sort(q)
@@ -260,7 +267,7 @@ function WquantileM(X::Matrix{T}, w::Vector{S}, q::Vector{V};
     end
 
     ## Convert weights.
-    wc = convert(Vector{promote_type(eltype(w[1][1]), eltype(q[1]))}, w)
+    wc = convert(AbstractVector{promote_type(eltype(w[1][1]), eltype(q[1]))}, w)
 
     ## Check input contract...
     if chk

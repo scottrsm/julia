@@ -23,11 +23,11 @@ Structure used to represent a boolean formula involving variables
 In practice, one uses a higher level constructor (`create_bool_rep`) 
 rather than the one provided here.
 ## Fields
-- `formula :: String` -- The string representation of the formula.
-- `var :: String` -- The base name of the logical variables.
-- `size :: Int64` -- The number of variables in the formula.
-- `val :: BitVector` -- The bit vector representing the formula. 
-                      It essentially expresses the values of all possible inputs.  
+- `formula :: String`    -- The string representation of the formula.
+- `var     :: String`    -- The base name of the logical variables.
+- `size    :: Int64`     -- The number of variables in the formula.
+- `val     :: BitVector` -- The bit vector representing the formula. 
+                            It essentially expresses the values of all possible inputs.  
 ## Constructors
 `Blogic(form::String, v::String, value::BitVector)`
 
@@ -117,8 +117,8 @@ logicCount(l::Blogic) = count(l.val)
 Get up to `head` inputs that generate true values for a logic function, `l`.
 
 ## Arguments
-- `l :: Blogic`   -- A logic formula.
-- `head :: Int64` --  The maximum number of inputs to consider.
+- `l    :: Blogic` -- A logic formula.
+- `head :: Int64`  -- The maximum number of inputs to consider.
     
 ## Return
 A list of up to `head` input values that will give the 
@@ -138,9 +138,9 @@ Get `num` inputs that generate true values for a logic function.
 yield a value of `true`.
 
 ## Arguments
-- `v ::BitVector` -- A bit vector representing `true` and `false` values.
-- `n :: Int64`  -- Describes the length of the truth table column: ``2^n``.
-- `num :: Int64` -- The desired number of inputs that generate truth values.
+- `v   :: BitVector` -- A bit vector representing `true` and `false` values.
+- `n   :: Int64`     -- Describes the length of the truth table column: ``2^n``.
+- `num :: Int64`     -- The desired number of inputs that generate truth values.
 
 ## Returns
 `::BitMatrix` -- Input values that generate truth values for the current function.
@@ -159,7 +159,7 @@ formula of `n` variables. Essentially, generate the truth table
 of each of the variables collectively as a `BitArray`.
 
 ## Arguments
-- `n` : Number of logical variables.
+- `n : Number` of logical variables.
 
 ## Return
 `::BitArray` -- The bit representation of all of the logical variables.
@@ -211,8 +211,7 @@ The values are **assumed** to be sorted.
 
 ## Return
 `::Vector{Tuple{T, Int64}}` -- A Vector of pairs of the form: `(T, Int64)`
-representing values from `xs` and the number of
-their occurrences.
+representing values from `xs` and the number of their occurrences.
 
 """
 function rle(xs::Vector{T}) where T
@@ -305,7 +304,7 @@ Reduce a pair consisting of an expression and its count to just
 an expression. The default case is to just return the expression.
 
 ## Arguments
-- `::Op{T}` -- An operator type.
+- `::Op{T}`                    -- An operator type.
 - `pair :: Tuple{Expr, Int64}` -- Expression and its count.
 
 ## Return

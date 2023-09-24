@@ -42,8 +42,8 @@ with respect to `t` when the values in `t` are possibly irregular.
 - `T <: Real`
 
 ## Arguments
-- `t :: Vector{T}`   -- A vector of times.
-- `x :: Vector{T}`   -- A vector of values.
+- `t :: AbstractVector{T}`   -- A vector of times.
+- `x :: AbstractVector{T}`   -- A vector of values.
 
 ## Keyword Arguments
 - `chk_inp :: Bool`  -- Check the input contract?
@@ -58,12 +58,12 @@ The inputs are assumed to satisfy the constraints below.
 | ``\\forall i, t_{i+1} > t_i``  | The times are increasing; consequently, we have a 1-1 map from `t` to `x`.|
 
 ## Return
-:: Vector{T}
+:: AbstractVector{T}
 """
-@noinline function tic_diff1(t::Vector{S}         , 
-                   x::Vector{T}         ;
-                   chk_inp::Bool = false,
-                  ) :: Vector{T} where {S <: Real, T <: Real}
+@noinline function tic_diff1(t::AbstractVector{S} , 
+                             x::AbstractVector{T} ;
+                             chk_inp::Bool = false,
+                  ) :: AbstractVector{T} where {S <: Real, T <: Real}
     n = length(x)
 
     if chk_inp
@@ -94,8 +94,8 @@ with respect to `t` when the values in `t` are possibly irregular.
 - `T <: Real`
 
 ## Arguments
-- `t :: Vector{S}` -- A vector of times.
-- `x :: Vector{T}` -- A vector of values.
+- `t :: AbstractVector{S}` -- A vector of times.
+- `x :: AbstractVector{T}` -- A vector of values.
 
 ## Keyword Arguments
 - `chk_inp :: Bool`  -- Check the input contract?
@@ -111,12 +111,12 @@ The inputs are assumed to satisfy the constraints below.
 | ``\\forall i, t_{i+1} > t_i``  | The times are increasing; consequently, we have a 1-1 map from `t` to `x`.|
 
 ## Return
-:: Vector{T}
+:: AbstractVector{T}
 """
-@noinline function tic_diff2(t::Vector{S}, 
-                   x::Vector{T};
-                   chk_inp::Bool = false,
-                  ) :: Vector{T} where {S <: Real, T <: Real}
+@noinline function tic_diff2(t::AbstractVector{S}, 
+                   x::AbstractVector{T}          ;
+                   chk_inp::Bool = false         ,
+                  ) :: AbstractVector{T} where {S <: Real, T <: Real}
     n = length(x)
 
     if chk_inp
@@ -158,8 +158,8 @@ Collect all ``t, S_t`` where ``h \\ge S_t``.
 - `T <: Real`
 
 ## Arguments
-- `t :: Vector{S}` -- The tic series to examine.
-- `x :: Vector{T}` -- The series to examine.
+- `t :: AbstractVector{S}` -- The tic series to examine.
+- `x :: AbstractVector{T}` -- The series to examine.
 - `w :: Int64`     -- The width of the moving average.
 - `h :: T`         -- The threshold for the deviation to register.
 
@@ -178,21 +178,21 @@ The inputs are assumed to satisfy the constraints below.
 |``\\forall i, t_{i+1} > t_{i}``      | The times are increasing; consequently, we have a 1-1 map from `t` to `x`.|
 
 ## Output Components
-- `td :: Vector{S}` -- Values of `t` where deviations occurred.
-- `xd :: Vector{T}` -- Values of `x` where deviations occurred.
+- `td :: AbstractVector{S}` -- Values of `t` where deviations occurred.
+- `xd :: AbstractVector{T}` -- Values of `x` where deviations occurred.
 
 ## Output Contract
 - `|td| = |xd|`
 
 ## Return
-(td, xd) :: Tuple{Vector{S}, Vector{T}}
+(td, xd) :: Tuple{AbstractVector{S}, AbstractVector{T}}
 """
-function sig_cumsum(t::Vector{S}, 
-                    x::Vector{T}, 
-                    w::Int64, 
-                    h::T;
-                    chk_inp::Bool=false
-                   ) :: Tuple{Vector{S}, Vector{T}} where {S <: Real, T <: Real}
+function sig_cumsum(t::AbstractVector{S}, 
+                    x::AbstractVector{T}, 
+                    w::Int64            , 
+                    h::T                ;
+                    chk_inp::Bool=false ,
+                   ) :: Tuple{AbstractVector{S}, AbstractVector{T}} where {S <: Real, T <: Real}
     n = length(x)
 
     ## Input contract.
@@ -239,8 +239,8 @@ Compute the Exponential Moving Average of the sequence `x`.
 - `T <: Real`
 
 ## Arguments
-- `x :: Vector{T}`   -- The series to work with.
-- `m :: Int64`       -- The width of the decay window.
+- `x :: AbstractVector{T}` -- The series to work with.
+- `m :: Int64`             -- The width of the decay window.
 
 ## Keyword Arguments
 - `h :: Int64`       -- The exponential decay *half-life*. 
@@ -254,19 +254,19 @@ The inputs are assumed to satisfy the constraints below.
 | `h > 1`    | Exponential *half-life* is greater than ``1``.|
 
 ## Output 
-- `ema :: Vector{T}` -- The exponential moving average of `x`.
+- `ema :: AbstractVector{T}` -- The exponential moving average of `x`.
 
 ## Output Contract
 - `|x| = |ema|`
 
 ## Return
-ema::Vector{T}
+ema::AbstractVector{T}
 
 """
-@noinline function ema(x :: Vector{T}    , 
-             m :: Int64                  ; 
-             h = div(m, 2) :: Int64      ,
-            ) :: Vector{T} where { T <: Real }
+@noinline function ema(x :: AbstractVector{T}, 
+             m :: Int64                      ; 
+             h = div(m, 2) :: Int64          ,
+            ) :: AbstractVector{T} where { T <: Real }
 
     ## Check input constraints.
     m <= 1 && throw(DomainError(m, "The window length must be > 1."))
@@ -310,8 +310,8 @@ may be used instead.
 - `T <: Real`
 
 ## Arguments
-- `x :: Vector{T}` -- The series to work with.
-- `m :: Int64`     -- The width of the decay window.
+- `x :: AbstractVector{T}` -- The series to work with.
+- `m :: Int64`             -- The width of the decay window.
 
 ## Keyword Arguments
 - `h        :: Int64`             -- The exponential decay *half-life*. 
@@ -328,19 +328,19 @@ The inputs are assumed to satisfy the constraints below.
 | `init_sig` ``\\ge 0``| User supplied starting ``\\sigma`` should be ``\\ge 0``.|
 
 ## Output 
-- `stda :: Vector{T}` -- The moving exponential standard deviation of `x`.
+- `stda :: AbstractVector{T}` -- The moving exponential standard deviation of `x`.
 
 ## Output Contract
 - `|x| = |stda|`
 
 ## Return
-stda::Vector{T}
+stda::AbstractVector{T}
 """
-@noinline function ema_std(x                  :: Vector{T}        ,
+@noinline function ema_std(x                  :: AbstractVector{T},
                            m                  :: Int64            ;
                            h = div(m, 2)      :: Int64            ,
                            init_sig = nothing :: Union{T, Nothing},
-                )  :: Vector{T} where {T <: Real}
+                )  :: AbstractVector{T} where {T <: Real}
 
     N = length(x)
 
@@ -409,8 +409,8 @@ Returns these stats as a matrix with four columns, each representing the stats a
 - `T <: Real`
 
 ## Arguments
-- `x :: Vector{T}` -- The series to work with.
-- `m :: Int64`     -- The width of the decay window.
+- `x :: AbstractVector{T}` -- The series to work with.
+- `m :: Int64`             -- The width of the decay window.
 
 ## Keyword Arguments
 - `h :: Int64`     -- The exponential decay *half-life*. 
@@ -433,7 +433,7 @@ The inputs are assumed to satisfy the constraints below.
 ## Return
 stat::Matrix{T}
 """
-@noinline function ema_stats(x      :: Vector{T}        ,
+@noinline function ema_stats(x      :: AbstractVector{T},
                    m                :: Int64            ;
                    h                :: Int64 = div(m, 2),
                    init_sig=nothing :: Union{Nothing, T},
@@ -523,7 +523,7 @@ Compute the "sample" standard deviation of a series, `x`.
 - `T <: Real`
 
 ## Arguments
-- `x :: Vector{T}` -- The series to work with.
+- `x :: AbstractVector{T}` -- The series to work with.
 
 ## Input Contract
 The inputs are assumed to satisfy the constraints below.
@@ -535,7 +535,7 @@ The inputs are assumed to satisfy the constraints below.
 ## Return
 std::T -- The sample standard deviation.
 """
-@noinline function std(x::Vector{T}) where {T <: Real}
+@noinline function std(x::AbstractVector{T}) where {T <: Real}
     sd = zero(T)
     mn = zero(T)
     N = length(x)
@@ -561,13 +561,13 @@ Here, `N = |w|`.
 - `T <: Real`
 
 ## Arguments
-- `w :: Vector{T}` -- Vector of weights.
+- `w :: AbstractVector{T}` -- Vector of weights.
 
 ## Return
 The above sum.
 
 """
-@noinline function WWsum(w::Vector{T}) :: T  where {T <: Real}
+@noinline function WWsum(w::AbstractVector{T}) :: T  where {T <: Real}
     WW = zero(T)
     m = length(w)
     for i in 1:(m-1)

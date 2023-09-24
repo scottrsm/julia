@@ -230,9 +230,9 @@ Strategy to pick a guess for Wordle:
     The characters in swords are lowercase letters: [a-z].
 
 """
-function freq_letter_strat(swords::Vector{String}, # The sorted list of words to choose from. 
-                           lfa   ::Vector{Char}  , # The letter frequency order of the alphabet.
-                           c_idx ::Vector{Int64} , # The complement of the indices that are exact.
+function freq_letter_strat(swords:: Vector{String}, # The sorted list of words to choose from. 
+                           lfa   :: Vector{Char}  , # The letter frequency order of the alphabet.
+                           c_idx :: Vector{Int64} , # The complement of the indices that are exact.
                           ) :: String
     
     ## Create corresponding dictionaries for each index.
