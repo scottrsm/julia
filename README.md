@@ -20,8 +20,8 @@ The stats for the solver are:
 - Overall: The mean number of guesses (weighted by word usage) to solve: 2.93.
 - When Successful: The mean number of guesses to solve: 4.31.
 - When Successful: The mean number of guesses (weighted by word frequency) to solve: 2.92.
-- Percent unsuccessful: %5.78.
-- Percent unsuccessful (weighted by word frequency): %0.26.
+- Percent unsuccessful: 5.78%.
+- Percent unsuccessful (weighted by word frequency): 0.26%.
 
 ### Module Wquantiles
 A few versions of weighted quantiles with examples and comparisons 
