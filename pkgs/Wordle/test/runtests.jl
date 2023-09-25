@@ -25,7 +25,7 @@ end
 end
 
 @testset "solve_wordle" begin
-    res = solve_wordle("taste")
+    res = solve_wordle("taste"; init_guess="their")
     @test res == (Any[
                       ("their", [('t', 1)], 3027), 
                       ("taken", [('t', 1), ('a', 2)], 31), 
