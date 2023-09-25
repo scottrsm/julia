@@ -273,7 +273,7 @@ end
 
 """
     solve_wordle(puzzle_word, universe_df, rec_count, sol_path, last_guess, 
-                    lfa[; chk_inputs, guess_strategy])
+                    lfa[; chk_inputs, guess_strategy, uw, uu, init_guess])
 
 Solves a NYT Wordle puzzle.
 
@@ -326,7 +326,7 @@ Here,
 
 ## Examples
 ```jdoctest
-julia> solve_wordle("taste")
+julia> solve_wordle("taste"; init_guess="their")
 
 (Any[("their", [('t', 1)], 3027), 
      ("taken", [('t', 1), ('a', 2)], 31), 
