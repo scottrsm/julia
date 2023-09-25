@@ -60,6 +60,6 @@ you may create and view documentation for a given module, `<Module>`,
 by doing the following:
 - cd `<REPO>/pkgs/<Module>/docs`
 - `julia make.jl`
-- Point your browser to `<REPO>/pkgs/<Module>/docs/build/index.html` .
+- Point your browser to `file://<REPO>/pkgs/<Module>/docs/build/index.html` .
 
 
