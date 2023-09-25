@@ -14,14 +14,22 @@ A module containing utilities for some rudimentary signal analysis.
 
 ### Module Wordle
 Solves the NYT Wordle puzzle.
-To be successful, one has to guess the hidden word by no more than six guesses.
+To be successful, one has to find the hidden word by no more than six guesses.
+The solver has been designed to work well on words that are
+used more frequently without sacrificing overall performance.
+
+Below we examine 
+- Overall Performance -- We consider all trials, even if a solve took more than six guesses.
+- When Successful -- We only consider the solves that were the number of 
+guesses were less than or equal six.
+
 The stats for the solver are:
-- Overall: The mean number of guesses to solve: 4.49.
-- Overall: The mean number of guesses (weighted by word usage) to solve: 2.93.
+- Overall: The mean number of guesses to solve: 4.48.
+- Overall: The mean number of guesses (weighted by word usage) to solve: 2.91.
 - When Successful: The mean number of guesses to solve: 4.31.
-- When Successful: The mean number of guesses (weighted by word frequency) to solve: 2.92.
-- Percent unsuccessful: 5.78%.
-- Percent unsuccessful (weighted by word frequency): 0.26%.
+- When Successful: The mean number of guesses (weighted by word frequency) to solve: 2.90.
+- Percent unsuccessful: 5.62%.
+- Percent unsuccessful (weighted by word usage): 0.36%.
 
 ### Module Wquantiles
 A few versions of weighted quantiles with examples and comparisons 
@@ -36,7 +44,7 @@ of using data parallelization.
 - WordleTest.ipynb    -- Jupyter notebook to test Wordle puzzle solver strategies.
 - WquantileTest.ipynb -- Jupyter notebook to test Wquantiles module.
                          In order to examine parallelism you must ensure
-                         that your notebooks are running julia with multiple threads.
+                         that your notebooks are running Julia with multiple threads.
 
 
 **DEV NOTES:**

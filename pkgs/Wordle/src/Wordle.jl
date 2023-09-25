@@ -352,7 +352,7 @@ function solve_wordle(puzzle_word :: String                      , # Puzzle word
                       guess_strategy               = nothing     , # Function to pick the next guess.
                       ul          :: Int64         = 20          , # Used if function guess_strategy given.
                       uu          :: Int64         = 50          , # Used if function guess_strategy given.
-                      init_guess  :: String        = "their"     , # Starting guess to use.
+                      init_guess  :: String        = "trace"     , # Starting guess to use.
                      ):: Tuple{Any, Int64, Symbol}
 
     ## Check input contract?
