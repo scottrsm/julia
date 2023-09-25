@@ -156,7 +156,7 @@ Finds the `q` weighted quantile values from the columns of the matrix `X`.
 - `V <: Real`
 
 ## Arguments
-- `X  ::Matrix{T}`: Matrix(n,m) of values from which to find quantiles.
+- `X  ::AbstractMatrix{T}`: Matrix(n,m) of values from which to find quantiles.
 - `w  ::AbstractVector{S}`: Vector(n) of weights to use.
 - `q  ::AbstractVector{V}`: Vector(l) of quantile values.
 
@@ -182,12 +182,12 @@ Letting `qs` be the sorted quantiles of `q`.
 The entry `(i,j)` is the ``i^{\\rm th}`` quantile (in `qs`) from the ``j^{\\rm th}`` column of `X`.
 
 """
-function Wquantile(X::Matrix{T}         , 
+function Wquantile(X::AbstractMatrix{T} , 
                    w::AbstractVector{S} , 
                    q::AbstractVector{V} ;
                    chk::Bool = true     , 
                    norm_wgt::Bool = true, 
-                   sort_q::Bool = true   ) :: Matrix{T} where {T, S <: Real, V <: Real}
+                   sort_q::Bool = true   ) :: AbstractMatrix{T} where {T, S <: Real, V <: Real}
 
     _, m = size(X)
 
@@ -229,7 +229,7 @@ Finds the `q` weighted quantile values from the columns of the matrix `X`.
 - `V <: Real`
 
 ## Arguments
-- `X  ::Matrix{T}`        : Matrix(n,m) of values from which to find quantiles.
+- `X  ::AbstractMatrix{T}`: AbstractMatrix(n,m) of values from which to find quantiles.
 - `w  ::AbstractVector{S}`: Vector(n) of weights to use.
 - `q  ::AbstractVector{V}`: Vector(l) of quantile values.
 
@@ -249,8 +249,8 @@ Letting `qs` be the sorted quantiles of `q`.
 The entry `(i,j)` is the ``i^{\\rm th}`` quantile (in `qs`) from the ``j^{\\rm th}`` column of `X`.
 
 """
-function WquantileM(X::Matrix{T}, w::AbstractVector{S}, q::AbstractVector{V}; 
-                    chk::Bool = true) :: Matrix{T} where {T, S <: Real, V <: Real}
+function WquantileM(X::AbstractMatrix{T}, w::AbstractVector{S}, q::AbstractVector{V}; 
+                    chk::Bool = true) :: AbstractMatrix{T} where {T, S <: Real, V <: Real}
     ## We report back the quantiles of `X` in sorted `q` order, so we sort `q`.
     qs    = sort(q)
     l     = length(qs)

@@ -147,9 +147,9 @@ a running mean (with window length `w`) of the series.
 The threshold of the deviation is `h`.
 
 Deviation is determined by:
-- ``S^+_t = {\\rm max}(0, S_{t-1} + x_t - E[x_{t-1}]; S^+_0 = 0``
-- ``S^-_t = {\\rm min}(0, S_{t-1} + x_t - E[x_{t-1}]; S^-_0 = 0``
-- ``S_t = {\\rm max}(S^+_t, -S^-_t)``
+- ``S_t^+ = {\\rm max}(0, S_{t-1} + x_t - E[x_{t-1}]; S^+_0 = 0``
+- ``S_t^- = {\\rm min}(0, S_{t-1} + x_t - E[x_{t-1}]; S^-_0 = 0``
+- ``S_t^{\\hphantom{+}} = {\\rm max}(S^+_t, -S^-_t)``
 
 Collect all ``t, S_t`` where ``h \\ge S_t``.
 
@@ -160,8 +160,8 @@ Collect all ``t, S_t`` where ``h \\ge S_t``.
 ## Arguments
 - `t :: AbstractVector{S}` -- The tic series to examine.
 - `x :: AbstractVector{T}` -- The series to examine.
-- `w :: Int64`     -- The width of the moving average.
-- `h :: T`         -- The threshold for the deviation to register.
+- `w :: Int64`             -- The width of the moving average.
+- `h :: T`                 -- The threshold for the deviation to register.
 
 ## Keyword Arguments
 - `chk_inp :: Bool`  -- Check the input contract?
