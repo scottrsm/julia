@@ -19,9 +19,9 @@ The solver has been designed to work well on words that are
 used more frequently without sacrificing overall performance.
 
 Below we examine 
-- Overall Performance -- We consider all trials, even if a solve took more than six guesses.
-- When Successful -- We only consider the solves that were the number of 
-guesses were less than or equal six.
+- Overall Performance -- We consider all trials, even if a "solve" took more than six guesses.
+- When Successful -- We only consider the "solves" where the number of 
+guesses were less than or equal to six.
 
 The stats for the solver are:
 - Overall: The mean number of guesses to solve: 4.48.
