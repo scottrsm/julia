@@ -6,7 +6,7 @@ CurrentModule = Sudoku
 
 # Overview
 Below are two are two Sudoku solvers: One takes a puzzle as a matrix while the
-other takes a file. In addition, a couple of utility functions that help 
+other takes a file. In addition, a few utility functions that help 
 in the process are listed.
 
 - `get_block`            : This function retrieves sub-blocks of a Sudoku matrix.
