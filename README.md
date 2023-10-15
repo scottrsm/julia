@@ -12,6 +12,9 @@ Provides code to play a version of poker.
 ### Module Finance
 A module containing utilities for some rudimentary signal analysis.
 
+### Module Sudoku
+Solves Sudoku puzzles.
+
 ### Module Wordle
 Solves the NYT Wordle puzzle.
 To be successful, one has to find the hidden word by no more than six guesses.
