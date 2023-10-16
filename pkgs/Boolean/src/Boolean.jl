@@ -112,13 +112,13 @@ logicCount(l::Blogic) = count(l.val)
 
 
 """
-    nonZero(l[,head])
+    nonZero(l, head=1)
 
 Get up to `head` inputs that generate true values for a logic function, `l`.
 
 ## Arguments
 - `l    :: Blogic` -- A logic formula.
-- `head :: Int64`  -- The maximum number of inputs to consider.
+- `head=1 :: Int64`  -- The maximum number of inputs to consider.
     
 ## Return
 A list of up to `head` input values that will give the 
@@ -155,7 +155,9 @@ end
     bool_var_rep(n)
 
 Generate the boolean bit vectors necessary to represent a logic 
-formula of `n` variables. Essentially, generate the truth table 
+formula of `n` variables. 
+
+Essentially, generate the truth table 
 of each of the variables collectively as a `BitArray`.
 
 ## Arguments
@@ -204,6 +206,7 @@ end
 
 Performs a R(un) L(ength) E(ncoding) on an array, 
 grouping like values into arrays.
+
 The values are **assumed** to be sorted.
     
 ## Arguments
@@ -266,6 +269,7 @@ end
     modifyLogicExpr!(e::Symbol)
 
 If `e` is a Symbol, it should be a variable of the form `r"[a-zA-Z]+[0-9]+"`.
+
 The code splits the name off and uses the number to look up the 
     `BitVector` representation.
     Otherwise, it is assumed to be an operator symbol and it is then 
@@ -301,7 +305,9 @@ end
     redux(::Op{T}, Tuple{S, Int64})
 
 Reduce a pair consisting of an expression and its count to just 
-an expression. The default case is to just return the expression.
+an expression. 
+
+The default case is to just return the expression.
 
 ## Arguments
 - `::Op{T}`                    -- An operator type.
@@ -319,7 +325,9 @@ end
     redux(::Opt{:⊕}, pair::Tuple{Expr, Int64})
 
 Reduce a pair consisting of an expression and its count to just 
-an expression. For an XOR expression, we know that only the expression 
+an expression. 
+
+For an XOR expression, we know that only the expression 
 remains or the value is 0.
 """
 function redux(::Op{:⊕}, pair::Tuple{Expr, Int64})
@@ -334,6 +342,7 @@ end
     simplifyLogic(e)
 
 Simplify a logical expression.
+
 This function calls a number of specialized variations of this function 
 to deal with different logical operators.
 
@@ -492,9 +501,11 @@ end
 
 
 """
-    create_bool_rep(s[, simplify])
+    create_bool_rep(s, simplify=false)
 
 Turn boolean formula into a `BitVector` representation, `Blogic`.
+
+This is done by the following procedure:
 - Determine the underlying base variable used in the formula.
 - Parse the formula into an expression, `Expr`.
 - Optionally simplify the logical expression.
@@ -504,7 +515,7 @@ Turn boolean formula into a `BitVector` representation, `Blogic`.
 
 ## Arguments 
 - `s :: String`      -- A logical string.
-- `simplify :: Bool` -- If `true` simplify the logical expression before 
+- `simplify=false :: Bool` -- If `true` simplify the logical expression before 
                         creating the `BitVector`.
 ## Examples
 ```jdoctest

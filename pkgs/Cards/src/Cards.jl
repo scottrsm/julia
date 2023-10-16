@@ -215,11 +215,12 @@ end
     Base.isless(p1,p2)
 
 Defines `isless` between two poker hands.
-Not if the poker type and the groupings by 
-rank are the same, we use the fact 
-that there are the same number of single cards
-for each hand. We then compare the cards from 
-highest to lowest. The Card comparison uses 
+
+**Note:** If the poker type and the groupings by 
+rank are the same, and if there are single
+cards (not paired/grouped with any other), then
+these cards are used to break the tie between 
+the two hands. The Card comparison uses 
 rank first and then suit to determine which 
 card is higher.
 
@@ -263,9 +264,10 @@ Base.:(==)(ph1::PokerHand, ph2::PokerHand) = (ph1.cards == ph2.cards) && (ph1.gr
 # ---------------------  FUNCTIONS   ---------------------------------------
 #---------------------------------------------------------------------------
 """
-    poker_hand_contract(cds[;N])
+    poker_hand_contract(cds; N=5)
 
 Checks that a poker hand is valid.
+
 Checks the following are true for `cds`:
 - They are unique.
 - Their number is `N`. 
@@ -274,7 +276,7 @@ Checks the following are true for `cds`:
 - `cds :: Vector{Card}` -- A vector of cards.
 
 ## Optional Arguments
-- `N :: Int64` -- The number of cards that the hand should have.
+- `N=5 :: Int64` -- The number of cards that the hand should have.
 
 ## Return
 `::Bool` -- `true` if `cds` are valid.
@@ -313,16 +315,17 @@ end
 
 
 """
-    deal_hand!(d[;N])
+    deal_hand!(d; N=5)
 
 Deals a hand from a deck, `d`, creating a PokerHand.
+
 In the process, removes `N` cards from the deck, `d`.
 
 ## Arguments
 - `d :: Deck` -- A Deck from which to deal.
 
-## Optional Arguments
-- `N :: Int64` -- The number of cards to deal.
+## Keyword Arguments
+- `N=5 :: Int64` -- The number of cards to deal.
 
 ## Return
 `::PokerHand` -- A poker hand
@@ -402,13 +405,13 @@ num_cards_left_in_deck(d::Deck) :: Int64 = NO_CARDS_IN_DECK - d.place
 Creates a representation of a Poker hand.
 
 The representation is a vector of two-tuples of the form:
-(N, Card-Rank) -- Here, N is the number of times a card with Card-Rank appears in the hand.
+`(N, Card-Rank)` -- Here, `N` is the number of times a card with Card-Rank appears in the hand.
 The tuple representation is ordered from highest to lowest.
 
 **NOTE:** When `N==1` the corresponding rank *uniquely* determines the card in the hand.
 
 ## Input Contract
-- Cards are *ASSUMED* sorted via Base.isless(Card, Card)
+- Cards are *ASSUMED* sorted via `Base.isless(Card, Card)`.
 
 ## Arguments
 - `cds :: Vector{Card}` -- A Vector of Card.
@@ -450,7 +453,8 @@ end
 """
     classify_hand(gr_rep)
 
-Classifies a poker hand into one of the standard classes given by the enumeration: `PokerType`
+Classifies a poker hand into one of the standard classes given by the enumeration: `PokerType`.
+
 This is done by first examining the length of the grouped rank representation, `gr_rep`.
 
 We know the following:

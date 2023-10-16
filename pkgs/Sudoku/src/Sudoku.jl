@@ -57,6 +57,7 @@ end
     check_sudoku_solution(SP, SS)
 
 Checks that `SS` is a solution of the puzzle, `SP`.
+
 It does this by doing the following:
 - Checks for any (non-zero) duplicate entries in 
   any rows, columns, or sub-blocks.
@@ -133,6 +134,7 @@ end
     consist_chk(S)
 
 Checks the consistency of a Sudoku matrix, `S`.
+
 This means that we check that there are no (non-zero)
 duplicate entries in any rows, columns, or sub-blocks.
 
@@ -169,6 +171,22 @@ end
 
 
 
+"""
+    solve_sudoku(SP, rec_count; verbose=false)
+
+Helper function that does the work of the top level solver.
+
+Arguments:
+- `S::Matrix{Int8}`  -- A Sudoku puzzle matrix.
+- `rec_count::Int64` -- The count of the number of times this function has been called.
+
+Keyword Arguments:
+- `verbose::Bool`    -- If true, print out extra information.
+
+Return: (ok, SS) 
+- `ok::Bool` -- If `true`, a *proposed solution* was found.
+- `S::Matrix{Int8}}` -- A proposed, or inconsistent solution matrix.
+"""
 function solve_sudoku(SP::Matrix{Int8}, rec_count; verbose=false)
     # We copy the input Sudoku matrix as this function mutates its values.
     S = copy(SP)
@@ -289,10 +307,11 @@ function solve_sudoku(SP::Matrix{Int8}, rec_count; verbose=false)
 end
 
 """
-    solve_sudoku(S[; verbose])
+    solve_sudoku(S; verbose=false)
 
-Solves a Sudoku puzzle represented as a matrix. The value, `0`, represents
-a blank.
+Solves a Sudoku puzzle represented as a matrix. 
+
+The value, `0`, in the puzzle matrix represents a blank.
 
 Arguments:
 - `S::Matrix{Int8}`  -- A Sudoku puzzle matrix.
@@ -303,7 +322,7 @@ Keyword Arguments:
 Return: (ok, chk_sol, SS) 
 - `ok::Bool` -- If `true`, a *proposed solution* was found.
 - `chk_sol::Bool` -- If `true`, the proposed solution is *correct*. 
-- `::Tuple{Bool, Bool, Matrix{Int8}}` -- A proposed, or inconsistent solution matrix.
+- `SS::Matrix{Int8}}` -- A proposed, or inconsistent/incomplete solution matrix.
 """
 function solve_sudoku(SP::Matrix{Int8}; verbose=false) 
     (ok, SS) = solve_sudoku(SP, 1; verbose=verbose)
@@ -314,10 +333,12 @@ function solve_sudoku(SP::Matrix{Int8}; verbose=false)
     return (ok, chk_sol, SS)
 end
 
+
 """
     solve_sudoku_file(puzzle_file_name[;puzzle_dir, verbose])
 
 Solves and prints a solution of a Sudou puzzle file.
+
 The file is the name of a csv file (without extension).
 The file format is a 9 rows of values with "0" representing a blank.
 

@@ -37,12 +37,12 @@ Finds the `q` weighted quantile values from the vector `x`.
 - `w  ::AbstractVector{S}`: Vector(n) of weights to use.
 - `q  ::AbstractVector{V}`: Vector(l) of quantile values.
 
-## Keyword Args
-- `chk     :: Bool`: If `true`, check the input contract described below.
-- `norm_wgt:: Bool`: If `true`, normalize the weights.
+## Keyword Arguments
+- `chk=true     :: Bool`: If `true`, check the input contract described below.
+- `norm_wgt=true:: Bool`: If `true`, normalize the weights.
 
    **NOTE:** If `norm_wgt` is `false`, it is *ASSUMED* that `w` is already normalized.
-- `sort_q  ::Bool`: If `true`, sort the quantile vector, `q`.
+- `sort_q=true  ::Bool`: If `true`, sort the quantile vector, `q`.
 
    **NOTE:** If `sort_q` is `false`, it *ASSUMED* that `q` is already sorted.
 
@@ -147,7 +147,7 @@ end
 
 
 """
-    Wquantile(X, w, q[; chk=true, norm_wgt=true, sort_q=true])
+    Wquantile(X, w, q; chk=true, norm_wgt=true, sort_q=true)
 
 Finds the `q` weighted quantile values from the columns of the matrix `X`.
 
@@ -160,14 +160,15 @@ Finds the `q` weighted quantile values from the columns of the matrix `X`.
 - `w  ::AbstractVector{S}`: Vector(n) of weights to use.
 - `q  ::AbstractVector{V}`: Vector(l) of quantile values.
 
-## Keyword Args
-- `chk     ::Bool`: If `true`, check the input contract described below.
-- `norm_wgt::Bool`: If `true`, normalize the weights.
+## Keyword Arguments
+- `chk=true     ::Bool`: If `true`, check the input contract described below.
+- `norm_wgt=true::Bool`: If `true`, normalize the weights.
 
    **NOTE:** If `norm_wgt` is `false`, it is *ASSUMED* that `w` is already normalized.
-- `sort_q  ::Bool`: If `true`, sort the quantile vector, `q`.
+- `sort_q=true  ::Bool`: If `true`, sort the quantile vector, `q`.
 
    **NOTE:** If `sort_q` is `false`, it is *ASSUMED* that `q` is already sorted.
+
 ### Input Contract
 -  The type of `X` implements sortable.
 - `∀i, |X[:, i]|  == |w|` -- Length of each column of `X` matches length of weights.
@@ -220,7 +221,7 @@ end
 
 
 """
-    WquantileM(X, w, q[; chk=true])
+    WquantileM(X, w, q; chk=true)
 
 Finds the `q` weighted quantile values from the columns of the matrix `X`.
 
@@ -233,8 +234,8 @@ Finds the `q` weighted quantile values from the columns of the matrix `X`.
 - `w  ::AbstractVector{S}`: Vector(n) of weights to use.
 - `q  ::AbstractVector{V}`: Vector(l) of quantile values.
 
-## Keyword Args
-- `chk::Bool`     : If `true`, check the input contract described below.
+## Keyword Arguments
+- `chk=true::Bool`     : If `true`, check the input contract described below.
 
 ### Input Contract
 -  The type of `X` is sortable.

@@ -199,7 +199,9 @@ end
 """
     freq_letter_strat(swords, lfa, c_idx)
 
-Strategy to pick a guess for Wordle:    
+Strategy to pick a guess for Wordle.    
+
+The strategy consists of the following:
 - Take the words in the current universe.
 - Take the complement of the indices where we have exact information.
       For each of these indices create a dictionary with letter => count.
@@ -273,7 +275,7 @@ end
 
 """
     solve_wordle(puzzle_word, universe_df, rec_count, sol_path, last_guess, 
-                    lfa[; chk_inputs, guess_strategy, uw, uu, init_guess])
+                    lfa; <keyword arguments>)
 
 Solves a NYT Wordle puzzle.
 
