@@ -102,7 +102,7 @@ end
 Count the number of true values possible in a given formula.
 
 ## Arguments 
-- l :: Blogic -- A logic formula
+- `l :: Blogic` -- A logic formula
 
 ## Return
 The number of true values that are possible with this formula.
@@ -314,12 +314,12 @@ The default case is to just return the expression.
 - `pair :: Tuple{Expr, Int64}` -- Expression and its count.
 
 ## Return
-`::Expr` -- Expression.
-
+`::Expr` -- Simplified logic expression.
 """
 function redux(::Op{T}, pair::Tuple{S, Int64}) where {S, T}
     return(pair[1])
 end
+
 
 """
     redux(::Opt{:⊕}, pair::Tuple{Expr, Int64})
@@ -329,6 +329,13 @@ an expression.
 
 For an XOR expression, we know that only the expression 
 remains or the value is 0.
+
+## Arguments
+- `:::Opt{:⊕}`                 -- An operator type.
+- `pair :: Tuple{Expr, Int64}` -- Expression and its count.
+
+## Return
+`::Expr` -- Simplified logic expression.
 """
 function redux(::Op{:⊕}, pair::Tuple{Expr, Int64})
     if pair[2] % 2 == 0
