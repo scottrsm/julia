@@ -22,13 +22,13 @@ MAX_RECUR_DEPTH=1
 
 Get the `(i, j)` sub-block matrix of `S`.
 
-Arguments:
+## Arguments
 - `S::Matrix{Int8}` -- A sudoku matrix.
 - `i::Int64`        -- The ``i^{i\\rm th}`` block row entry.
 - `j::Int64`        -- The ``j^{j\\rm th}`` block column entry.
 
-Return:
-- `::Matrix{Int8}` -- The ``(i^{\\rm th}, j^{\\rm th})`` sub-block matrix. 
+## Return
+`::Matrix{Int8}` -- The ``(i^{\\rm th}, j^{\\rm th})`` sub-block matrix. 
 """
 function get_block(S::Matrix{Int8}, i::Int64, j::Int64)
     S[SUDOKU_BLK_SIZE * (i-1) + 1:SUDOKU_BLK_SIZE * i, SUDOKU_BLK_SIZE * (j-1) + 1:SUDOKU_BLK_SIZE * j]
@@ -38,16 +38,21 @@ end
 """
     get_blk_idx(h)
 
-Get a block sub-matrix from a Sudoku matrix from a cell in the matrix.
+Get the sub-block index pair for a given index pair of a Sudoku matrix.
 
-Arguments:
+## Arguments
 - `h::CartesianIndex` -- The index into a Sudoku matrix.
 
-Example: `get_blk_idx(CartesianIndex(4, 6))`
-         This gets the middle 3x3 sub-matrix block from a Sudoku matrix.
+## Examples
+The code below gets the sub-block index pair, (2,2) (the index representing the middle 3x3 block matrix),
+when passed the Sudoku matrix index pair (4,6).
+```jdoctest
+julia> get_blk_idx(CaresianIndex(4, 6))
+(2,2)
+```
 
-Return:
-- `::Tuple{Int64, Int64}` -- The index pair of the sub-matrix block.
+## Return
+`::Tuple{Int64, Int64}` -- The index pair of the sub-matrix block.
 """
 function get_blk_idx(h::CartesianIndex)
     (div(h[1]-1, SUDOKU_BLK_SIZE) + 1, div(h[2]-1, SUDOKU_BLK_SIZE) + 1)
@@ -66,13 +71,13 @@ It does this by doing the following:
 - Checks that the proposed solution is consistent
   with the puzzle matrix, `SP`. 
 
-Arguments:
+## Arguments
 - `SP::Matrix{Int8}` -- A Sudoku puzzle in matrix form.
                         Zeros represent blanks.
 - `SS::Matrix{Int8}` -- Proposed solution for `SP`.
 
-Returns:
-- `::Bool` -- If `true`, the proposed solution is correct.
+## Returns
+`::Bool` -- If `true`, the proposed solution is correct.
 """
 function check_sudoku_solution(SP, SS)
     # Check for consistency -- no (non-zero) duplicates.
@@ -113,11 +118,11 @@ end
 
 Check if a vector/matrix has duplicate numeric (other than 0) entries.
 
-Arguments:
+## Arguments
 - `v :: Union{Vector{Int8}, Matrix{Int8}}`
 
-Return:
-- `::Bool` -- If `true` there exists at least one duplicate.
+## Return
+`::Bool` -- If `true` there exists at least one duplicate.
 """
 function has_dups(v::Union{Vector{Int8}, Matrix{Int8}})
     vn = filter(x -> x != 0, v)
@@ -138,12 +143,12 @@ Checks the consistency of a Sudoku matrix, `S`.
 This means that we check that there are no (non-zero)
 duplicate entries in any rows, columns, or sub-blocks.
 
-Arguments:
+## Argumens
 - `S::Matrix{Int8}` -- A Sudoku puzzle, proposed solution, or
                        intermediate solution.
 
-Return:
-- `::Bool` -- Returns `true` if matrix is consistent.
+## Return
+`::Bool` -- Returns `true` if matrix is consistent.
 """
 function consist_chk(S)
     # Check all rows for non-zero duplicates.
@@ -176,14 +181,15 @@ end
 
 Helper function that does the work of the top level solver.
 
-Arguments:
+## Arguments
 - `S::Matrix{Int8}`  -- A Sudoku puzzle matrix.
 - `rec_count::Int64` -- The count of the number of times this function has been called.
 
-Keyword Arguments:
-- `verbose::Bool`    -- If true, print out extra information.
+## Keyword Arguments
+- `verbose=false::Bool` -- If true, print out extra information.
 
-Return: (ok, SS) 
+## Return 
+(ok, SS) 
 - `ok::Bool` -- If `true`, a *proposed solution* was found.
 - `S::Matrix{Int8}}` -- A proposed, or inconsistent solution matrix.
 """
@@ -311,15 +317,16 @@ end
 
 Solves a Sudoku puzzle represented as a matrix. 
 
-The value, `0`, in the puzzle matrix represents a blank.
+The value, `0`, is used in a puzzle matrix to represent a blank.
 
-Arguments:
+## Arguments
 - `S::Matrix{Int8}`  -- A Sudoku puzzle matrix.
 
-Keyword Arguments:
-- `verbose::Bool`    -- If true, print out extra information.
+## Keyword Arguments
+- `verbose=false::Bool`    -- If true, print out extra information.
 
-Return: (ok, chk_sol, SS) 
+## Return 
+(ok, chk_sol, SS) 
 - `ok::Bool` -- If `true`, a *proposed solution* was found.
 - `chk_sol::Bool` -- If `true`, the proposed solution is *correct*. 
 - `SS::Matrix{Int8}}` -- A proposed, or inconsistent/incomplete solution matrix.
@@ -335,26 +342,28 @@ end
 
 
 """
-    solve_sudoku_file(puzzle_file_name[;puzzle_dir, verbose])
+    solve_sudoku_file(puzzle_file_name; <keyword arguments>])
 
 Solves and prints a solution of a Sudou puzzle file.
 
-The file is the name of a csv file (without extension).
-The file format is a 9 rows of values with "0" representing a blank.
+The file is the name of a CSV file (without extension).
+The file format is `9` rows of values, `0-9`, with "0" representing a blank.
 
-Arguments:
+**NOTE:** The CSV file should not have a *header*.
+
+## Arguments
 - `puzzle_file_name::AbstractString` -- The puzzle file name without the extension.
 
-Optional Arguments: 
-- `puzzle_dir::AbstractString` -- The full path to the directory.
-- `verbose::Bool` -- If true, print more output.
+## Keyword Arguments 
+- `puzzle_dir=joinpath(@__DIR__, "../puzzles") :: AbstractString` -- The path to the puzzle file directory.
+- `verbose=false :: Bool` -- If true, print more output.
 
-Return:
-- `::Nothing`
+## Return
+`::Nothing`
 """
-function solve_sudoku_file(puzzle_file_name :: AbstractString; 
-                           puzzle_dir :: AbstractString="/home/rsm/proj/github/julia/pkgs/Sudoku/puzzles", 
-                           verbose::Bool=false)
+function solve_sudoku_file(puzzle_file_name :: AbstractString                           ; 
+                           puzzle_dir=joinpath(@__DIR__, "../puzzles" :: AbstractString), 
+                           verbose=false :: Bool                                         )
     # Read the puzzle -- as a matrix.
     SP = Matrix{Int8}(CSV.read(joinpath(puzzle_dir, puzzle_file_name*".csv"), DataFrames.DataFrame; header=false))
 
