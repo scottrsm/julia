@@ -19,7 +19,7 @@ can be converted to a value of type `T`.
 - `::Type{T}` -- A numeric type.
 
 ## Return
-::Bool
+`::Bool`
 """
 function isConvertible(::Type{S}, ::Type{T})  where {S <:Real, T <:Real}
     try
@@ -32,7 +32,7 @@ function isConvertible(::Type{S}, ::Type{T})  where {S <:Real, T <:Real}
 end
 
 """
-    tic_diff1(t, x[; chk_inp=false])
+    tic_diff1(t, x; chk_inp=false)
 
 Compute the numerical derivative of a function represented by `x`
 with respect to `t` when the values in `t` are possibly irregular.
@@ -46,7 +46,7 @@ with respect to `t` when the values in `t` are possibly irregular.
 - `x :: AbstractVector{T}`   -- A vector of values.
 
 ## Keyword Arguments
-- `chk_inp :: Bool`  -- Check the input contract?
+- `chk_inp=false :: Bool`  -- Check the input contract?
 
 ## Input Contract
 The inputs are assumed to satisfy the constraints below.
@@ -58,7 +58,7 @@ The inputs are assumed to satisfy the constraints below.
 | ``\\forall i, t_{i+1} > t_i``  | The times are increasing; consequently, we have a 1-1 map from `t` to `x`.|
 
 ## Return
-:: AbstractVector{T}
+`:: AbstractVector{T}`
 """
 @noinline function tic_diff1(t::AbstractVector{S} , 
                              x::AbstractVector{T} ;
@@ -84,7 +84,7 @@ The inputs are assumed to satisfy the constraints below.
 end
 
 """
-    tic_diff2(t, x[; chk_inp=false])
+    tic_diff2(t, x; chk_inp=false)
 
 Compute the numerical second derivative of a function represented by `x`
 with respect to `t` when the values in `t` are possibly irregular.
@@ -98,8 +98,7 @@ with respect to `t` when the values in `t` are possibly irregular.
 - `x :: AbstractVector{T}` -- A vector of values.
 
 ## Keyword Arguments
-- `chk_inp :: Bool`  -- Check the input contract?
-- `S` is convertible to `T`.
+- `chk_inp=false :: Bool`  -- Check the input contract?
 
 ## Input Contract
 The inputs are assumed to satisfy the constraints below.
@@ -111,7 +110,7 @@ The inputs are assumed to satisfy the constraints below.
 | ``\\forall i, t_{i+1} > t_i``  | The times are increasing; consequently, we have a 1-1 map from `t` to `x`.|
 
 ## Return
-:: AbstractVector{T}
+`:: AbstractVector{T}`
 """
 @noinline function tic_diff2(t::AbstractVector{S}, 
                    x::AbstractVector{T}          ;
@@ -139,9 +138,10 @@ end
 
 
 """
-    sig_cumsum(t, x, w, h[; chk_inp=false ])
+    sig_cumsum(t, x, w, h; chk_inp=false)
 
 Return a tuple of two vectors: tics, signals.
+
 The signals are the collections of all deviations from 
 a running mean (with window length `w`) of the series. 
 The threshold of the deviation is `h`.
@@ -164,7 +164,7 @@ Collect all ``t, S_t`` where ``h \\ge S_t``.
 - `h :: T`                 -- The threshold for the deviation to register.
 
 ## Keyword Arguments
-- `chk_inp :: Bool`  -- Check the input contract?
+- `chk_inp=false :: Bool`  -- Check the input contract?
 
 ## Input Contract
 The inputs are assumed to satisfy the constraints below.
@@ -185,7 +185,7 @@ The inputs are assumed to satisfy the constraints below.
 - `|td| = |xd|`
 
 ## Return
-(td, xd) :: Tuple{AbstractVector{S}, AbstractVector{T}}
+`(td, xd) :: Tuple{AbstractVector{S}, AbstractVector{T}}`
 """
 function sig_cumsum(t::AbstractVector{S}, 
                     x::AbstractVector{T}, 
@@ -231,7 +231,7 @@ end
 
 
 """
-    ema(x,h,m)
+    ema(x,m; h=div(m,2))
 
 Compute the Exponential Moving Average of the sequence `x`.
 
@@ -243,7 +243,7 @@ Compute the Exponential Moving Average of the sequence `x`.
 - `m :: Int64`             -- The width of the decay window.
 
 ## Keyword Arguments
-- `h :: Int64`       -- The exponential decay *half-life*. 
+- `h=div(m,2) :: Int64`       -- The exponential decay *half-life*. 
 
 ## Input Contract
 The inputs are assumed to satisfy the constraints below.
@@ -260,13 +260,13 @@ The inputs are assumed to satisfy the constraints below.
 - `|x| = |ema|`
 
 ## Return
-ema::AbstractVector{T}
+`ema::AbstractVector{T}`
 
 """
-@noinline function ema(x :: AbstractVector{T}, 
-             m :: Int64                      ; 
-             h = div(m, 2) :: Int64          ,
-            ) :: AbstractVector{T} where { T <: Real }
+@noinline function ema(x :: AbstractVector{T}          , 
+                       m :: Int64                      ; 
+                       h = div(m, 2) :: Int64          ,
+                      ) :: AbstractVector{T} where { T <: Real }
 
     ## Check input constraints.
     m <= 1 && throw(DomainError(m, "The window length must be > 1."))
@@ -299,7 +299,7 @@ end
 
 
 """
-    ema_std(x,h,m)
+    ema_std(x, m; h=div(m,2), init_sig=nothing)
 
 Compute the Moving Exponential Standard Deviation of the sequence `x`.
 By default, the initial std is taken to be the standard deviation of 
@@ -314,8 +314,8 @@ may be used instead.
 - `m :: Int64`             -- The width of the decay window.
 
 ## Keyword Arguments
-- `h        :: Int64`             -- The exponential decay *half-life*. 
-- `init_sig :: Union{T, Nothing}` -- A user supplied initial std for the start of the series.      
+- `h=div(m,2)       :: Int64`             -- The exponential decay *half-life*. 
+- `init_sig=nothing :: Union{T, Nothing}` -- An optional user supplied initial standard deviation for the start of the series.      
 
 ## Input Contract
 The inputs are assumed to satisfy the constraints below.
@@ -334,7 +334,7 @@ The inputs are assumed to satisfy the constraints below.
 - `|x| = |stda|`
 
 ## Return
-stda::AbstractVector{T}
+`stda::AbstractVector{T}`
 """
 @noinline function ema_std(x                  :: AbstractVector{T},
                            m                  :: Int64            ;
@@ -396,9 +396,10 @@ end
 
 
 """
-    ema_stats(x,h,m)
+    ema_stats(x, m; h=div(m,2), init_sig=nothing)
 
 Compute the Moving Exponential Stats of the sequence `x`: `ema`, `ema_std`, `ema_rel_skew`, `ema_rel_kurtosis`.
+
 The recursive formulas for the moving statistics as well as the adjustments necessary to 
 render the estimates *unbiased* come from the paper:
 [exponential\\_moving\\_average.pdf](https://github.com/scottrsm/math/tree/main/pdf/exponential_moving_average.pdf).
@@ -413,10 +414,11 @@ Returns these stats as a matrix with four columns, each representing the stats a
 - `m :: Int64`             -- The width of the decay window.
 
 ## Keyword Arguments
-- `h :: Int64`     -- The exponential decay *half-life*. 
+- `h=div(m,2) :: Int64`     -- The exponential decay *half-life*. 
+- `init_sig=nothing:: Union{T, Nothing}` -- An optional user supplied initial standard deviation for the start of the series.      
 
 ## Input Contract
-The inputs are assumed to satisfy the constraints below.
+The inputs are assumed to satisfy the constraints below:
 
 | Constraint     | Description                                    | 
 |:--------------:|:---------------------------------------------- |
@@ -431,11 +433,11 @@ The inputs are assumed to satisfy the constraints below.
 - `|stat| = (N, 4)` 
 
 ## Return
-stat::Matrix{T}
+`stat::Matrix{T}`
 """
 @noinline function ema_stats(x      :: AbstractVector{T},
                    m                :: Int64            ;
-                   h                :: Int64 = div(m, 2),
+                   h=div(m,2)       :: Int64            ,
                    init_sig=nothing :: Union{Nothing, T},
                   ) :: Matrix{T} where {T <: Real}
     N = length(x)
@@ -533,7 +535,7 @@ The inputs are assumed to satisfy the constraints below.
 | `\\|x\\| > 1`  | The length of the series is greater than ``1``.|
 
 ## Return
-std::T -- The sample standard deviation.
+`std::T` -- The sample standard deviation.
 """
 @noinline function std(x::AbstractVector{T}) where {T <: Real}
     sd = zero(T)
