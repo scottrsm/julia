@@ -56,8 +56,9 @@ You need to configure git using the following command:
 
 `git config --local core.hooksPath .githooks/`
 
-There is a BASH shell script in this repo under .githooks/ called `pre-push`.
-This script will run all tests over all modules ensuring that all tests 
+With this configuration, any remote push will invoke the git pre-push hook
+which will point to the BASH shell script, .githooks/pre-push, in this repository.
+The script will run all tests over all modules ensuring that all tests 
 pass before one can push to the remote repository.
 
 **Documentation:**
