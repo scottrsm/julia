@@ -85,6 +85,9 @@ function check_sudoku_solution(SP, SS)
         return false
     end
 
+    # Number of blanks in puzzle.
+    num_puzzle_blanks = count(x -> x == 0, SP)
+
     # Check the row sums are correct
     # If the sums are correct and we know there are
     # no duplicates, then all non-zero values
@@ -106,10 +109,8 @@ function check_sudoku_solution(SP, SS)
 
     # Check that `SS` is consistent with the puzzle `SP`.
     # Use the fact that 0 represents blanks.
-    # The zeros from `SP` mask out the corresponding values
-    # in `SS`, leaving only the non-zero values corresponding to `SP`.
-    # We then check for matrix equality. 
-    return (SP .& SS) == SP
+    idx = findall(x -> x != 0, SP)
+    return SS[idx] == SP[idx]
 end
 
 
@@ -148,7 +149,7 @@ duplicate entries in any rows, columns, or sub-blocks.
                        intermediate solution.
 
 ## Return
-`::Bool` -- Returns `true` if matrix is consistent.
+`::Bool` -- Returns `true` if Sudoku matrix is consistent.
 """
 function consist_chk(S)
     # Check all rows for non-zero duplicates.
@@ -186,7 +187,7 @@ Helper function that does the work of the top level solver.
 - `rec_count::Int64` -- The count of the number of times this function has been called.
 
 ## Keyword Arguments
-- `verbose=false::Bool` -- If true, print out extra information.
+- `verbose=false::Bool` -- If `true`, print out extra information.
 
 ## Return 
 (ok, SS) 
@@ -323,7 +324,7 @@ The value, `0`, is used in a puzzle matrix to represent a blank.
 - `S::Matrix{Int8}`  -- A Sudoku puzzle matrix.
 
 ## Keyword Arguments
-- `verbose=false::Bool`    -- If true, print out extra information.
+- `verbose=false::Bool`    -- If `true`, print out extra information.
 
 ## Return 
 (ok, chk_sol, SS) 
@@ -356,7 +357,7 @@ The file format is `9` rows of values, `0-9`, with "0" representing a blank.
 
 ## Keyword Arguments 
 - `puzzle_dir=joinpath(@__DIR__, "../puzzles") :: AbstractString` -- The path to the puzzle file directory.
-- `verbose=false :: Bool` -- If true, print more output.
+- `verbose=false :: Bool` -- If `true`, print more output.
 
 ## Return
 `::Nothing`

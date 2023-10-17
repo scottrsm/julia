@@ -301,7 +301,7 @@ to pass in a guessing strategy function.
 
 ## Keyword Arguments
 
-- `chk_inputs`     : If true, check the input contract.
+- `chk_inputs`     : If `true`, check the input contract.
 - `guess_strategy` : If not `nothing`, apply this function to pick the next guess.
                      If `nothing`, pick the next guess as the most frequent word
                      in the current universe.
