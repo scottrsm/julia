@@ -187,14 +187,14 @@ Helper function that does the work of the top level solver.
 - `rec_count::Int64` -- The count of the number of times this function has been called.
 
 ## Keyword Arguments
-- `verbose=false::Bool` -- If `true`, print out extra information.
+- `verbose::Bool=false` -- If `true`, print out extra information.
 
 ## Return 
 (ok, SS) 
 - `ok::Bool` -- If `true`, a *proposed solution* was found.
 - `S::Matrix{Int8}}` -- A proposed, or inconsistent solution matrix.
 """
-function solve_sudoku(SP::Matrix{Int8}, rec_count; verbose=false)
+function solve_sudoku(SP::Matrix{Int8}, rec_count::Int64; verbose::Bool=false)
     # We copy the input Sudoku matrix as this function mutates its values.
     S = copy(SP)
 
@@ -218,7 +218,8 @@ function solve_sudoku(SP::Matrix{Int8}, rec_count; verbose=false)
     # solution values for each hole.
     dict = Dict{CartesianIndex, Set{Int8}}()
 
-    # While we are having success with the naive filling of holes is done.
+    # Here we do the naive filling of holes. These are cells which only
+    # have one possible entry to go in that slot.
     # We break out of this loop, when the number of holes (0 entries)
     # of `S` doesn't change from one loop to the next.
     while true 
@@ -257,11 +258,13 @@ function solve_sudoku(SP::Matrix{Int8}, rec_count; verbose=false)
 
         # Loop over the dict and fill in holes in S where there is only one choice for a potential solution.
         for k in keys(dict)
+            pots = dict[k]
+            pl = length(pots)
             # Return failure if there are no choices for some hole.
-            if length(dict[k]) == 0
+            if pl == 0
                 return (false, S)
-            elseif length(dict[k]) == 1
-                S[k[1], k[2]] = collect(dict[k])[1]
+            elseif pl == 1
+                S[k[1], k[2]] = collect(pots)[1]
                 delete!(dict, k) 
             else
                 break
@@ -324,7 +327,7 @@ The value, `0`, is used in a puzzle matrix to represent a blank.
 - `S::Matrix{Int8}`  -- A Sudoku puzzle matrix.
 
 ## Keyword Arguments
-- `verbose=false::Bool`    -- If `true`, print out extra information.
+- `verbose::Bool=false`    -- If `true`, print out extra information.
 
 ## Return 
 (ok, chk_sol, SS) 
@@ -332,7 +335,7 @@ The value, `0`, is used in a puzzle matrix to represent a blank.
 - `chk_sol::Bool` -- If `true`, the proposed solution is *correct*. 
 - `SS::Matrix{Int8}}` -- A proposed, or inconsistent/incomplete solution matrix.
 """
-function solve_sudoku(SP::Matrix{Int8}; verbose=false) 
+function solve_sudoku(SP::Matrix{Int8}; verbose::Bool=false) 
     (ok, SS) = solve_sudoku(SP, 1; verbose=verbose)
     chk_sol=false
     if ok
@@ -364,9 +367,9 @@ The file format is `9` rows of values, `0-9`, with "0" representing a blank.
 """
 function solve_sudoku_file(puzzle_file_name :: AbstractString                           ; 
                            puzzle_dir=joinpath(@__DIR__, "../puzzles" :: AbstractString), 
-                           verbose=false :: Bool                                         )
+                           verbose::Bool=false                                           )
     # Read the puzzle -- as a matrix.
-    SP = Matrix{Int8}(CSV.read(joinpath(puzzle_dir, puzzle_file_name*".csv"), DataFrames.DataFrame; header=false))
+    SP = Matrix{Int8}(CSV.read(joinpath(puzzle_dir, puzzle_file_name*".csv"), DataFrames.DataFrame; header=false, types=Int8))
 
     ## Check input contract -- should be a matrix of size: (SUDOKU_SIZE, SUDOKU_SIZE).
     @assert size(SP) == (SUDOKU_SIZE, SUDOKU_SIZE)
