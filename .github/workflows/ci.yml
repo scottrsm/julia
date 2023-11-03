@@ -1,12 +1,12 @@
 test:
-  name: Julia ${{conf.version}} - ${{conf.os}} - ${{conf.arch}}
-  runs-on: ${{conf.os}}
+  name: Julia ${{ matrix.version }} - ${{ conf.os }} - ${{ conf.arch }}
+  runs-on: ${{ matrix.os }}
   strategy: 
     fail-fast: false
-    conf:
+    matrix:
       version:
-        - 1.6
-        - latest
+        - '1.6'
+        - '1.9'
       os:
         - ubuntu-latest
         - macOS-latest
@@ -17,8 +17,8 @@ test:
     - uses: actions/checkout@v2
     - uses: julia-actions/setup-julia@latest
       with:
-        version: ${{conf.version}}
-        arch: ${{conf.arch}}
+        version: ${{ matrix.version }}
+        arch: ${{ matrix.arch }}
     - uses: julia-actions/julia-runtest@latest
 
 
