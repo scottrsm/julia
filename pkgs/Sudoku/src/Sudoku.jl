@@ -2,8 +2,10 @@ module Sudoku
 
 export  solve_sudoku, solve_sudoku_file, check_sudoku_solution
 
-import Random, Distributions
-import CSV, DataFrames
+import CSV
+import DataFrames
+import OrderedCollections: OrderedDict
+
 
 # -------------------------------------------
 # -------   Module constants    -------------
@@ -216,7 +218,7 @@ function solve_sudoku(SP::Matrix{Int8}, rec_count::Int64; verbose::Bool=false)
 
     # Create dictionary, `CartesianIndex => Vector{Int8}`, of possible 
     # solution values for each hole.
-    dict = Dict{CartesianIndex, Set{Int8}}()
+    dict = OrderedDict{CartesianIndex, Set{Int8}}()
 
     # Here we do the naive filling of holes. These are cells which only
     # have one possible entry to go in that slot.
@@ -254,7 +256,7 @@ function solve_sudoku(SP::Matrix{Int8}, rec_count::Int64; verbose::Bool=false)
         end
 
         # Sort the dictionary by value using the length of the value (a set) as the metric.
-        dict = sort(dict, byvalue=true, by=x -> length(x))
+        sort!(dict, byvalue=true, by=x -> length(x))
 
         # Loop over the dict and fill in holes in S where there is only one choice for a potential solution.
         for k in keys(dict)
