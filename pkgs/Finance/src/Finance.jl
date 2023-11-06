@@ -636,7 +636,7 @@ function entropy_index(x::Vector{T}                ;
 
     # Get the data extrema for the quantile filtered data.
     qmin, qmax = Statistics.quantile(x, probs)
-    xf = filter(x -> qmin <= x <= qmax, x)
+    @fastmath xf = filter(x -> qmin <= x <= qmax, x)
     minx, maxx = extrema(xf)
 
     # This will be the data distribution structure based on the granularity (`n`).
@@ -644,11 +644,11 @@ function entropy_index(x::Vector{T}                ;
     width = (maxx - minx) / n
 
     # For each filtered data point assign it to its bin index.
-    bidx = Int64.(1.0 .+ (div.(xf .- minx .- tol, width))) 
+    @fastmath bidx = Int64.(1.0 .+ (div.(xf .- minx .- tol, width))) 
 
     # Increment all bins for each occurrence from the series.
-    for i in bidx
-        bdist[i] += 1
+    @simd for i in bidx
+        @inbounds bdist[i] += 1
     end
     totalCount = sum(bdist)
 
@@ -657,17 +657,17 @@ function entropy_index(x::Vector{T}                ;
 
     # Get the discounted entropy of the binned distribution.
     prb = bdist[n]
-    ent = - ( isapprox(prb, 0.0; atol=tol) ? 0.0 : prb * log(prb) )
+    @fastmath ent = - ( isapprox(prb, 0.0; atol=tol) ? 0.0 : prb * log(prb) )
     lm  = 1.0
-    for i in (n-1):-1:1
+    @simd for i in (n-1):-1:1
         prb  = bdist[i]
-        lm  *= λ
-        ent -= lm * ( isapprox(prb, 0.0; atol=tol) ? 0.0 : prb * log(prb) )
+        @fastmath lm  *= λ
+        @fastmath ent -= lm * ( isapprox(prb, 0.0; atol=tol) ? 0.0 : prb * log(prb) )
     end
 
     # Return the normalized discounted binned entropy.
     # Normalize by the entropy of the discounted uniform distribution over `n` values.
-    lf = isapprox(λ, 1.0; atol=tol) ? 1.0 : n * ( (λ - 1.0) / (exp_n(λ, n) - 1.0) )
+    @fastmath lf = isapprox(λ, 1.0; atol=tol) ? 1.0 : n * ( (λ - 1.0) / (exp_n(λ, n) - 1.0) )
     return (lf * ent) / log(n) 
 end
 
@@ -694,9 +694,9 @@ function exp_n(x::T, n::Int64) where T <: Number
     o = one(T)
     p = x
     s = o
-    for i in ba
-        s *= i == 1 ? p : o
-        p *= p
+    @simd for i in ba
+        @fastmath s *= i == 1 ? p : o
+        @fastmath p *= p
     end
     return s
 end
