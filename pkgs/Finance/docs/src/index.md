@@ -63,6 +63,14 @@ tic_diff2
 WWsum
 ```
 
+```@docs
+exp_n
+```
+
+```@docs
+entropy_index
+```
+
 
 ## Index
 

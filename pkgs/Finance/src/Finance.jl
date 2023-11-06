@@ -2,7 +2,11 @@ module Finance
 
 import Random, Distributions, Statistics
 
-export sig_cumsum, tic_diff1, tic_diff2, isConvertible, ema, ema_std, ema_stats, std, WWsum
+
+export sig_cumsum, tic_diff1, tic_diff2, isConvertible 
+export ema, ema_std, ema_stats, std, WWsum
+export entropy_index, exp_n
+
 
 """
     isConvertible(S, T)
@@ -584,6 +588,118 @@ The above sum.
 end
 
 
+
+"""
+    entropy_index(x, <keyword arguments>)
+
+Computes a (Discounted) Binned Entropy Index.
+This is the ratio of entropy of the binned distribution of `x` against
+the entropy of the uniform distribution.
+The vector `x` is first filtered by the lower and upper quantiles; then
+binned into `n` number of equal width bins. A distribution is formed 
+from the bins and the entropy computed. If `λ` is not 1, then a discounted
+entropy is computed. In either event, the ratio of this entropy to 
+the entropy of the corresponding uniform distribution (discounted if `λ` is not 1) is returned.
+
+## Type Constraints
+- `T <: Real`
+
+## Arguments
+- `x::Vector{T}`                        -- Number to exponentiate.
+
+## Keyword Arguments
+- `n=10::Int64`                         -- Exponential.
+- `tol=1.0/(100 * n)::Float64`          -- Error tolerance used with equivalency test of number to 0 or 1.
+- `probs=[0.01, 0.99]::Vector{Float64}` -- Vector of quantile min and max.
+- `λ=1.0::Float64`                      -- Discount value.
+
+## Input Contract
+- `n > 2`
+- `0 < tol < 0.01` 
+- `|probs| == 2`
+- ``0 < \\lambda \\le 1``
+
+## Return
+`::Real` -- The (discounted) binned entropy index.
+"""
+function entropy_index(x::Vector{T}                ; 
+                n::Int64=10                        , 
+                tol::Float64=1.0 / (100 * n)       , 
+                probs::Vector{Float64}=[0.01, 0.99], 
+                λ=1.0                              ) where T <: Real
+
+    # Check Input contract.
+    n > 2              || throw(DomainError(n    , "Bad number of bins."))
+    0.0 < tol < 0.1    || throw(DomainError(tol  , "Bad tolerance value."))
+    length(probs) == 2 || throw(DomainError(probs, "Bad quantile vector, must have length 2."))
+    0.0 < λ <= 1.0     || throw(DomainError(λ    , "Bad discount parameter."))
+
+    # Get the data extrema for the quantile filtered data.
+    qmin, qmax = Statistics.quantile(x, probs)
+    xf = filter(x -> qmin <= x <= qmax, x)
+    minx, maxx = extrema(xf)
+
+    # This will be the data distribution structure based on the granularity (`n`).
+    bdist::Vector{Float64} = fill(0.0, n)
+    width = (maxx - minx) / n
+
+    # For each filtered data point assign it to its bin index.
+    bidx = Int64.(1.0 .+ (div.(xf .- minx .- tol, width))) 
+
+    # Increment all bins for each occurrence from the series.
+    for i in bidx
+        bdist[i] += 1
+    end
+    totalCount = sum(bdist)
+
+    # Finish off the binned empirical distribution.
+    bdist ./= totalCount
+
+    # Get the discounted entropy of the binned distribution.
+    prb = bdist[n]
+    ent = - ( isapprox(prb, 0.0; atol=tol) ? 0.0 : prb * log(prb) )
+    lm  = 1.0
+    for i in (n-1):-1:1
+        prb  = bdist[i]
+        lm  *= λ
+        ent -= lm * ( isapprox(prb, 0.0; atol=tol) ? 0.0 : prb * log(prb) )
+    end
+
+    # Return the normalized discounted binned entropy.
+    # Normalize by the entropy of the discounted uniform distribution over `n` values.
+    lf = isapprox(λ, 1.0; atol=tol) ? 1.0 : n * ( (λ - 1.0) / (exp_n(λ, n) - 1.0) )
+    return (lf * ent) / log(n) 
+end
+
+
+"""
+    exp_n(x, n)
+
+Fast integer exponentiation.
+Uses repeated squaring in combination with the bit vector
+representation of `n`.
+
+## Type Constraints
+- `T <: Number`
+
+## Arguments
+- `x::T`     -- Number to exponentiate.
+- `n::Int64` -- Exponential.
+
+## Return
+`::T` -- The Exponential.
+"""
+function exp_n(x::T, n::Int64) where T <: Number
+    ba = digits(n, base=2)
+    o = one(T)
+    p = x
+    s = o
+    for i in ba
+        s *= i == 1 ? p : o
+        p *= p
+    end
+    return s
+end
 
 end # module Finance
 
