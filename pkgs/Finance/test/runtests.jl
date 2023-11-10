@@ -40,7 +40,7 @@ Random.seed!(1)
 RNDS2 = rand(1000)
 pi_11_gold = 294204.0179738905
 r_1000_l1_gold = 0.9881491680565518
-r_1000_l9_gold = 0.9871275847787091
+r_1000_l9_gold = 0.6451693945044806 
 
 #------------------------------------------------------------------------
 #--------------      TESTS       ----------------------------------------
@@ -69,12 +69,14 @@ end
         @test stats[:, 2]           ≈ ema_std_res         rtol=TOL 
 
     end
+end
 
+@testset "Entropy Index" begin
     # Compute fast exponential
-    @test exp_n(2, 7) == 128
-    @test exp_n(2, 5) == 32
-    @test exp_n(2, 8) == 256
-    @test exp_n(π, 11) ≈ pi_11_gold                            rtol=TOL
+    @test pow_n(2, 7) == 128
+    @test pow_n(2, 5) == 32
+    @test pow_n(2, 8) == 256
+    @test pow_n(π, 11) ≈ pi_11_gold                            rtol=TOL
 
     # Check entropy_index
     @test entropy_index(RNDS2, n=100, λ=1.0) ≈ r_1000_l1_gold  rtol=TOL

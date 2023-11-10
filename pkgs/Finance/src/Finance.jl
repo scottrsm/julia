@@ -5,7 +5,7 @@ import Random, Distributions, Statistics
 
 export sig_cumsum, tic_diff1, tic_diff2, isConvertible 
 export ema, ema_std, ema_stats, std, WWsum
-export entropy_index, exp_n
+export entropy_index, pow_n
 
 
 """
@@ -598,7 +598,9 @@ the entropy of the uniform distribution.
 The vector `x` is first filtered by the lower and upper quantiles; then
 binned into `n` number of equal width bins. A distribution is formed 
 from the bins and the entropy computed. If `λ` is not 1, then a discounted
-entropy is computed. In either event, the ratio of this entropy to 
+entropy is computed. This is an exponentially based discounting of the 
+bin distribution based
+on their "freshness". In either event, the ratio of this entropy to 
 the entropy of the corresponding uniform distribution (discounted if `λ` is not 1) is returned.
 
 ## Type Constraints
@@ -634,21 +636,32 @@ function entropy_index(x::Vector{T}                ;
     length(probs) == 2 || throw(DomainError(probs, "Bad quantile vector, must have length 2."))
     0.0 < λ <= 1.0     || throw(DomainError(λ    , "Bad discount parameter."))
 
+    # Is this computation using a discounting process.
+    discounted = !isapprox(λ, 1.0; atol=tol) 
+
     # Get the data extrema for the quantile filtered data.
     qmin, qmax = Statistics.quantile(x, probs)
     @fastmath xf = filter(x -> qmin <= x <= qmax, x)
     minx, maxx = extrema(xf)
+    m = length(xf)
 
     # This will be the data distribution structure based on the granularity (`n`).
     bdist::Vector{Float64} = fill(0.0, n)
     width = (maxx - minx) / n
 
     # For each filtered data point assign it to its bin index.
-    @fastmath bidx = Int64.(1.0 .+ (div.(xf .- minx .- tol, width))) 
+    @fastmath idxs = collect(zip(1:m, Int64.(1.0 .+ (div.(xf .- minx .- tol, width)))))
+    sort!(idxs, rev=true)
 
     # Increment all bins for each occurrence from the series.
-    @simd for i in bidx
-        @inbounds bdist[i] += 1
+    lm = 1.0
+    li = idxs[1][1]
+    for (i,j) in idxs
+        bdist[j] += 1 * lm
+        if i != li
+            li = i
+            lm *= λ
+        end
     end
     totalCount = sum(bdist)
 
@@ -656,26 +669,22 @@ function entropy_index(x::Vector{T}                ;
     bdist ./= totalCount
 
     # Get the discounted entropy of the binned distribution.
-    prb = bdist[n]
-    @fastmath ent = - ( isapprox(prb, 0.0; atol=tol) ? 0.0 : prb * log(prb) )
-    lm  = 1.0
-    @simd for i in (n-1):-1:1
-        prb  = bdist[i]
-        @fastmath lm  *= λ
-        @fastmath ent -= lm * ( isapprox(prb, 0.0; atol=tol) ? 0.0 : prb * log(prb) )
+    ent = 0.0
+    @simd for i in 1:n
+        @inbounds prb = bdist[i]
+        @fastmath ent -= isapprox(prb, 0.0; atol=tol) ? 0.0 : prb * log(prb)
     end
 
     # Return the normalized discounted binned entropy.
     # Normalize by the entropy of the discounted uniform distribution over `n` values.
-    @fastmath lf = isapprox(λ, 1.0; atol=tol) ? 1.0 : n * ( (λ - 1.0) / (exp_n(λ, n) - 1.0) )
-    return (lf * ent) / log(n) 
+    return ent / log(n) 
 end
 
 
 """
-    exp_n(x, n)
+    pow_n(x, n)
 
-Fast integer exponentiation.
+Fast integer powers.
 Uses repeated squaring in combination with the bit vector
 representation of `n`.
 
@@ -683,13 +692,13 @@ representation of `n`.
 - `T <: Number`
 
 ## Arguments
-- `x::T`     -- Number to exponentiate.
-- `n::Int64` -- Exponential.
+- `x::T`     -- The power value.
+- `n::Int64` -- The power.
 
 ## Return
-`::T` -- The Exponential.
+`::T` -- The Power Value.
 """
-function exp_n(x::T, n::Int64) where T <: Number
+function pow_n(x::T, n::Int64) where T <: Number
     ba = digits(n, base=2)
     o = one(T)
     p = x
