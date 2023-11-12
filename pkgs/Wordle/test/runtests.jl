@@ -26,11 +26,12 @@ end
 
 @testset "solve_wordle" begin
     res = solve_wordle("taste"; init_guess="their")
-    @test res == (Any[
-                      ("their", [('t', 1)], 3027), 
-                      ("taken", [('t', 1), ('a', 2)], 31), 
-                      ("table", [('t', 1), ('a', 2), ('e', 5)], 5), 
-                      ("taste", [('t', 1), ('a', 2), ('s', 3), ('t', 4), ('e', 5)], 2), 
-                     ], 4, :SUCCESS)  
+    @test res == (Any[("their", [('t', 1)], 3585), 
+                      ("taken", [('t', 1), ('a', 2)], 39), 
+                      ("table", [('t', 1), ('a', 2), ('e', 5)], 6), 
+                      ("taste", [('t', 1), ('a', 2), ('s', 3), ('t', 4), ('e', 5)], 2)
+                      ], 4, :SUCCESS)
 end
+
+
 
