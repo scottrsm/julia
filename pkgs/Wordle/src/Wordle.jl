@@ -17,7 +17,7 @@ const LFA = collect("etaoinshrdlcumwfgypbvkjxqz")
 
 ## Load Wordle database -- stored as a CSV file. 
 const WORDLE_DF =  DataFrame(CSV.File(joinpath(@__DIR__, "../data", "wordle_db.csv"); 
-                                        header=3, 
+                                        header=6, 
                                         types=[String, Float64], 
                                         comment="#"));
 

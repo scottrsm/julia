@@ -29,12 +29,12 @@ Below we examine
 - When Successful -- We only consider the "solves" where the number of 
 guesses were less than or equal to six.
 
-The stats for the solver are:
-- Overall: The mean number of guesses to solve: 4.48.
+The stats for the solver are (based on 3585 five letter words):
+- Overall: The mean number of guesses to solve: 4.66.
 - Overall: The mean number of guesses (weighted by word usage) to solve: 2.91.
 - When Successful: The mean number of guesses to solve: 4.31.
 - When Successful: The mean number of guesses (weighted by word frequency) to solve: 2.90.
-- Percent unsuccessful: 5.62%.
+- Percent unsuccessful: 8.51%.
 - Percent unsuccessful (weighted by word usage): 0.36%.
 
 ### Module Wquantiles
