@@ -19,11 +19,11 @@ wquantile(::Vector{T}, ::Vector{S}, ::Vector{V}; ::Bool = true, ::Bool = true, :
 
 
 ```@docs
-Wquantile
+wquantile(::Matrix{T}, ::Vector{S}, ::Vector{V}; ::Bool = true, ::Bool = true, ::Bool = true) where {T, S <: Real, V <: Real}
 ```
 
 ```@docs
-WquantileM
+wquantile(::Matrix{T}, ::Matrix{S}, ::Vector{V}; ::Bool = true, ::Bool = true, ::Bool = true) where {T, S <: Real, V <: Real}
 ```
 
 
