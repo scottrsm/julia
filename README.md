@@ -39,7 +39,7 @@ The stats for the solver are (based on 3585 five letter words):
 
 ### Module Wquantiles
 A few versions of weighted quantiles with examples and comparisons 
-of using data parallelization.
+using data parallelization. See WquantileTest.ipynb for details.
 
 ### Jupyter Notebooks
 
