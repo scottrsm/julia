@@ -9,6 +9,12 @@ uses macros to provide a more intuitive external representation.
 ### Module Cards
 Provides code to play a version of poker.
 
+### Module Cards
+Implements a version of kmeans clustering.
+The potential novelty being:
+- A larger variety of metrics.
+- A novel way to do automatic cluster number detection.
+
 ### Module Finance
 A module containing utilities for some rudimentary signal analysis.
 Some of the functions deal with the "Exponential Moving Average" and its
