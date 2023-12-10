@@ -9,7 +9,7 @@ uses macros to provide a more intuitive external representation.
 ### Module Cards
 Provides code to play a version of poker.
 
-### Module Cards
+### Module Cluster
 Implements a version of kmeans clustering.
 The potential novelty being:
 - A larger variety of metrics.
