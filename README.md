@@ -53,6 +53,7 @@ using data parallelization. See WquantileTest.ipynb for details.
 - CardTest.ipynb      -- Jupyter notebook to test the Cards module.
   - Comparisons of various poker hands is produced.
   - A poker game is simulated with two players.
+- Cluster_Test.ipynb  -- Jupyter notebook to test Cluster module.
 - WordleTest.ipynb    -- Jupyter notebook to test Wordle puzzle solver strategies.
 - WquantileTest.ipynb -- Jupyter notebook to test Wquantiles module.
                          In order to examine parallelism you must ensure
