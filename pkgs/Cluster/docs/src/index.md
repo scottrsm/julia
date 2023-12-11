@@ -26,7 +26,7 @@ Cluster functions:
 The function `find_best_cluster` attempts to find the best cluster number.
 To do this, it monitors the total variation as one increases the cluster number. The total variation goes 
 down generally as we find (potentially locally) optimal solutions for each cluster number.
-If we pick a cluster number using only the total variation, we will miss the "natural cluster number".
+If we pick a cluster number using only the total variation, we will miss the "natural cluster" number.
 
 To avoid this, we adjust the total variation by a function that depends on the dimension of the space
 we are working in as well as the cluster number. The reasoning follows:
@@ -35,13 +35,14 @@ The idea is to look at the natural rate at which the total variation decreases w
 there are no clusters. In this way we can adjust the total variation to take into account 
 this "ambient" decay.
 
-To do this, we start by assuming that the data is uniformly distributed in our domain with `k` clusters; `N` points; and the domain is in `n` dimensions.
-We assume that the `k` clusters have the same number of points and fill the sphere. This means that
-``R^n \approx k r_k^n``.
+To do this, we start by assuming that the data is uniformly distributed in our domain 
+(with respect to the metric used) with `k` clusters; `m` points; and the domain is in `n` dimensions.
+We assume that the `k` clusters have the same number of points and fill a sphere 
+of radius, `R`. This means that ``R^n \approx k r_k^n``.
 
 Solving for ``r_k`` we have ``r_k = R {\\\frac{1}{k}}^{\\\frac{1}{n}}``.
-The total variation of `k` clusters is then roughly: ``k r_k {\\\frac{N}{k}}``. This becomes: 
-``\\\frac{N R}{k^{\\\frac{1}{n}}}``.
+The total variation of `k` clusters is then roughly: ``k r_k {\\\frac{m}{k}}``. This becomes: 
+``\\\frac{m R}{k^{\\\frac{1}{n}}}``.
 Thus, even in the absence of any true clusters, the total variation decays like ``k^{\\\frac{1}{n}}``.
 
 The function `find_best_cluster` compares the total variation of cluster numbers in a range.
@@ -51,7 +52,7 @@ The variation is further adjusted by the
 fraction of unused cluster centroids.
 
 **NOTE:** This analysis may not be as useful if the natural clusters (or a substantial subset) 
-line in some lower dimensional hyperplane.
+lie in some lower dimensional hyperplane.
 
 
 ## Cluster Functions

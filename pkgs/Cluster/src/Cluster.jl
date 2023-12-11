@@ -36,9 +36,9 @@ is the use of weighted metrics in some instances.
 ``L_2`` (optionally weighted) distance measure between the two vectors.
 """
 function L2(x::Vector{T},
-    y::Vector{T};
-    tol::Float64=1.0e-10,
-    C::Union{Nothing,AbstractMatrix{T}}=nothing) where {T<:Real}
+            y::Vector{T};
+            tol::Float64=1.0e-10,
+            C::Union{Nothing,AbstractMatrix{T}}=nothing) where {T<:Real}
 
     d = x .- y
     if C === nothing
@@ -73,19 +73,19 @@ Computes the ``L_p`` distance between two vectors.
 ``L_p`` distance measure between the two vectors.
 """
 function LP(x::Vector{T},
-    y::Vector{T},
-    p::Int64;
-    tol::Float64=1.0e-10,
-    C::Union{Nothing,AbstractMatrix{T}}=nothing) where {T<:Real}
+            y::Vector{T},
+            p::Int64;
+            tol::Float64=1.0e-10,
+            C::Union{Nothing,AbstractMatrix{T}}=nothing) where {T<:Real}
     return LA.norm(x .- y, p)
 end
 
 
 
 function DL(x::Vector{T},
-    y::Vector{T};
-    tol::Float64=1.0e-10,
-    C::Union{Nothing,AbstractMatrix{T}}=nothing) where {T<:Real}
+            y::Vector{T};
+            tol::Float64=1.0e-10,
+            C::Union{Nothing,AbstractMatrix{T}}=nothing) where {T<:Real}
     z = zero(T)
     d1 = map((a, b) -> a == z ? z : a * log(a / b), x, y)
     d2 = map((a, b) -> b == z ? z : b * log(b / a), x, y)
@@ -118,9 +118,9 @@ Cosine distance measure between the two vectors.
 
 """
 function cos_dist(x::Vector{T},
-    y::Vector{T};
-    tol::Float64=1.0e-10,
-    C::Union{Nothing,AbstractMatrix{T}}=nothing) where {T<:Real}
+                  y::Vector{T};
+                  tol::Float64=1.0e-10,
+                  C::Union{Nothing,AbstractMatrix{T}}=nothing) where {T<:Real}
     z = zero(T)
     o = one(T)
     if all(abs.(x .- y .< tol))
@@ -297,7 +297,7 @@ end
 
 
 """
-find_best_info_for_ks(X, kRng[; dmetric=L2, threshold=1.0e-3, W, N=1000, num_trials=100, seed=1])
+    find_best_info_for_ks(X, kRng[; dmetric=L2, threshold=1.0e-3, W, N=1000, num_trials=100, seed=1])
 
 Groups a set of points (nxm) `X` into `k` clusters where `k` is in the range, `kRng`.
 The grouping are determined based on the distance metric, `dmetric`.
