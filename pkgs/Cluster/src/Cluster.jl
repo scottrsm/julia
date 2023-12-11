@@ -1,7 +1,7 @@
 module Cluster
 
-export L2, DL, LP, cos_dist, kmeans_cluster
-export find_best_cluster, find_best_info_for_ks
+export L2, DL, LP, cos_dist 
+export kmeans_cluster, find_best_cluster, find_best_info_for_ks
 
 import LinearAlgebra as LA
 import Statistics as S
@@ -299,7 +299,8 @@ end
 """
 find_best_info_for_ks(X, kRng[; dmetric=L2, threshold=1.0e-3, W, N=1000, num_trials=100, seed=1])
 
-Groups a set of points into `k` clusters based on the distance metric, `dmetric`.
+Groups a set of points (nxm) `X` into `k` clusters where `k` is in the range, `kRng`.
+The grouping are determined based on the distance metric, `dmetric`.
 
 # Type Constraints
 - `T <: Real`
@@ -310,12 +311,12 @@ Groups a set of points into `k` clusters based on the distance metric, `dmetric`
 - `kRng::UnitRange{Int64}` : The number of clusters to form.
 
 # Keyword Arguments
-- `dmetric::F=L2` : The distance metric to use.
-- `threshold::Float=1.0e-2`  : The relative error improvement threshold (using total variation)
+- `dmetric::F=L2`          : The distance metric to use.
+- `threshold::Float=1.0e-2`: The relative error improvement threshold (using total variation)
 - `W::Union{Nothing, AbstractMatrix{T}}=nothing` : Optional Weight matrix for metric.
-- `N::Int64=1000`    : The maximum number of kmeans_clustering iterations to try for each cluster number.
-- `num_trials::Int64=300` : The number of times to run kmeans_clustering for a given cluster number. 
-- `seed::Int64=1` : The random seed to use. (Used by kmean_cluster to do initial clustering.)
+- `N::Int64=1000`          : The maximum number of kmeans_clustering iterations to try for each cluster number.
+- `num_trials::Int64=300`  : The number of times to run kmeans_clustering for a given cluster number. 
+- `seed::Int64=1`          : The random seed to use. (Used by kmean_cluster to do initial clustering.)
     
 # Input Contract
 - ``W = {\\rm nothing} ∨ \\left( ({\\rm typeof}(W) = {\\rm Matrix}\\{T\\}) ∧ W \\in {\\boldsymbol S}_{++}^{|{\\bf x}|} \\right)``
@@ -325,13 +326,11 @@ Groups a set of points into `k` clusters based on the distance metric, `dmetric`
 - `dmetric <: Function`
 
 # Return
-A Tuple:
-- `Dict{Int64, Int64}`: Mapping of points (n-vectors) indices to centroid indcies.
-- `Vector{T}`         : `k` centroids.
-- `Float64`           : The total variation between points and their centroids (using `dmetric`).
-- `Vector{Int64}`     : Unused centroids (by index).
-- `Int64`             : The number of iterations to use for the algorithm to complete.
-- `Bool`              : Did algorithm converge?
+A Tuple with entries:
+- `OrderedDict{Int64, Float}`             : k -> The Total Variation for each cluster number.
+- `OrderedDict{Int64, Dict{Int64, Int64}}`: k -> Mapping of index of points (n-vectors in `X`) to centroid indices.
+- `OrderedDict{Int64, Matrix{T}`          : k -> (nxm) Matrix representing `m` `n`-vector centroids.
+- `OrderedDict{Int64, Vector{In64}}`      : k -> Vector of unused centroids by index.
 """
 function find_best_info_for_ks(X::Matrix{T},
                                kRng::UnitRange{Int64};
@@ -339,14 +338,13 @@ function find_best_info_for_ks(X::Matrix{T},
                                threshold::Float64=1.0e-2,
                                W::Union{Nothing,AbstractMatrix{T}}=nothing,
                                N::Int64=1000,
-                               num_trials=300,
-                               seed=1) where {T<:Real,F<:Function}
+                               num_trials::Int64=300,
+                               seed::Int64=1) where {T<:Real,F<:Function}
 
-    n, m = size(X)
-    ds_by_k = DS.OrderedDict{Int64,T}()
+    ds_by_k   = DS.OrderedDict{Int64,T}()
     cmap_by_k = DS.OrderedDict{Int64,Dict{Int64,Int64}}()
-    XC_by_k = DS.OrderedDict{Int64,Matrix{T}}()
-    sd_by_k = DS.OrderedDict{Int64,Vector{Int64}}()
+    XC_by_k   = DS.OrderedDict{Int64,Matrix{T}}()
+    sd_by_k   = DS.OrderedDict{Int64,Vector{Int64}}()
     tmax = typemax(T)
     cnt = 0
 
@@ -364,7 +362,7 @@ function find_best_info_for_ks(X::Matrix{T},
     #  - The cluster points.
     #  - Total variation.
     #  - The list of cluster indices that were not used.
-    #  - The number of iterations used to complete kemans_cluster.
+    #  - The number of iterations used to complete kmeans_cluster.
     #  - Did kmeans_cluster converge before max iterates used? 
     for k in kRng    
         ds_by_k[k] = tmax
@@ -394,7 +392,9 @@ end
 """
     find_best_cluster(X, kRng[; dmetric=L2, threshold=1.0e-3, W, N=1000, num_trials=100, seed=1, verbose=false])
 
-Groups a set of points into `k` clusters based on the distance metric, `dmetric`.
+Groups a set of points into the "best" number of clusters based on the distance metric, `dmetric`.
+It does this by examining the total variation between the points and the centroids for groups of `k`
+where `k` is in the range, `kRng`.
 
 # Type Constraints
 - `T <: Real`
