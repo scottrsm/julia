@@ -416,18 +416,17 @@ where `k` is in the range, `kRng`.
 # Input Contract
 - ``W = {\\rm nothing} ∨ \\left( ({\\rm typeof}(W) = {\\rm Matrix}\\{T\\}) ∧ W \\in {\\boldsymbol S}_{++}^{|{\\bf x}|} \\right)``
 - `N > 0`
-- ``∀ i \\in kRng, i > 1``
+- ``∀ i \\in {\\rm kRng}, i > 1``
 - `threshold > 0.0`
 - `dmetric <: Function`
 
 # Return
 A Tuple:
+- `Int64`             : The "best" cluster number.
 - `Dict{Int64, Int64}`: Mapping of points (n-vectors) indices to centroid indices.
-- `Vector{T}`         : `k` centroids.
-- `Float64`           : The total variation between points and their centroids (using `dmetric`).
+- `Vector{T}`         : Cluster centroids.
 - `Vector{Int64}`     : Unused centroids (by index).
-- `Int64`             : The number of iterations to use for the algorithm to complete.
-- `Bool`              : Did the kmeans clustering algorithm converge?
+- `Float64`           : The total variation between points and their centroids (using `dmetric`).
 """
 function find_best_cluster(X::Matrix{T},
                            kRng::UnitRange{Int64};
@@ -437,7 +436,7 @@ function find_best_cluster(X::Matrix{T},
                            N::Int64=1000,
                            num_trials::Int64=300,
                            seed::Int64=1,
-                           verbose::Bool=false ) where {T<:Real,F<:Function}
+                           verbose::Bool=false ) where {T<:Real, F<:Function}
 
     # Get the info for the best clusters in the range: `kRng`.
     ds, cmap, xc, sd = find_best_info_for_ks(X,

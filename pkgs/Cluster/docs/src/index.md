@@ -41,8 +41,8 @@ We assume that the `k` clusters have the same number of points and fill a sphere
 of radius, `R`. This means that ``R^n \approx k r_k^n``.
 
 Solving for ``r_k`` we have ``r_k = R {\\\frac{1}{k}}^{\\\frac{1}{n}}``.
-The total variation of `k` clusters is then roughly: ``k r_k {\\\frac{m}{k}}``. This becomes: 
-``\\\frac{m R}{k^{\\\frac{1}{n}}}``.
+The total variation of `k` clusters is then roughly: ``k r_k {\\\frac{m}{k}}``. 
+This becomes: ``\\\frac{m R}{k^{\\\frac{1}{n}}}``.
 Thus, even in the absence of any true clusters, the total variation decays like ``k^{\\\frac{1}{n}}``.
 
 The function `find_best_cluster` compares the total variation of cluster numbers in a range.
@@ -62,11 +62,11 @@ kmeans_cluster(::Matrix{T}, ::Int64 = 3; ::F = L2, ::Float64 = 1.0e-3,::Union{No
 ```
 
 ```@docs
-find_best_cluster(::Matrix{T}, ::UnitRange{Int64}; ::F=L2, ::Float64=1.0e-3, ::Union{Nothing, AbstractMatrix{T}}=nothing, ::Int64=1000, ::Int64=100, ::Int64=1, ::Bool=false) where{T <: Real, F <: Function}
+find_best_cluster(::Matrix{T}, ::UnitRange{Int64}; ::F=L2, ::Float64=1.0e-3, ::Union{Nothing, AbstractMatrix{T}}=nothing, ::Int64=1000, ::Int64=300, ::Int64=1, ::Bool=false) where{T <: Real, F <: Function}
 ```
 
 ```@docs
-find_best_info_for_ks(::Matrix{T}, ::UnitRange{Int64}; ::F=L2, ::Float64=1.0e-3, ::Union{Nothing, AbstractMatrix{T}}=nothing, ::Int64=1000, ::Int64=1000, ::Int64=1) where{T <: Real, F <: Function}
+find_best_info_for_ks(::Matrix{T}, ::UnitRange{Int64}; ::F=L2, ::Float64=1.0e-3, ::Union{Nothing, AbstractMatrix{T}}=nothing, ::Int64=1000, ::Int64=300, ::Int64=1) where{T <: Real, F <: Function}
 ```
 
 ## Metric Functions
