@@ -68,7 +68,7 @@ pow_n(::T, ::Int64) where {T <: Number}
 ```
 
 ```@docs
-pow_n(::T, ::Int64, ::T) where {T <: Number} 
+pow_n(::T, ::Int64, ::S) where {T <: Real, S <: Real} 
 ```
 
 ```@docs

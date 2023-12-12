@@ -692,7 +692,7 @@ representation of `n`.
 - `T <: Number`
 
 ## Arguments
-- `x::T`     -- The power value.
+- `x::T`     -- The base value.
 - `n::Int64` -- The power.
 
 ## Return
@@ -718,18 +718,22 @@ Fast integer powers with modulus: ``x^n \\; {\\rm mod } \\; m``.
 Uses repeated squaring in combination with the bit vector
 representation of `n`.
 
+The output will be of the type determined by the promotion rules
+for subtypes, `S` and `T`, of the type `Real`, ``T^*``.
+
 ## Type Constraints
-- `T <: Number`
+- `T <: Real`
+- `S <: Real`
 
 ## Arguments
-- `x::T`     -- The power value.
+- `x::T`     -- The base value.
 - `n::Int64` -- The power.
-- `m::T`     -- The modulus.
+- `m::S`     -- The modulus.
 
 ## Return
-`::T` -- The Power Value.
+``::T^*`` -- The Power Value.
 """
-function pow_n(x::T, n::Int64, m::T) where T <: Number
+function pow_n(x::T, n::Int64, m::S) where {T <: Real, S <: Real}
     ba = digits(n, base=2)
     o = one(T)
     p = x
