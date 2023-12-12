@@ -2,7 +2,7 @@
 
 julia_version = "1.9.4"
 manifest_format = "2.0"
-project_hash = "fc799fb98a5d7a5ad8ed41b105971e0d91966ecf"
+project_hash = "e2788a2ed9f0b7434a1a99aef3a5c9d554e864ba"
 
 [[deps.ANSIColoredPrinters]]
 git-tree-sha1 = "574baf8110975760d391c710b6341da1afa48d8c"
@@ -62,9 +62,9 @@ uuid = "ade2ca70-3891-5945-98fb-dc099432e06a"
 
 [[deps.Distributions]]
 deps = ["FillArrays", "LinearAlgebra", "PDMats", "Printf", "QuadGK", "Random", "SpecialFunctions", "Statistics", "StatsAPI", "StatsBase", "StatsFuns"]
-git-tree-sha1 = "a6c00f894f24460379cb7136633cef54ac9f6f4a"
+git-tree-sha1 = "9242eec9b7e2e14f9952e8ea1c7e31a50501d587"
 uuid = "31c24e10-a181-5473-b8eb-7969acd0382f"
-version = "0.25.103"
+version = "0.25.104"
 
     [deps.Distributions.extensions]
     DistributionsChainRulesCoreExt = "ChainRulesCore"
@@ -110,9 +110,9 @@ uuid = "7b1f6079-737a-58dc-b8bc-7a2ca5c1b5ee"
 
 [[deps.FillArrays]]
 deps = ["LinearAlgebra", "Random"]
-git-tree-sha1 = "28e4e9c4b7b162398ec8004bdabe9a90c78c122d"
+git-tree-sha1 = "5b93957f6dcd33fc343044af3d48c215be2562f1"
 uuid = "1a297f60-69ca-5386-bcde-b61e274b549b"
-version = "1.8.0"
+version = "1.9.3"
 weakdeps = ["PDMats", "SparseArrays", "Statistics"]
 
     [deps.FillArrays.extensions]
@@ -293,9 +293,9 @@ version = "10.42.0+0"
 
 [[deps.PDMats]]
 deps = ["LinearAlgebra", "SparseArrays", "SuiteSparse"]
-git-tree-sha1 = "4e5be6bb265d33669f98eb55d2a57addd1eeb72c"
+git-tree-sha1 = "949347156c25054de2db3b166c52ac4728cbad65"
 uuid = "90014a1f-27ba-587c-ab20-58faa44d9150"
-version = "0.11.30"
+version = "0.11.31"
 
 [[deps.Parsers]]
 deps = ["Dates", "PrecompileTools", "UUIDs"]
@@ -324,16 +324,6 @@ version = "1.4.1"
 deps = ["Unicode"]
 uuid = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 
-[[deps.PropCheck]]
-deps = ["Compat", "InteractiveUtils", "Logging", "Random", "RequiredInterfaces", "Test"]
-git-tree-sha1 = "859234e2490881f049d52998cbcc52281381b258"
-uuid = "ca382230-33be-11e9-0059-d981d03070e4"
-version = "0.10.1"
-weakdeps = ["AbstractTrees"]
-
-    [deps.PropCheck.extensions]
-    ATExt = "AbstractTrees"
-
 [[deps.QuadGK]]
 deps = ["DataStructures", "LinearAlgebra"]
 git-tree-sha1 = "9ebcd48c498668c7fa0e97a9cae873fbee7bfee1"
@@ -358,12 +348,6 @@ deps = ["LazilyInitializedFields", "Pkg", "TOML", "Tar"]
 git-tree-sha1 = "ffd19052caf598b8653b99404058fce14828be51"
 uuid = "2792f1a3-b283-48e8-9a74-f99dce5104f3"
 version = "0.1.0"
-
-[[deps.RequiredInterfaces]]
-deps = ["InteractiveUtils", "Logging", "Test"]
-git-tree-sha1 = "deb5b451248bbe5ce37cb639a546ac13d07b791f"
-uuid = "97f35ef4-7bc5-4ec1-a41a-dcc69c7308c6"
-version = "0.1.4"
 
 [[deps.Rmath]]
 deps = ["Random", "Rmath_jll"]

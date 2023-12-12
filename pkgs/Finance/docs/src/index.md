@@ -64,7 +64,11 @@ WWsum
 ```
 
 ```@docs
-exp_n
+pow_n(::T, ::Int64) where {T <: Number} 
+```
+
+```@docs
+pow_n(::T, ::Int64, ::T) where {T <: Number} 
 ```
 
 ```@docs

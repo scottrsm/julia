@@ -76,7 +76,7 @@ L2(::Vector{T},::Vector{T}; ::Float64 = 1.0e-3, ::Union{Nothing, AbgstractMatrix
 ```
 
 ```@docs
-LP(::Vector{T},::Vector{T},::Int64; ::Float64 = 1.0e-3, ::Union{Nothing, AbstractMatrix{T} }= nothing) where {T <: Real}
+LP(::Vector{T},::Vector{T},::Int64; ::Float64 = 1.0e-3, ::Union{Nothing, AbstractMatrix{T}}= nothing) where {T <: Real}
 ```
 
 ```@docs

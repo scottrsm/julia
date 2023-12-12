@@ -684,7 +684,7 @@ end
 """
     pow_n(x, n)
 
-Fast integer powers.
+Fast integer powers: ``x^n``.
 Uses repeated squaring in combination with the bit vector
 representation of `n`.
 
@@ -709,6 +709,39 @@ function pow_n(x::T, n::Int64) where T <: Number
     end
     return s
 end
+
+
+"""
+    pow_n(x, n, m)
+
+Fast integer powers with modulus: ``x^n \\; {\\rm mod } \\; m``.
+Uses repeated squaring in combination with the bit vector
+representation of `n`.
+
+## Type Constraints
+- `T <: Number`
+
+## Arguments
+- `x::T`     -- The power value.
+- `n::Int64` -- The power.
+- `m::T`     -- The modulus.
+
+## Return
+`::T` -- The Power Value.
+"""
+function pow_n(x::T, n::Int64, m::T) where T <: Number
+    ba = digits(n, base=2)
+    o = one(T)
+    p = x
+    s = o
+    @simd for i in ba
+        @fastmath s *= i == 1 ? p : o
+        @fastmath p *= p
+        @fastmath p = p % m
+    end
+    return s
+end
+
 
 end # module Finance
 
