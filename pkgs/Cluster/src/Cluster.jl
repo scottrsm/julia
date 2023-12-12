@@ -81,8 +81,71 @@ function LP(x::Vector{T},
 end
 
 
+"""
+    JD(x,y[;tol=1.0e-3, C=nothing])
 
-function DL(x::Vector{T},
+Computes the Jaccard metric between two vectors of a discrete type.
+For instance, the vectors could be integers; however, they can 
+also be of non-numeric type.
+If both `x` and `y`, a distance of 0 is returned.
+
+# Arguments
+- `x::Vector{T}` : A numeric vector of dimension `n`.
+- `y::Vector{T}` : A numeric vector of dimension `n`.
+
+# Keyword Arguments
+- `tol::Float64` : A tolerance -- **NOT** used.
+- `C`::Union{Nothing, Matrix{T}` : Optional Weight matrix -- **NOT** used.
+
+# Input Contract (Low level function -- Input contract not checked)
+- ``| {\\bf x} | = | {\\rm unique}({\\bf x}) |``
+- ``| {\\bf y} | = | {\\rm unique}({\\bf y}) |``
+- ``\\forall i \\in [1, N]: x_i \\ge 0``
+- ``\\forall i \\in [1, N]: y_i \\ge 0``
+- ``\\sum_{i=1}^N x_i = 1``
+- ``\\sum_{i=1}^N y_i = 1``
+
+# Return
+`JD` distance measure between the two vectors.
+"""
+function JD(x::Vector{T},
+            y::Vector{T};
+            tol::Float64=1.0e-10,
+            C::Union{Nothing,AbstractMatrix{T}}=nothing) where {T}
+    d = length(symdiff(x,y))
+    u = length(union(x,y)) 
+    return length(u) == 0 ? 0.0 : d / u
+end
+
+
+"""
+    KL(x,y[;tol=1.0e-3, C=nothing])
+
+Computes the ``Kullback-Leibler`` distance between two vectors.
+
+# Type Constraints
+- `T <: Real`
+
+# Arguments
+- `x::Vector{T}` : A numeric vector of dimension `n`.
+- `y::Vector{T}` : A numeric vector of dimension `n`.
+
+# Keyword Arguments
+- `tol::Float64` : A tolerance -- **NOT** used.
+- `C`::Union{Nothing, Matrix{T}` : Optional Weight matrix -- **NOT** used.
+
+# Input Contract (Low level function -- Input contract not checked)
+Let ``N = |{\\bf x}|``.
+- ``|{\\bf x}| = |{\\bf y}|``
+- ``\\forall i \\in [1, N]: x_i \\ge 0``
+- ``\\forall i \\in [1, N]: y_i \\ge 0``
+- ``\\sum_{i=1}^N x_i = 1``
+- ``\\sum_{i=1}^N y_i = 1``
+
+# Return
+`KL` distance measure between the two vectors.
+"""
+function KL(x::Vector{T},
             y::Vector{T};
             tol::Float64=1.0e-10,
             C::Union{Nothing,AbstractMatrix{T}}=nothing) where {T<:Real}

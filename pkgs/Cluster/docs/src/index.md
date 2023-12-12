@@ -16,7 +16,7 @@ Cluster functions:
 - `L2`: The standard ``L_2`` norm. ``{\rm L2}({\bf x}, {\bf y}) = \sqrt{\sum_{i=1}^N (x_i - y_i)^2}``
     -  With a symmetric, positive semi-definite weight matrix `W` this becomes: ``{\rm L2}({\bf x}, {\bf y}, W) = \sqrt{{\bf x} {\boldsymbol \cdot} (W {\bf y})}``
 - `LP`: The standard ``L_p`` norm. ``{\rm LP}({\bf x}, {\bf y}) = \left(\sum_{i=1}^N |x_i - y_i|^p)\right)^{\frac{1}{p}}``
-- `DL`: A symmetrized Kullback-Leibler divergence: ``{\rm DL}({\bf x}, {\bf y}) = \sum_{i=1}^N x_i \log(x_i/y_i) + y_i \log(y_i/x_i)``
+- `KL`: A symmetrized Kullback-Leibler divergence: ``{\rm DL}({\bf x}, {\bf y}) = \sum_{i=1}^N x_i \log(x_i/y_i) + y_i \log(y_i/x_i)``
 - `cos_dist`: The "cosine" distance: ``{\rm cos\_dist}({\bf x}, {\bf y}) = 1 - {\bf x} {\boldsymbol \cdot} {\bf y} / (\|{\bf x}\|  \|{\bf y}\|)``
     - With a symmetric strictly positive definite weight matrix `W` this becomes: 
         ``\\ {\rm cos\_dist}({\bf x}, {\bf y}, W) = 1 - {\bf x} {\boldsymbol \cdot} \left( W {\bf y}\right) / (|\!|\!|{\bf x}|\!|\!|  |\!|\!|{\bf y}|\!|\!|)`` 
@@ -76,7 +76,15 @@ L2(::Vector{T},::Vector{T}; ::Float64 = 1.0e-3, ::Union{Nothing, AbgstractMatrix
 ```
 
 ```@docs
-LP(::Vector{T},::Vector{T},::Int64; ::Float64 = 1.0e-3, ::Union{Nothing, AbstractMatrix{T}}= nothing) where {T <: Real}
+LP(::Vector{T},::Vector{T}, ::Int64; ::Float64 = 1.0e-3, ::Union{Nothing, AbstractMatrix{T}}= nothing) where {T <: Real}
+```
+
+```@docs
+KL(::Vector{T},::Vector{T}; ::Float64 = 1.0e-3, ::Union{Nothing, AbstractMatrix{T}}= nothing) where {T <: Real}
+```
+
+```@docs
+JD(::Vector{T},::Vector{T}; ::Float64 = 1.0e-3, ::Union{Nothing, AbstractMatrix{T}}= nothing) where {T}
 ```
 
 ```@docs
