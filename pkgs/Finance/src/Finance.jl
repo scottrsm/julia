@@ -706,7 +706,7 @@ function pow_n(x::T, n::Int64) where T <: Number
 
     # Check input contract.
     if n < 0
-        throw(DomainError(n, "Parameters `n` must be non-negative."))
+        throw(DomainError(n, "Parameter `n` must be non-negative."))
     end
 
     o = one(T)
@@ -759,7 +759,7 @@ function pow_n(x::T, n::Int64, m::S) where {T <: Real, S <: Real}
 
     # Check input contract.
     if n < 0
-        throw(DomainError(n, "Parameters `n` must be non-negative."))
+        throw(DomainError(n, "Parameter `n` must be non-negative."))
     end
 
     # Promote to a common type, this will be the type of the output.
