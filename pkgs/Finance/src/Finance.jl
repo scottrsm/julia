@@ -718,7 +718,7 @@ function pow_n(x::T, n::Int64) where T <: Number
 
     # -- Do repeated squaring based on the digits of `n-1`. --
     # Initialize values.
-    s = o
+    s = x
     n2d = digits(n-1, base=2)
 
     # Repeated squaring.
