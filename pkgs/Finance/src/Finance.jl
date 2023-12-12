@@ -14,15 +14,15 @@ export entropy_index, pow_n
 Boolean function which returns `true` if a value of type `S` 
 can be converted to a value of type `T`.
 
-## Type Constraints
+# Type Constraints
 - `S <: Real`
 - `T <: Real`
 
-## Arguments
+# Arguments
 - `::Type{S}` -- A numeric type.
 - `::Type{T}` -- A numeric type.
 
-## Return
+# Return
 `::Bool`
 """
 function isConvertible(::Type{S}, ::Type{T})  where {S <:Real, T <:Real}
@@ -35,24 +35,25 @@ function isConvertible(::Type{S}, ::Type{T})  where {S <:Real, T <:Real}
     return(true)
 end
 
+
 """
     tic_diff1(t, x; chk_inp=false)
 
 Compute the numerical derivative of a function represented by `x`
 with respect to `t` when the values in `t` are possibly irregular.
 
-## Type Constraints
+# Type Constraints
 - `S <: Real`
 - `T <: Real`
 
-## Arguments
+# Arguments
 - `t :: AbstractVector{T}`   -- A vector of times.
 - `x :: AbstractVector{T}`   -- A vector of values.
 
-## Keyword Arguments
+# Keyword Arguments
 - `chk_inp=false :: Bool`  -- Check the input contract?
 
-## Input Contract
+# Input Contract
 The inputs are assumed to satisfy the constraints below.
 
 | Constraint                     | Description                                                               |
@@ -61,7 +62,7 @@ The inputs are assumed to satisfy the constraints below.
 | `S => T`                       | Type `S` can be converted to type `T`.                                    |
 | ``\\forall i, t_{i+1} > t_i``  | The times are increasing; consequently, we have a 1-1 map from `t` to `x`.|
 
-## Return
+# Return
 `:: AbstractVector{T}`
 """
 @noinline function tic_diff1(t::AbstractVector{S} , 
@@ -93,18 +94,18 @@ end
 Compute the numerical second derivative of a function represented by `x`
 with respect to `t` when the values in `t` are possibly irregular.
 
-## Type Constraints
+# Type Constraints
 - `S <: Real`
 - `T <: Real`
 
-## Arguments
+# Arguments
 - `t :: AbstractVector{S}` -- A vector of times.
 - `x :: AbstractVector{T}` -- A vector of values.
 
-## Keyword Arguments
+# Keyword Arguments
 - `chk_inp=false :: Bool`  -- Check the input contract?
 
-## Input Contract
+# Input Contract
 The inputs are assumed to satisfy the constraints below.
 
 | Constraint                     | Description                                                               |
@@ -113,7 +114,7 @@ The inputs are assumed to satisfy the constraints below.
 | `S => T`                       | Type `S` can be converted to type `T`.                                    |
 | ``\\forall i, t_{i+1} > t_i``  | The times are increasing; consequently, we have a 1-1 map from `t` to `x`.|
 
-## Return
+# Return
 `:: AbstractVector{T}`
 """
 @noinline function tic_diff2(t::AbstractVector{S}, 
@@ -157,20 +158,20 @@ Deviation is determined by:
 
 Collect all ``t, S_t`` where ``h \\ge S_t``.
 
-## Type Constraints
+# Type Constraints
 - `S <: Real`
 - `T <: Real`
 
-## Arguments
+# Arguments
 - `t :: AbstractVector{S}` -- The tic series to examine.
 - `x :: AbstractVector{T}` -- The series to examine.
 - `w :: Int64`             -- The width of the moving average.
 - `h :: T`                 -- The threshold for the deviation to register.
 
-## Keyword Arguments
+# Keyword Arguments
 - `chk_inp=false :: Bool`  -- Check the input contract?
 
-## Input Contract
+# Input Contract
 The inputs are assumed to satisfy the constraints below.
 
 | Constraint                          | Description                                                               |
@@ -181,14 +182,14 @@ The inputs are assumed to satisfy the constraints below.
 |`h > 0`                              | The deviation threshold is greater than 0.                                |
 |``\\forall i, t_{i+1} > t_{i}``      | The times are increasing; consequently, we have a 1-1 map from `t` to `x`.|
 
-## Output Components
+# Output Components
 - `td :: AbstractVector{S}` -- Values of `t` where deviations occurred.
 - `xd :: AbstractVector{T}` -- Values of `x` where deviations occurred.
 
-## Output Contract
+# Output Contract
 - `|td| = |xd|`
 
-## Return
+# Return
 `(td, xd) :: Tuple{AbstractVector{S}, AbstractVector{T}}`
 """
 function sig_cumsum(t::AbstractVector{S}, 
@@ -239,17 +240,17 @@ end
 
 Compute the Exponential Moving Average of the sequence `x`.
 
-## Type Constraints
+# Type Constraints
 - `T <: Real`
 
-## Arguments
+# Arguments
 - `x :: AbstractVector{T}` -- The series to work with.
 - `m :: Int64`             -- The width of the decay window.
 
-## Keyword Arguments
+# Keyword Arguments
 - `h=div(m,2) :: Int64`       -- The exponential decay *half-life*. 
 
-## Input Contract
+# Input Contract
 The inputs are assumed to satisfy the constraints below.
 
 | Constraint | Description                                   | 
@@ -257,13 +258,13 @@ The inputs are assumed to satisfy the constraints below.
 | `m > 1`    | Averaging window length is greater than ``1``.|
 | `h > 1`    | Exponential *half-life* is greater than ``1``.|
 
-## Output 
+# Output 
 - `ema :: AbstractVector{T}` -- The exponential moving average of `x`.
 
-## Output Contract
+# Output Contract
 - `|x| = |ema|`
 
-## Return
+# Return
 `ema::AbstractVector{T}`
 
 """
@@ -310,18 +311,18 @@ By default, the initial std is taken to be the standard deviation of
 the first window (of length `m`). However, a user specified value
 may be used instead.
 
-## Type Constraints
+# Type Constraints
 - `T <: Real`
 
-## Arguments
+# Arguments
 - `x :: AbstractVector{T}` -- The series to work with.
 - `m :: Int64`             -- The width of the decay window.
 
-## Keyword Arguments
+# Keyword Arguments
 - `h=div(m,2)       :: Int64`             -- The exponential decay *half-life*. 
 - `init_sig=nothing :: Union{T, Nothing}` -- An optional user supplied initial standard deviation for the start of the series.      
 
-## Input Contract
+# Input Contract
 The inputs are assumed to satisfy the constraints below.
 
 | Constraint           | Description                                             |   
@@ -331,13 +332,13 @@ The inputs are assumed to satisfy the constraints below.
 | `\\|x\\| > 1`        | The length of the series is greater than ``1``.         |
 | `init_sig` ``\\ge 0``| User supplied starting ``\\sigma`` should be ``\\ge 0``.|
 
-## Output 
+# Output 
 - `stda :: AbstractVector{T}` -- The moving exponential standard deviation of `x`.
 
-## Output Contract
+# Output Contract
 - `|x| = |stda|`
 
-## Return
+# Return
 `stda::AbstractVector{T}`
 """
 @noinline function ema_std(x                  :: AbstractVector{T},
@@ -410,18 +411,18 @@ render the estimates *unbiased* come from the paper:
 
 Returns these stats as a matrix with four columns, each representing the stats above in the order listed.
 
-## Type Constraints
+# Type Constraints
 - `T <: Real`
 
-## Arguments
+# Arguments
 - `x :: AbstractVector{T}` -- The series to work with.
 - `m :: Int64`             -- The width of the decay window.
 
-## Keyword Arguments
+# Keyword Arguments
 - `h=div(m,2) :: Int64`     -- The exponential decay *half-life*. 
 - `init_sig=nothing:: Union{T, Nothing}` -- An optional user supplied initial standard deviation for the start of the series.      
 
-## Input Contract
+# Input Contract
 The inputs are assumed to satisfy the constraints below:
 
 | Constraint     | Description                                    | 
@@ -430,13 +431,13 @@ The inputs are assumed to satisfy the constraints below:
 | `h > 1`        | Exponential *half-life* is greater than ``1``. |
 | `\\|x\\| > 3`  | The length of the series is greater than ``3``.|
 
-## Output 
+# Output 
 - `stat :: Matrix{T}` -- A matrix of EMA stats: `ema`, `ema_std`, `ema_rel_skew`, `ema_rel_kurtosis`.
 
-## Output Contract
+# Output Contract
 - `|stat| = (N, 4)` 
 
-## Return
+# Return
 `stat::Matrix{T}`
 """
 @noinline function ema_stats(x      :: AbstractVector{T},
@@ -525,20 +526,20 @@ end
     std(x)
 Compute the "sample" standard deviation of a series, `x`.
 
-## Type Constraints
+# Type Constraints
 - `T <: Real`
 
-## Arguments
+# Arguments
 - `x :: AbstractVector{T}` -- The series to work with.
 
-## Input Contract
+# Input Contract
 The inputs are assumed to satisfy the constraints below.
 
 | Constraint     | Description                                    | 
 |:--------------:|:---------------------------------------------- |
 | `\\|x\\| > 1`  | The length of the series is greater than ``1``.|
 
-## Return
+# Return
 `std::T` -- The sample standard deviation.
 """
 @noinline function std(x::AbstractVector{T}) where {T <: Real}
@@ -563,13 +564,13 @@ Computes the sum: ``\\sum_{i=1}^{N-1} \\sum_{j=i+1}^N w_i^2 w_j^2``.
 
 Here, `N = |w|`. 
 
-## Type Constraints
+# Type Constraints
 - `T <: Real`
 
-## Arguments
+# Arguments
 - `w :: AbstractVector{T}` -- Vector of weights.
 
-## Return
+# Return
 The above sum.
 
 """
@@ -590,7 +591,7 @@ end
 
 
 """
-    entropy_index(x, <keyword arguments>)
+    entropy_index(x; <keyword arguments>)
 
 Computes a (Discounted) Binned Entropy Index.
 This is the ratio of entropy of the binned distribution of `x` against
@@ -603,25 +604,25 @@ bin distribution based
 on their "freshness". In either event, the ratio of this entropy to 
 the entropy of the corresponding uniform distribution (discounted if `λ` is not 1) is returned.
 
-## Type Constraints
+# Type Constraints
 - `T <: Real`
 
-## Arguments
+# Arguments
 - `x::Vector{T}`                        -- Number to exponentiate.
 
-## Keyword Arguments
+# Keyword Arguments
 - `n=10::Int64`                         -- Exponential.
 - `tol=1.0/(100 * n)::Float64`          -- Error tolerance used with equivalency test of number to 0 or 1.
 - `probs=[0.01, 0.99]::Vector{Float64}` -- Vector of quantile min and max.
 - `λ=1.0::Float64`                      -- Discount value.
 
-## Input Contract
+# Input Contract
 - `n > 2`
 - `0 < tol < 0.01` 
 - `|probs| == 2`
 - ``0 < \\lambda \\le 1``
 
-## Return
+# Return
 `::Real` -- The (discounted) binned entropy index.
 """
 function entropy_index(x::Vector{T}                ; 
@@ -684,28 +685,46 @@ end
 """
     pow_n(x, n)
 
-Fast integer powers: ``x^n``.
+Fast (non-negative) integer powers: ``x^n``.
 Uses repeated squaring in combination with the bit vector
 representation of `n`.
 
-## Type Constraints
+# Type Constraints
 - `T <: Number`
 
-## Arguments
+# Arguments
 - `x::T`     -- The base value.
 - `n::Int64` -- The power.
 
-## Return
-`::T` -- The Power Value.
+# Input Contract
+- ``n \\ge 0`` 
+
+# Return
+`::T`        -- The Power Value.
 """
 function pow_n(x::T, n::Int64) where T <: Number
-    ba = digits(n, base=2)
+
+    # Check input contract.
+    if n < 0
+        throw(DomainError(n, "Parameters `n` must be non-negative."))
+    end
+
     o = one(T)
-    p = x
+
+    # Anything to the 0'th power is 1.
+    if n == 0
+        return(o)
+    end
+
+    # -- Do repeated squaring based on the digits of `n-1`. --
+    # Initialize values.
     s = o
-    @simd for i in ba
-        @fastmath s *= i == 1 ? p : o
-        @fastmath p *= p
+    n2d = digits(n-1, base=2)
+
+    # Repeated squaring.
+    @simd for d in n2d
+        @fastmath s *= d == 1 ? x : o
+        @fastmath x *= x
     end
     return s
 end
@@ -714,35 +733,59 @@ end
 """
     pow_n(x, n, m)
 
-Fast integer powers with modulus: ``x^n \\; {\\rm mod } \\; m``.
+Fast integer (non-negative) powers with modulus: ``x^n \\; {\\rm mod } \\; m``.
 Uses repeated squaring in combination with the bit vector
 representation of `n`.
 
 The output will be of the type determined by the promotion rules
-for subtypes, `S` and `T`, of the type `Real`, ``T^*``.
+for subtypes, `S` and `T`, of the type `Real`: ``T^*``.
 
-## Type Constraints
+# Type Constraints
 - `T <: Real`
 - `S <: Real`
 
-## Arguments
+# Arguments
 - `x::T`     -- The base value.
 - `n::Int64` -- The power.
 - `m::S`     -- The modulus.
 
-## Return
-``::T^*`` -- The Power Value.
+# Input Contract
+- ``n \\ge 0`` 
+
+# Return
+``::T^*``    -- The Power Value mod `m`.
 """
 function pow_n(x::T, n::Int64, m::S) where {T <: Real, S <: Real}
-    ba = digits(n, base=2)
-    o = one(T)
-    p = x
-    s = o
-    @simd for i in ba
-        @fastmath s *= i == 1 ? p : o
-        @fastmath p *= p
-        @fastmath p = p % m
+
+    # Check input contract.
+    if n < 0
+        throw(DomainError(n, "Parameters `n` must be non-negative."))
     end
+
+    # Promote to a common type, this will be the type of the output.
+    x, m, o = promote(x, m, Int8(1)) 
+
+    # Anything to the 0'th power is 1.
+    if n == 0
+        return(o)
+    end
+
+    # Get modulus value.
+    x %= m
+
+    # -- Do repeated squaring based on the digits of `n-1`. --
+    # Initialize values.
+    s   = x
+    n2d = digits(n-1, base=2)
+
+    # Repeated squaring.
+    @simd for d in n2d
+        @fastmath s *= d == 1 ? x : o
+        @fastmath s %= m
+        @fastmath x *= x
+        @fastmath x %= m
+    end
+
     return s
 end
 

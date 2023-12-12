@@ -21,6 +21,8 @@ in time series data.
 - `ema_stat:`  Computes the Exponential Moving Average along with
                the associated moving standard deviation, relative skewness, 
                relative kurtosis.
+- `pow_n:`     Computes the power of a value to a positive integer power 
+               using repeated squaring.
 
 ## Signals
 
