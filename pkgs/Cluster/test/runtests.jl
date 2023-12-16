@@ -34,13 +34,12 @@ end
 
 
 @testset "Test find_best_cluster" begin
-    kbest, mp, xc, sd, ds = find_best_cluster(M, 2:15, num_trials=300, N=1000, threshold=1.0e-2)
+    kbest, mp, xc, ds = find_best_cluster(M, 2:15, num_trials=300, N=1000, threshold=1.0e-2)
     C = [25.9709  -0.464779  18.6063  10.9955   3.49345  -11.4621   7.99334;
          25.9863  -1.51759   20.1879   8.01712  6.5038    12.4577  45.4783  ]
     best_var = 1530.9397660414072
 
     @test kbest      == 7
-    @test length(sd) == 0
     @test xc ≈ C          rtol=TOL
     @test ds ≈ best_var   rtol=TOL
 end

@@ -1,5 +1,6 @@
 module Cluster
 
+
 export L2, DL, LP, cos_dist 
 export kmeans_cluster, find_best_cluster, find_best_info_for_ks
 
@@ -8,6 +9,8 @@ import Statistics as S
 import StatsBase as SB
 import Random as R
 import DataStructures as DS
+import Folds
+using FLoops
 
 
 """
@@ -323,13 +326,14 @@ function kmeans_cluster(X::Matrix{T},
             ds += dvmin
             cmap[i] = cmini
         end
+        
         # IF: No appreciable change based on relative error, return.
         # 1. The mapping dictionary:
         #     (Original point index -> centroid index)
         # 2. The Centroids.
-        # 3. The overall total variation distance from points and their centroids.
-        # 4. Invalid centroid indices.
-        # 5. Real of runs to completion.
+        # 3. The overall total distance from points and their centroids.
+        # 4. Unused centroid indices.
+        # 5. Number of runs to completion.
         # 6. Did algorithm converge.
         if abs(ds_last - ds) / max(ds, ds_last) < threshold
             return (cmap, XC, ds, setdiff(1:k, unique(values(cmap))), l, true)
@@ -427,7 +431,7 @@ function find_best_info_for_ks(X::Matrix{T},
     #  - The list of cluster indices that were not used.
     #  - The number of iterations used to complete kmeans_cluster.
     #  - Did kmeans_cluster converge before max iterates used? 
-    for k in kRng    
+    for k in kRng
         ds_by_k[k] = tmax
         for _ in 1:num_trials
             cnt += 1
@@ -488,7 +492,6 @@ A Tuple:
 - `Int64`             : The "best" cluster number.
 - `Dict{Int64, Int64}`: Mapping of points (n-vectors) indices to centroid indices.
 - `Vector{T}`         : Cluster centroids.
-- `Vector{Int64}`     : Unused centroids (by index).
 - `Float64`           : The total variation between points and their centroids (using `dmetric`).
 """
 function find_best_cluster(X::Matrix{T},
@@ -540,7 +543,29 @@ function find_best_cluster(X::Matrix{T},
 
     # Find the cluster number with the least adjusted total variation.
     kbest = argmin(var_by_k_mod) + (kRng.start - 1)
-    return (kbest, cmap[kbest], xc[kbest], sd[kbest], ds[kbest])
+    
+    sdl = length(sd[kbest])
+
+    # If no unused centroids, return.
+    if sdl == 0
+        return (kbest, cmap[kbest], xc[kbest], ds[kbest])
+    end
+
+    # Else we need to remove unused centroids.
+    used_idx = setdiff(1:kbest, sd[kbest])
+    dm = DS.OrderedDict{Int64, Int64}()
+    bcmap = DS.OrderedDict{Int64, Int64}()
+    vals = unique(values(cmap[kbest]))
+    cnt = 1
+    for i in vals
+        dm[i] = cnt
+        cnt += 1
+    end
+    for k in keys(cmap[kbest])
+        bcmap[k] = dm[cmap[kbest][k]]
+    end
+    
+    return (kbest - length(sd), bcmap, xc[kbest][used_idx], ds[kbest])
 end
 
 end # End module Cluster
