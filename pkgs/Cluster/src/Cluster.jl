@@ -1,7 +1,7 @@
 module Cluster
 
 
-export L2, DL, LP, cos_dist 
+export L2, KL, LP, cos_dist 
 export kmeans_cluster, find_best_cluster, find_best_info_for_ks
 
 import LinearAlgebra as LA
@@ -9,8 +9,6 @@ import Statistics as S
 import StatsBase as SB
 import Random as R
 import DataStructures as DS
-import Folds
-using FLoops
 
 
 """
