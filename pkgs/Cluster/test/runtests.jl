@@ -39,6 +39,7 @@ end
          25.9863  -1.51759   20.1879   8.01712  6.5038    12.4577  45.4783  ]
     best_var = 1530.9397660414072
 
+    @test size(xc)   == (2, kbest)
     @test kbest      == 7
     @test xc ≈ C          rtol=TOL
     @test ds ≈ best_var   rtol=TOL

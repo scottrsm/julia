@@ -364,8 +364,8 @@ end
 """
     find_best_info_for_ks(X, kRng[; dmetric=L2, threshold=1.0e-3, W, N=1000, num_trials=100, seed=1])
 
-Groups a set of points (nxm) `X` into `k` clusters where `k` is in the range, `kRng`.
-The grouping are determined based on the distance metric, `dmetric`.
+Groups a set of`m` points (`n`-vectors) as an (nxm) matrix, `X`, into `k` clusters where `k` is in the range, `kRng`.
+The groupings are determined based on the distance metric, `dmetric`.
 
 # Type Constraints
 - `T <: Real`
@@ -394,7 +394,7 @@ The grouping are determined based on the distance metric, `dmetric`.
 A Tuple with entries:
 - `OrderedDict{Int64, Float}`             : k -> The Total Variation for each cluster number.
 - `OrderedDict{Int64, Dict{Int64, Int64}}`: k -> Mapping of index of points (n-vectors in `X`) to centroid indices.
-- `OrderedDict{Int64, Matrix{T}`          : k -> (nxm) Matrix representing `m` `n`-vector centroids.
+- `OrderedDict{Int64, Matrix{T}`          : k -> (nxk) Matrix representing `k` `n`-vector centroids.
 - `OrderedDict{Int64, Vector{In64}}`      : k -> Vector of unused centroids by index.
 """
 function find_best_info_for_ks(X::Matrix{T},
@@ -459,7 +459,12 @@ end
 
 Groups a set of points into the "best" number of clusters based on the distance metric, `dmetric`.
 It does this by examining the total variation between the points and the centroids for groups of `k`
-where `k` is in the range, `kRng`.
+where `k` is in the range, `kRng`. 
+
+**NOTE:** If the value `k` was determined to be the best cluster number but some of the
+centroids were not used, then the value of `k` will be set to the number of centroids that
+are used and the centroids that were not used will be removed. In this case it may be
+that the returned value of `k` is less that any value in the cluster range, `kRng`.
 
 # Type Constraints
 - `T <: Real`
@@ -467,7 +472,7 @@ where `k` is in the range, `kRng`.
 
 # Arguments
 - `X::Matrix{T}`           : (n,m) Matrix representing `m` points of dimension `n`.
-- `kRng::UnitRange{Int64}` : The number of clusters to form.
+- `kRng::UnitRange{Int64}` : The range of potential cluster values to try.
 
 # Keyword Arguments
 - `dmetric::F=L2` : The distance metric to use.
@@ -487,9 +492,9 @@ where `k` is in the range, `kRng`.
 
 # Return
 A Tuple:
-- `Int64`             : The "best" cluster number.
-- `Dict{Int64, Int64}`: Mapping of points (n-vectors) indices to centroid indices.
-- `Vector{T}`         : Cluster centroids.
+- `Int64`             : The "best" cluster number, `k`.
+- `Dict{Int64, Int64}`: Mapping of points (`n`-vectors) indices to centroid indices.
+- `Matrix{T}`         : Cluster centroids, represented as an `(n,k)` matrix.
 - `Float64`           : The total variation between points and their centroids (using `dmetric`).
 """
 function find_best_cluster(X::Matrix{T},
@@ -563,7 +568,7 @@ function find_best_cluster(X::Matrix{T},
         bcmap[k] = dm[cmap[kbest][k]]
     end
     
-    return (kbest - length(sd), bcmap, xc[kbest][used_idx], ds[kbest])
+    return (kbest - length(sd), bcmap, xc[kbest][:, used_idx], ds[kbest])
 end
 
 end # End module Cluster
