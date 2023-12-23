@@ -602,7 +602,7 @@ from the bins and the entropy computed. If `λ` is not 1, then a discounted
 entropy is computed. This is an exponentially based discounting of the 
 bin distribution based
 on their "freshness". In either event, the ratio of this entropy to 
-the entropy of the corresponding uniform distribution (discounted if `λ` is not 1) is returned.
+the entropy of the corresponding uniform distribution is returned.
 
 # Type Constraints
 - `T <: Real`
@@ -641,30 +641,25 @@ function entropy_index(x::Vector{T}                ;
     qmin, qmax = Statistics.quantile(x, probs)
     @fastmath xf = filter(x -> qmin <= x <= qmax, x)
     minx, maxx = extrema(xf)
-    m = length(xf)
 
     # This will be the data distribution structure based on the granularity (`n`).
     bdist::Vector{Float64} = fill(0.0, n)
     width = (maxx - minx) / n
 
     # For each filtered data point assign it to its bin index.
-    @fastmath idxs = collect(zip(1:m, Int64.(1.0 .+ (div.(xf .- minx .- tol, width)))))
+    @fastmath idxs = collect(zip(1:n, Int64.(1.0 .+ (div.(xf .- minx .- tol, width)))))
     sort!(idxs, rev=true)
 
-    # Increment all bins for each occurrence from the series.
+    # Increment all bins for each occurrence from the series discounted from
+    # the end of the time series.
     lm = 1.0
-    li = idxs[1][1]
-    for (i,j) in idxs
-        bdist[j] += 1 * lm
-        if i != li
-            li = i
-            lm *= λ
-        end
+    for (_,j) in idxs
+        @inbounds bdist[j] += lm
+        lm *= λ
     end
-    totalCount = sum(bdist)
 
     # Finish off the binned empirical distribution.
-    bdist ./= totalCount
+    bdist ./= sum(bdist)
 
     # Get the discounted entropy of the binned distribution.
     ent = 0.0
@@ -674,7 +669,7 @@ function entropy_index(x::Vector{T}                ;
     end
 
     # Return the normalized discounted binned entropy.
-    # Normalize by the entropy of the discounted uniform distribution over `n` values.
+    # Normalize by the entropy of the uniform distribution over `n` values.
     return ent / log(n) 
 end
 
