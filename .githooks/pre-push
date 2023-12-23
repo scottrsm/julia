@@ -40,8 +40,11 @@ for module in $MODULES; do
         exit 3
     fi
 
+    ### Move to the module directory.
+    cd "$module" || exit 10
+
     ## Run the tests for this module.
-    ok=$($JULIA_EXEC --project=@. "$module/$TEST_DIR/$TEST_RUN_SCRIPT")
+    ok=$($JULIA_EXEC --project "$TEST_DIR/$TEST_RUN_SCRIPT")
     cmd_status=$?
 
     ## If any test failed, error -- leave with non-zero exit status 
