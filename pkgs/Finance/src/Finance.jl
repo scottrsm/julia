@@ -637,9 +637,6 @@ function entropy_index(x::Vector{T}                ;
     length(probs) == 2 || throw(DomainError(probs, "Bad quantile vector, must have length 2."))
     0.0 < λ <= 1.0     || throw(DomainError(λ    , "Bad discount parameter."))
 
-    # Is this computation using a discounting process.
-    discounted = !isapprox(λ, 1.0; atol=tol) 
-
     # Get the data extrema for the quantile filtered data.
     qmin, qmax = Statistics.quantile(x, probs)
     @fastmath xf = filter(x -> qmin <= x <= qmax, x)

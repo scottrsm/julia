@@ -2,7 +2,7 @@
 
 julia_version = "1.9.4"
 manifest_format = "2.0"
-project_hash = "e2788a2ed9f0b7434a1a99aef3a5c9d554e864ba"
+project_hash = "fc799fb98a5d7a5ad8ed41b105971e0d91966ecf"
 
 [[deps.ANSIColoredPrinters]]
 git-tree-sha1 = "574baf8110975760d391c710b6341da1afa48d8c"
@@ -299,9 +299,9 @@ version = "0.11.31"
 
 [[deps.Parsers]]
 deps = ["Dates", "PrecompileTools", "UUIDs"]
-git-tree-sha1 = "a935806434c9d4c506ba941871b327b96d41f2bf"
+git-tree-sha1 = "8489905bcdbcfac64d1daa51ca07c0d8f0283821"
 uuid = "69de0a69-1ddd-5017-9359-2bf0b02dc9f0"
-version = "2.8.0"
+version = "2.8.1"
 
 [[deps.Pkg]]
 deps = ["Artifacts", "Dates", "Downloads", "FileWatching", "LibGit2", "Libdl", "Logging", "Markdown", "Printf", "REPL", "Random", "SHA", "Serialization", "TOML", "Tar", "UUIDs", "p7zip_jll"]
@@ -323,6 +323,16 @@ version = "1.4.1"
 [[deps.Printf]]
 deps = ["Unicode"]
 uuid = "de0858da-6303-5e67-8744-51eddeeeb8d7"
+
+[[deps.PropCheck]]
+deps = ["Compat", "InteractiveUtils", "Logging", "Random", "RequiredInterfaces", "Test"]
+git-tree-sha1 = "859234e2490881f049d52998cbcc52281381b258"
+uuid = "ca382230-33be-11e9-0059-d981d03070e4"
+version = "0.10.1"
+weakdeps = ["AbstractTrees"]
+
+    [deps.PropCheck.extensions]
+    ATExt = "AbstractTrees"
 
 [[deps.QuadGK]]
 deps = ["DataStructures", "LinearAlgebra"]
@@ -348,6 +358,12 @@ deps = ["LazilyInitializedFields", "Pkg", "TOML", "Tar"]
 git-tree-sha1 = "ffd19052caf598b8653b99404058fce14828be51"
 uuid = "2792f1a3-b283-48e8-9a74-f99dce5104f3"
 version = "0.1.0"
+
+[[deps.RequiredInterfaces]]
+deps = ["InteractiveUtils", "Logging", "Test"]
+git-tree-sha1 = "deb5b451248bbe5ce37cb639a546ac13d07b791f"
+uuid = "97f35ef4-7bc5-4ec1-a41a-dcc69c7308c6"
+version = "0.1.4"
 
 [[deps.Rmath]]
 deps = ["Random", "Rmath_jll"]
