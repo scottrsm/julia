@@ -596,13 +596,13 @@ end
 Computes a (Discounted) Binned Entropy Index.
 This is the ratio of entropy of the binned distribution of `x` against
 the entropy of the uniform distribution.
-The vector `x` is first filtered by the lower and upper quantiles; then
+The vector `x` is first capped by the lower and upper quantiles; then
 binned into `n` number of equal width bins. A distribution is formed 
 from the bins and the entropy computed. If `λ` is not 1, then a discounted
 entropy is computed. This is an exponentially based discounting of the 
 bin distribution based
 on their "freshness". In either event, the ratio of this entropy to 
-the entropy of the corresponding uniform distribution is returned.
+the entropy of the corresponding uniform distribution (of `n` bins) is returned.
 
 # Type Constraints
 - `T <: Real`
@@ -639,21 +639,22 @@ function entropy_index(x::Vector{T}                ;
 
     # Get the data extrema for the quantile filtered data.
     qmin, qmax = Statistics.quantile(x, probs)
-    @fastmath xf = filter(x -> qmin <= x <= qmax, x)
-    minx, maxx = extrema(xf)
 
     # This will be the data distribution structure based on the granularity (`n`).
     bdist::Vector{Float64} = fill(0.0, n)
-    width = (maxx - minx) / n
+    width = (qmax - qmin) / n
 
     # For each filtered data point assign it to its bin index.
-    @fastmath idxs = collect(zip(1:n, Int64.(1.0 .+ (div.(xf .- minx .- tol, width)))))
+    @fastmath idxs = Int64.(1.0 .+ (div.(x .- qmin .- tol, width)))
+    idxs .= min.(idxs, n)
+    idxs .= max.(idxs, 1)
+
     sort!(idxs, rev=true)
 
     # Increment all bins for each occurrence from the series discounted from
     # the end of the time series.
     lm = 1.0
-    for (_,j) in idxs
+    for j in idxs
         @inbounds bdist[j] += lm
         lm *= λ
     end
@@ -729,8 +730,7 @@ Fast integer (non-negative) powers with modulus: ``x^n \\; {\\rm mod } \\; m``.
 Uses repeated squaring in combination with the bit vector
 representation of `n`.
 
-The output will be of the type determined by the promotion rules
-for subtypes, `S` and `T`, of the type `Real`: ``T^*``.
+The output will be of type `T^* = typeof(promote(x, m))`.
 
 # Type Constraints
 - `T <: Real`
