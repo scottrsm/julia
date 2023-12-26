@@ -62,10 +62,6 @@ tic_diff2
 ```
 
 ```@docs
-WWsum
-```
-
-```@docs
 pow_n(::T, ::Int64) where {T <: Number} 
 ```
 

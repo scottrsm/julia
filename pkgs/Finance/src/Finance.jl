@@ -4,7 +4,7 @@ import Random, Distributions, Statistics
 
 
 export sig_cumsum, tic_diff1, tic_diff2, isConvertible 
-export ema, ema_std, ema_stats, std, WWsum
+export ema, ema_std, ema_stats, std
 export entropy_index, pow_n
 
 
@@ -608,7 +608,7 @@ the entropy of the corresponding uniform distribution (of `n` bins) is returned.
 - `T <: Real`
 
 # Arguments
-- `x::Vector{T}`                        -- Number to exponentiate.
+- `x::Vector{T}`                        -- Vector to process.
 
 # Keyword Arguments
 - `n=10::Int64`                         -- Exponential.
