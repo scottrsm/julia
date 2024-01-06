@@ -78,11 +78,11 @@ The inputs are assumed to satisfy the constraints below.
     end
 
     tc = map(x -> convert(T, x), t)
-    df = zeros(T, n-2)
-    @simd for i in 2:(n-1)
-        @inbounds h1 = tc[i  ] - tc[i-1]
-        @inbounds h2 = tc[i+1] - tc[i  ]
-        @inbounds df[i] = (x[i+1] - x[i-1]) / (h1 + h2)
+    df = Vector{T}(undef, n-2)
+    @inbounds @simd for i in 2:(n-1)
+        h1 = tc[i  ] - tc[i-1]
+        h2 = tc[i+1] - tc[i  ]
+        df[i-1] = (x[i+1] - x[i-1]) / (h1 + h2)
     end
 
     return(df)
@@ -130,11 +130,11 @@ The inputs are assumed to satisfy the constraints below.
     end
 
     tc = map(x -> convert(T, x), t)
-    df = zeros(T, n-2)
+    df = Vector{T}(undef, n-2)
     @simd for i in 2:(n-1)
         @inbounds h1 = tc[i  ] - tc[i-1]
         @inbounds h2 = tc[i+1] - tc[i  ]
-        @inbounds df[i] = (h2 * x[i+1] - (h1 + h2) * x[i] + h1 * x[i-1]) / (h1 * h2 * (h1 + h2))
+        @inbounds df[i-1] = (h2 * x[i+1] - (h1 + h2) * x[i] + h1 * x[i-1]) / (h1 * h2 * (h1 + h2))
     end
 
     return(df)
@@ -210,23 +210,25 @@ function sig_cumsum(t::AbstractVector{S},
         !all(diff(t) .> zero(S)) && throw(DomainError(0, "Sequential differences of time seq must always be > 0."))
     end
 
-    Sp = zeros(T, n)
-    Sn = zeros(T, n)
+    Sp = Vector{T}(undef, n)
+    Sn = Vector{T}(undef, n)
     z  = zero(T)
+    Sp[1] = z
+    Sn[1] = z
 
     xm   = x[1]  # Running mean of the input `x` computed based on window, `w`.
     sigs = T[]   # The signals/deviations to be returned. 
     tics = S[]   # The tics where the deviations occurred.
 
     ## Loop over the series and populate, `tics` and `sigs`.
-    for i in 2:n
-        @inbounds xm = ( (w - 1) * xm + x[i-1] ) / w
-        @inbounds Sp[i] = max(z, Sp[i-1] +  x[i]  - xm)
-        @inbounds Sn[i] = min(z, Sp[i-1] +  x[i]  - xm)
-        @inbounds delta = max(Sp[i], -Sn[i])
+    @inbounds @simd for i in 2:n
+        xm = ( (w - 1) * xm + x[i-1] ) / w
+        Sp[i] = max(z, Sp[i-1] +  x[i]  - xm)
+        Sn[i] = min(z, Sp[i-1] +  x[i]  - xm)
+        delta = max(Sp[i], -Sn[i])
         if delta >= h
             push!(sigs, delta) 
-            @inbounds push!(tics, t[i])
+            push!(tics, t[i])
         end
     end
 
@@ -288,15 +290,15 @@ The inputs are assumed to satisfy the constraints below.
     l = exp(-log(2 * one(T)) / h)
 
     w[1] = l
-    @simd for i in 2:m
-        @inbounds w[i] = l * w[i-1]
+    @inbounds @simd for i in 2:m
+        w[i] = l * w[i-1]
     end
     w ./= sum(w)
 
     ## Compute the EMA using the difference equation recursion.
     ma[1] = xadj[m+1]
-    @simd for i in 2:N
-        @inbounds ma[i] =  l * (ma[i-1] - w[m] * xadj[i]) + w[1] * xadj[i+m]     
+    @inbounds @simd for i in 2:N
+        ma[i] =  l * (ma[i-1] - w[m] * xadj[i]) + w[1] * xadj[i+m]     
     end
 
     return(ma)
@@ -384,15 +386,15 @@ The inputs are assumed to satisfy the constraints below.
     ## Use this to define the weights; then normalize.
     ## Weights go from large to small.
     w[1] = l
-    @simd for i in 2:m
-        @inbounds w[i] = l * w[i-1]
+    @inbounds @simd for i in 2:m
+        w[i] = l * w[i-1]
     end
     w ./= sum(w)
     w2 = sum(w .* w)
 
     ## Recursive formula for variance.
-    @simd for n in 1:(N-1)
-        @inbounds mvar[n+1] = l * (mvar[n] - xadj[n+1] * w[m]) + xadj[n+m+1] * w[1] 
+    @inbounds @simd for n in 1:(N-1)
+        mvar[n+1] = l * (mvar[n] - xadj[n+1] * w[m]) + xadj[n+m+1] * w[1] 
     end
 
     ## Return corrected variances (unbiased).
@@ -481,8 +483,8 @@ The inputs are assumed to satisfy the constraints below:
     l = exp(-log(2 * one(T)) / h)
 
     w[1] = l
-    for i in 2:m
-        @inbounds w[i] = l * w[i-1]
+    @inbounds for i in 2:m
+        w[i] = l * w[i-1]
     end
     w ./= sum(w)
 
@@ -491,8 +493,8 @@ The inputs are assumed to satisfy the constraints below:
     W3 = zero(T)
     W4 = zero(T)
     W5 = zero(T)
-    @simd for i in 1:m
-        @inbounds wt = w[i]
+    @inbounds @simd for i in 1:m
+        wt = w[i]
         w2 = wt * wt
         W2 += w2
         W3 += w2 * wt
@@ -507,8 +509,8 @@ The inputs are assumed to satisfy the constraints below:
 
     ## Recursion to compute the moving stats.
     for i in 1:4
-        @simd for n in 1:(N-1)
-            @inbounds mstat[n+1, i] = l * (mstat[n,i] - xadj[n+1,i] * w[m]) + xadj[n+m+1,i] * w[1] 
+        @inbounds @simd for n in 1:(N-1)
+            mstat[n+1, i] = l * (mstat[n,i] - xadj[n+1,i] * w[m]) + xadj[n+m+1,i] * w[1] 
         end
     end
 
@@ -551,8 +553,8 @@ The inputs are assumed to satisfy the constraints below.
     end
     mn /= N
 
-    @simd for i in 1:N
-        @inbounds sd += (x[i] - mn) * (x[i] - mn)
+    @inbounds @simd for i in 1:N
+        sd += (x[i] - mn) * (x[i] - mn)
     end
     return( sqrt(sd / (N-1)) )
 end
@@ -580,8 +582,8 @@ The above sum.
     for i in 1:(m-1)
         @inbounds wwi = w[i] * w[i]
         wwj = zero(T)
-        @simd for j in (i+1):m
-            @inbounds wwj += w[j] * w[j] 
+        @inbounds @simd for j in (i+1):m
+            wwj += w[j] * w[j] 
         end
         WW += wwi * wwj
     end 
@@ -641,7 +643,7 @@ function entropy_index(x::Vector{T}                ;
     qmin, qmax = Statistics.quantile(x, probs)
 
     # This will be the data distribution structure based on the granularity (`n`).
-    bdist::Vector{Float64} = fill(0.0, n)
+    bdist = Vector{Float64}(undef, n)
     width = (qmax - qmin) / n
 
     # For each filtered data point assign it to its bin index.
@@ -654,8 +656,8 @@ function entropy_index(x::Vector{T}                ;
     # Increment all bins for each occurrence from the series discounted from
     # the end of the time series.
     lm = 1.0
-    for j in idxs
-        @inbounds bdist[j] += lm
+    @inbounds for j in idxs
+        bdist[j] += lm
         lm *= λ
     end
 
@@ -664,8 +666,8 @@ function entropy_index(x::Vector{T}                ;
 
     # Get the discounted entropy of the binned distribution.
     ent = 0.0
-    @simd for i in 1:n
-        @inbounds prb = bdist[i]
+    @inbounds @simd for i in 1:n
+        prb = bdist[i]
         @fastmath ent -= isapprox(prb, 0.0; atol=tol) ? 0.0 : prb * log(prb)
     end
 

@@ -120,11 +120,11 @@ function wquantile(x::AbstractVector{T} ,
     # find the index for each associated value in `xs`, placing them in `qxsi`.
     j = 1
     s = zeroq
-    for i in 1:n
+    @inbounds for i in 1:n
         # If we exceed the current quantile threshold, `s`.
         # Set the index at `j` of the index vector.
         if s >= q[j]
-            @inbounds qxsi[j] = i
+            qxsi[j] = i
             while true
                 j += 1
                 if j == m+1
@@ -133,12 +133,12 @@ function wquantile(x::AbstractVector{T} ,
                 if q[j] > s
                     break
                 end
-                @inbounds qxsi[j] = i
+                qxsi[j] = i
             end
         end
         # Finished with all quantiles that hit the quantile threshold, `s`.
         # Now update the threshold.
-        @inbounds s += wsc[i]
+        s += wsc[i]
     end
     @label done
 
