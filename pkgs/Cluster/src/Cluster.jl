@@ -287,7 +287,7 @@ function kmeans_cluster(X::Matrix{T},
     idx[end] = min(idx[end], m)
 
     # Average the vectors in each group to form the group centers.
-    XC = zeros(T, n, k)
+    XC = Array{T}(undef, n, k)
     for j in 1:k
         XC[:, j] = S.mean(XR[:, idx[j]:idx[j+1]], dims=2)
     end
