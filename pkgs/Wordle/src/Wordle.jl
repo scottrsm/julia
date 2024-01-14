@@ -51,14 +51,14 @@ Create an information structure of the form:
     
 Here, the dictionary has the inexact match information:
 - LETTER : A matching letter 
-- EXACT_MATCH_POSITION: The position (1-based index) if an exact match; OR
+- EXACT\\_MATCH\\_POSITION: The position (1-based index) if an exact match; OR
         minus the position if the letter is used, but not at this position.
-- NUMBER_OF_MATCHES : The number of matches.
+- NUMBER\\_OF\\_MATCHES : The number of matches.
     
 The latter is interpreted thusly: 
-- If MATCH_FLAG is 0, there are *exactly* NUMBER_OF_MATCHES with this 
+- If MATCH\\_FLAG is 0, there are *exactly* NUMBER\\_OF\\_MATCHES with this 
                      letter that should occur in the puzzle word.
-- Else              , there are *at least* NUMBER_OF_MATCHES with this 
+- Else              , there are *at least* NUMBER\\_OF\\_MATCHES with this 
                      letter that should occur in the puzzle word.
 
 ## Arguments
