@@ -40,24 +40,26 @@ const WORDLE_DF =  DataFrame(CSV.File(joinpath(@__DIR__, "../data", "wordle_db.c
     - current_universe = filter_universe(wordle_info, current_universe)
   - Goto Start
 - End
-   - Return guess
+- Return guess
 """
 
 """
     create_wordle_info(guess, pword)
 
 Create an information structure of the form: 
-
-   `([LETTER, EXACT_MATCH_POSITION)], Dict(LETTER => (NUMBER_OF_MATCHES, MATCH_FLAG))`
+    `([LETTER, EXACT_MATCH_POSITION)], Dict(LETTER => (NUMBER_OF_MATCHES, MATCH_FLAG))`
     
-Here, the dictionary has the in-exact match information:
-    `LETTER` : A matching letter 
-    `NUMBER_OF_MATCHES` : The number of matches.
-    The latter is interpreted thusly: 
--    If `MATCH_FLAG` is ``0``, there are *exactly* `NUMBER_OF_MATCHES` 
-                    with this letter that should occur in the puzzle word.
--    Else           there are *at least* `NUMBER_OF_MATCHES` 
-                    with this letter that should occur in the puzzle word.
+Here, the dictionary has the inexact match information:
+- LETTER : A matching letter 
+- EXACT_MATCH_POSITION: The position (1-based index) if an exact match; OR
+        minus the position if the letter is used, but not at this position.
+- NUMBER_OF_MATCHES : The number of matches.
+    
+The latter is interpreted thusly: 
+- If MATCH_FLAG is 0, there are *exactly* NUMBER_OF_MATCHES with this 
+                     letter that should occur in the puzzle word.
+- Else              , there are *at least* NUMBER_OF_MATCHES with this 
+                     letter that should occur in the puzzle word.
 
 ## Arguments
 - `guess::String`: The guess for the puzzle.
@@ -66,9 +68,9 @@ Here, the dictionary has the in-exact match information:
     
 ## Returns
     A tuple of a vector of tuples of exact matches and a dictionary of 
-    non-exact match info.
+    inexact match info.
 
-## Examples
+    ## Examples
 ```jdoctest
 julia> create_wordle_info("which", "where")
 ([('w', 1), ('h', 2)], Dict('h' => (0, 0), 'c' => (0, 0), 'i' => (0, 0)))
@@ -82,10 +84,10 @@ julia> create_wordle_info("teens", "where")
 function create_wordle_info(guess :: String, # Guess
                             pword :: String, # Puzzle word
                            ) :: Tuple{Vector{Tuple{Char, Int64}}, Dict{Char, Tuple{Int64, Int64}}}
-    n     :: Int64         = length(pword)
-    e_idx :: Vector{Int64} = []
-    f_idx :: Vector{Int64} = collect(1:n)
-    c_idx :: Vector{Int64} = []
+    n     = length(pword)
+    e_idx = Int64[]
+    f_idx = collect(1:n)
+    c_idx = Int64[]
 
     ary :: Vector{Tuple{Char, Int64}} = []
   
@@ -106,21 +108,29 @@ function create_wordle_info(guess :: String, # Guess
         dg[guess[i]] = 1 + get(dg, guess[i], 0)
     end
 
+    # Dictionary 
     d = Dict{Char, Tuple{Int64, Int64}}()
     for i in c_idx
-        ## We know that there is a AT LEAST `dg[guess[i]]` of character 
-        ##  `guess[i]` in the puzzle word.
-        if dg[guess[i]] <= get(dp, guess[i], 0)
-            d[guess[i]] = (dg[guess[i]], 1)         
-        else # We know that there is EXACTLY `dp[guess[i]]` of character 
-             #  `guess[i]` in the puzzle word.
-            d[guess[i]] = (get(dp, guess[i], 0), 0) 
+        guess_letter_count           = dg[guess[i]]
+        guess_letter_count_in_puzzle = get(dp, guess[i], 0)
+
+
+        # If number of times the letter guess[i] is seen in the puzzle is greater than or equal
+        # to the number of times it occurs in the guess word, then every such letter
+        # in the guess word will be recognized as an inexact match.
+        if dg[guess[i]]  <= guess_letter_count_in_puzzle
+            d[guess[i]]  = (guess_letter_count, 1)
+        else # Otherwise, only `guess_letter_count_in_puzzle` number of this letter will "light up" as an inexact match.
+            d[guess[i]]  = (guess_letter_count_in_puzzle, 0)
+        end
+        # Mark this position as an inexact match.
+        if guess_letter_count_in_puzzle > 0
+            push!(ary, (guess[i], -i))
         end
     end
     
     return((ary, d))
 end
-
 
 """
     filter_universe(wordle_info, words)
@@ -135,10 +145,10 @@ Filter an existing universe of words based on match info.
 - `words`       : A Vector of words.
 
 ## Return
-   A subset of the `words` vector based on the filter information 
-   from `wordle_info`.
+    A subset of the `words` vector based on the filter information 
+    from `wordle_info`.
 
-## Examples
+    ## Examples
 ```jdoctest
 julia> (winfo, d) = create_wordle_info("which", "where")
 
@@ -150,7 +160,7 @@ julia> filter_universe((winfo, d), words)
 
 1-element Vector{String}:
  "where"
-```                            
+```
 """
 function filter_universe(wordle_info :: Tuple{Vector{Tuple{Char, Int64}}, Dict{Char, Tuple{Int64, Int64}}},
                          words       :: Vector{String}                                                    ,
@@ -162,31 +172,46 @@ function filter_universe(wordle_info :: Tuple{Vector{Tuple{Char, Int64}}, Dict{C
     end
 
     ## Destructure the `worlde_info`, get the length of the words 
-    ## used in word lists.
+    ## ␓␓used in word lists.
     (winfo, d) = wordle_info
     word_len = length(words[1])
 
     ## This is the list of all the indices in any given puzzle word.
-    f_idxs:: Vector{Int64} = collect(1:word_len)
+    f_idxs = collect(1:word_len)
 
     ## Filter words on exact matches...
-    e_idxs = map(x -> x[2], winfo)
+    ems = map(x -> x[2], winfo)
+    e_idxs  = [ i for i in ems if i > 0] # Exact match
+    ie_idxs = [-i for i in ems if i < 0] # In-exact match
+    c_idxs = setdiff(f_idxs, union(e_idxs, ie_idxs))
+
     if length(e_idxs) > 0
-        cstr = String(map(x -> x[1], winfo))
-        words = filter(x -> cstr == x[e_idxs], words)
+        cstr  = String([ci[1] for ci in winfo if ci[2] > 0])
+        words = filter(word -> cstr == word[e_idxs], words)
     end
 
-    ## These are the indices of non-exact matches.
+    if length(ie_idxs) > 0
+        cstr  = String([ci[1] for ci in winfo if ci[2] < 0])
+        words = filter(word -> cstr != word[ie_idxs], words)
+    end
+    #if length(c_idxs) > 0
+    #    cstr  = guess[c_idxs]
+    #    println("Not in: cstr = $cstr")
+    #    words = filter(word -> cstr != word[c_idxs], words) 
+    #end
+    
+    ## These are the indices of potential inexact matches.
     c_idx = setdiff(f_idxs, e_idxs)
     m = length(c_idx)
 
     ## Adjust filtering based on match flag `(d[k][2])`.
     if m > 0
         for k in keys(d)
+            fil = fill(k, m)
             if d[k][2] == 0
-                words = filter(x -> sum(collect(x[c_idx]) .== fill(k, m)) == d[k][1], words)
+                words = filter(word -> sum(collect(word[c_idx]) .== fil) == d[k][1], words)
             else
-                words = filter(x -> sum(collect(x[c_idx]) .== fill(k, m)) >= d[k][1], words)
+                words = filter(word -> sum(collect(word[c_idx]) .== fil) >= d[k][1], words)
             end
         end
     end
@@ -441,7 +466,7 @@ function solve_wordle(puzzle_word :: String                      , # Puzzle word
     if n == 0 # The information does not lead to a solution -- the puzzle word is not in our initial universe.
         return((sol_path, rec_count  , :FAILURE))
     elseif n == 1 && puzzle_word == new_universe[1] # We know the solution without having to recurse again.
-        return((sol_path, rec_count+1, :SUCCESS))
+        return((sol_path, rec_count+1, :SUCCESS)) 
     elseif n == 1 # The puzzle word is not in our initial universe.
         return((sol_path, rec_count+1, :FAILURE))
     end

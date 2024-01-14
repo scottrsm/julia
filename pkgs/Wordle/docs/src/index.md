@@ -12,7 +12,7 @@ It provides the number of steps to solve along with the
 intermediate guesses.
 
 There is an associated Wordle Jupyter notebook at 
-/src/WordleTest.ipynb.
+julia/src/WordleTest.ipynb.
 
 
 ## Primary Function
@@ -21,7 +21,7 @@ There is an associated Wordle Jupyter notebook at
 solve_wordle
 ```
 
-## Lower Level Functions
+## Supporting Functions
 
 ```@docs
 create_wordle_info
