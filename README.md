@@ -10,7 +10,7 @@ uses macros to provide a more intuitive external representation.
 Provides code to play a version of poker.
 
 ### Module Cluster
-Implements a version of kmeans clustering.
+Implements a version of **kmeans** clustering.
 The potential novelty being:
 - A larger variety of metrics.
 - A novel way to do automatic cluster number detection.

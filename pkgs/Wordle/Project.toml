@@ -1,12 +1,13 @@
 name = "Wordle"
 uuid = "ce391ddf-23ab-468f-b121-ca3c991c210e"
 authors = ["Scott McIntire <scottrsm@gmail.com>"]
-version = "0.2.1"
+version = "1.0.0"
 
 [deps]
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+InlineStrings = "842dd82b-1e85-43dc-bf29-5d0ee9dffc48"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [compat]
