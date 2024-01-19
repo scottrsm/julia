@@ -6,6 +6,9 @@ CurrentModule = Cluster
 
 # Overview
 This module contains functions to determine natural clusters using unsupervised learning.
+Of interest is the functionality to determine the cluster size of a data set.
+Additionally, some of the metrics may be weighted which can be used to help alleviate  
+**kmeans** attraction to spherical clusters.
 
 Cluster functions:
 - kmeans_cluster: 
