@@ -43,8 +43,8 @@ To do this, we start by assuming that the data is uniformly distributed in our d
 We assume that the `k` clusters have the same number of points and fill a sphere 
 of radius, `R`. This means that ``R^n \approx k r_k^n``.
 
-Solving for ``r_k`` we have ``r_k = R {\\\frac{1}{k}}^{\\\frac{1}{n}}``.
-The total variation of `k` clusters is then roughly: ``k r_k {\\\frac{m}{k}}``. 
+Solving for ``r_k`` we have ``{r_k=R\\\frac{1}{k}^{\\\frac{1}{n}}}``.
+The total variation of `k` clusters is then roughly: ``{k r_k\\\left(\\\frac{m}{k}\\\right)}``. 
 This becomes: ``\\\frac{m R}{k^{\\\frac{1}{n}}}``.
 Thus, even in the absence of any true clusters, the total variation decays like ``k^{\\\frac{1}{n}}``.
 

@@ -27,7 +27,7 @@ is the use of weighted metrics in some instances.
 
 ## Keyword Arguments
 - `tol::Float64` : A tolerance -- **NOT** used.
-- `C`::Union{Nothing, Matrix{T}` : Optional Weight matrix.
+- `C::Union{Nothing, Matrix{T}` : Optional Weight matrix.
 
 ## Input Contract (Low level function -- Input contract not checked)
 - ``|{\\bf x}| = |{\\bf y}|``
@@ -64,7 +64,7 @@ Computes the ``L_p`` distance between two vectors.
 
 ## Keyword Arguments
 - `tol::Float64` : A tolerance -- **NOT** used.
-- `C`::Union{Nothing, Matrix{T}` : Optional Weight matrix -- **NOT** used.
+- `C::Union{Nothing, Matrix{T}` : Optional Weight matrix -- **NOT** used.
 
 ## Input Contract (Low level function -- Input contract not checked)
 - ``|{\\bf x}| = |{\\bf y}|``
@@ -95,8 +95,8 @@ If both `x` and `y`, a distance of 0 is returned.
 - `y::Vector{T}` : A numeric vector of dimension `n`.
 
 ## Keyword Arguments
-- `tol::Float64` : A tolerance -- **NOT** used.
-- `C`::Union{Nothing, Matrix{T}` : Optional Weight matrix -- **NOT** used.
+- `tol::Float64`                : A tolerance -- **NOT** used.
+- `C::Union{Nothing, Matrix{T}` : Optional Weight matrix -- **NOT** used.
 
 ## Input Contract (Low level function -- Input contract not checked)
 - ``| {\\bf x} | = | {\\rm unique}({\\bf x}) |``
@@ -132,8 +132,8 @@ Computes the ``Kullback-Leibler`` distance between two vectors.
 - `y::Vector{T}` : A numeric vector of dimension `n`.
 
 ## Keyword Arguments
-- `tol::Float64` : A tolerance -- **NOT** used.
-- `C`::Union{Nothing, Matrix{T}` : Optional Weight matrix -- **NOT** used.
+- `tol::Float64`                : A tolerance -- **NOT** used.
+- `C::Union{Nothing, Matrix{T}` : Optional Weight matrix -- **NOT** used.
 
 ## Input Contract (Low level function -- Input contract not checked)
 Let ``N = |{\\bf x}|``.
@@ -232,8 +232,8 @@ Groups a set of points into `k` clusters based on the distance metric, `dmetric`
 
 ## Return
 A Tuple:
-- `Dict{Int64, Int64}`: Mapping of points (n-vectors) indices to centroid indices.
-- `Vector{T}`         : `k` centroids.
+- `Dict{Int64, Int64}`: Mapping of points (`n`-vectors) indices to centroid indices.
+- `Matrix{T}`         : (nxk) Matrix representing `k` centroids of `n`-vectors.
 - `Float64`           : The total variation between points and their centroids (using `dmetric`).
 - `Vector{Int64}`     : Unused centroids (by index).
 - `Int64`             : The number of iterations to use for the algorithm to complete.
@@ -392,10 +392,10 @@ The groupings are determined based on the distance metric, `dmetric`.
 
 ## Return
 A Tuple with entries:
-- `OrderedDict{Int64, Float}`             : k -> The Total Variation for each cluster number.
-- `OrderedDict{Int64, Dict{Int64, Int64}}`: k -> Mapping of index of points (n-vectors in `X`) to centroid indices.
-- `OrderedDict{Int64, Matrix{T}`          : k -> (nxk) Matrix representing `k` `n`-vector centroids.
-- `OrderedDict{Int64, Vector{In64}}`      : k -> Vector of unused centroids by index.
+- `OrderedDict{Int64, Float}`             : 1:k -> The Total Variation for each cluster number.
+- `OrderedDict{Int64, Dict{Int64, Int64}}`: 1:k -> Mapping of index of points (n-vectors in `X`) to centroid indices.
+- `OrderedDict{Int64, Matrix{T}`          : 1:k -> (nxk) Matrix representing `k` `n`-vector centroids.
+- `OrderedDict{Int64, Vector{In64}}`      : 1:k -> Vector of unused centroids by index.
 """
 function find_best_info_for_ks(X::Matrix{T},
                                kRng::UnitRange{Int64};
