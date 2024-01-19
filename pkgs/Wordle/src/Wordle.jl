@@ -390,7 +390,6 @@ function solve_wordle(puzzle_word :: T                          , # Puzzle word.
                       init_guess  :: T             = T("trace") , # Starting guess to use.
                      ) :: Tuple{Any, Int64, Symbol} where {T <: AbstractString} 
 
-
     # Check input contract?
     if chk_inputs && rec_count == 1
         # 0. Get the words from the universe and ensure that we have more than 1.

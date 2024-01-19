@@ -25,12 +25,21 @@ end
     @test filter_words == String7["where"]
 end
 
-@testset "solve_wordle" begin
+@testset "solve_wordle with String7 Database with String7 Inputs" begin
     res = solve_wordle(String7("taste"); init_guess=String7("their"))
     @test res == (Any[(String7("their"), [('t', 1), ('e', -3)], 3585), 
                       (String7("taken"), [('t', 1), ('a', 2), ('e', -4)], 34), 
                       (String7("table"), [('t', 1), ('a', 2), ('e', 5)], 3), 
                       (String7("taste"), [('t', 1), ('a', 2), ('s', 3), ('t', 4), ('e', 5)], 2)], 4, :SUCCESS)
+
+end
+
+@testset "solve_wordle with String7 Database with String Inputs" begin
+    res = solve_wordle("taste"; init_guess="their")
+    @test res == (Any[("their", [('t', 1), ('e', -3)], 3585), 
+                      ("taken", [('t', 1), ('a', 2), ('e', -4)], 34), 
+                      ("table", [('t', 1), ('a', 2), ('e', 5)], 3), 
+                      ("taste", [('t', 1), ('a', 2), ('s', 3), ('t', 4), ('e', 5)], 2)], 4, :SUCCESS)
 
 end
 
