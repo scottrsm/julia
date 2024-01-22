@@ -554,7 +554,7 @@ function make_secondary_draw!(h::PokerHand, d::Deck) :: PokerHand
 
     ## FourOfKind
     if (length(h.gr_rep) == 2) && (h.gr_rep[1][1] == 4)
-        if h.gr_rep[2][1] < Seven
+        if h.gr_rep[2][2] < Seven
             ## Eliminate 1 card.
             push!(eliminate_cards_by_rank, h.gr_rep[2][2]) 
         end
