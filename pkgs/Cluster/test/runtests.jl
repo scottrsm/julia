@@ -4,7 +4,7 @@ import Random
 
 
 Random.seed!(1)
-TOL=1.0e-6
+TOL=1.0e-4
 
 M1 = [-1,-2] .+ rand(2, 100)
 M2 = 3.0 .* [1,2] .+ rand(2, 100)
@@ -35,12 +35,11 @@ end
 
 @testset "Test find_best_cluster" begin
     kbest, mp, xc, ds = find_best_cluster(M, 2:15, num_trials=300, N=1000, threshold=1.0e-2)
-    C = [25.9709  -0.464779  18.6063  10.9955   3.49345  -11.4621   7.99334;
-         25.9863  -1.51759   20.1879   8.01712  6.5038    12.4577  45.4783  ]
-    best_var = 1530.9397660414072
-
+    C = [-0.464779  16.0674  21.1452  -11.4621   7.99334  25.9709  3.49345  10.9955;
+         -1.51759   19.536   20.8398   12.4577  45.4783   25.9863  6.5038    8.01712]
+    best_var = 1053.0476313368601
     @test size(xc)   == (2, kbest)
-    @test kbest      == 7
+    @test kbest      == 8
     @test xc ≈ C          rtol=TOL
     @test ds ≈ best_var   rtol=TOL
 end

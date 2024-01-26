@@ -381,7 +381,7 @@ The groupings are determined based on the distance metric, `dmetric`.
 - `W::Union{Nothing, AbstractMatrix{T}}=nothing` : Optional Weight matrix for metric.
 - `N::Int64=1000`          : The maximum number of kmeans_clustering iterations to try for each cluster number.
 - `num_trials::Int64=300`  : The number of times to run kmeans_clustering for a given cluster number. 
-- `seed::Int64=1`          : The random seed to use. (Used by kmean_cluster to do initial clustering.)
+- `seed::Int64=1`          : The random seed to use. (Used by kmeans_cluster to do initial clustering.)
     
 ## Input Contract
 - ``W = {\\rm nothing} ∨ \\left( ({\\rm typeof}(W) = {\\rm Matrix}\\{T\\}) ∧ W \\in {\\boldsymbol S}_{++}^{|{\\bf x}|} \\right)``
@@ -475,13 +475,13 @@ that the returned value of `k` is less that any value in the cluster range, `kRn
 - `kRng::UnitRange{Int64}` : The range of potential cluster values to try.
 
 ## Keyword Arguments
-- `dmetric::F=L2` : The distance metric to use.
-- `threshold::Float=1.0e-2`  : The relative error improvement threshold (using total variation)
+- `dmetric::F=L2`          : The distance metric to use.
+- `threshold::Float=1.0e-2`: The relative error improvement threshold (using total variation)
 - `W::Union{Nothing, AbstractMatrix{T}}=nothing` : Optional Weight matrix for metric.
-- `N::Int64=1000`    : The maximum number of kmeans_clustering iterations to try for each cluster number.
-- `num_trials::Int64=300` : The number of times to run kmeans_clustering for a given cluster number. 
-- `seed::Int64=1` : The random seed to use. (Used by kmeans_cluster to do initial clustering.)
-- `verbose::Bool=false` : The random seed to use. (Used by kmeans_cluster to do initial clustering.)
+- `N::Int64=1000`          : The maximum number of kmeans_clustering iterations to try for each cluster number.
+- `num_trials::Int64=300`  : The number of times to run kmeans_clustering for a given cluster number. 
+- `seed::Int64=1`          : The random seed to use. (Used by kmeans_cluster to do initial clustering.)
+- `verbose::Bool=false`    : The random seed to use. (Used by kmeans_cluster to do initial clustering.)
     
 ## Input Contract
 - ``W = {\\rm nothing} ∨ \\left( ({\\rm typeof}(W) = {\\rm Matrix}\\{T\\}) ∧ W \\in {\\boldsymbol S}_{++}^{|{\\bf x}|} \\right)``
@@ -522,7 +522,7 @@ function find_best_cluster(X::Matrix{T},
 
     # Used to adjust to cluster variation by data dimension and
     # number of clusters.
-    fact = map(j -> (j - 1)^(1.0 / n), kRng)
+    fact = map(j -> j^(1.0 / n), kRng)
 
     # Get all of the cluster choices.
     mv = collect(values(kRng))
@@ -542,11 +542,16 @@ function find_best_cluster(X::Matrix{T},
     if verbose
         println("var_by_k     = $dsv")
         println("var_by_k_mod = $var_by_k_mod")
+        println("rel change of var $(diff(var_by_k_mod) ./ var_by_k_mod[2:end])") 
     end
 
     # Find the cluster number with the least adjusted total variation.
     kbest = argmin(var_by_k_mod) + (kRng.start - 1)
+
+    #kbest = argmin(var_by_k_mod) + (kRng.start - 1)
+    kbest = argmin(diff(var_by_k_mod) ./ var_by_k_mod[2:end]) + kRng.start
     
+    # Number of unused clusters.
     sdl = length(sd[kbest])
 
     # If no unused centroids, return.
@@ -554,21 +559,23 @@ function find_best_cluster(X::Matrix{T},
         return (kbest, cmap[kbest], xc[kbest], ds[kbest])
     end
 
-    # Else we need to remove unused centroids.
-    used_idx = setdiff(1:kbest, sd[kbest])
-    dm = DS.OrderedDict{Int64, Int64}()
+    # Else we need to remove unused centroids and re-index the used centroids.
+    viable_centroid_idxs = setdiff(1:kbest, sd[kbest])
+    reindex_centroids = DS.OrderedDict{Int64, Int64}()
     bcmap = DS.OrderedDict{Int64, Int64}()
-    vals = unique(values(cmap[kbest]))
     cnt = 1
-    for i in vals
-        dm[i] = cnt
+    for i in viable_centroid_idxs
+        reindex_centroids[i] = cnt
         cnt += 1
     end
+
+    # Remap the points to the index of the nearest centroid using the re-index map.
     for k in keys(cmap[kbest])
-        bcmap[k] = dm[cmap[kbest][k]]
+        bcmap[k] = reindex_centroids[cmap[kbest][k]]
     end
     
-    return (kbest - length(sd), bcmap, xc[kbest][:, used_idx], ds[kbest])
+    # Return (number-of-clusters, map-of-point-to-cluster-index, clusters, total-variation-of-fit)
+    return (length(viable_centroid_idxs), bcmap, xc[kbest][:, viable_centroid_idxs], ds[kbest])
 end
 
 end # End module Cluster
