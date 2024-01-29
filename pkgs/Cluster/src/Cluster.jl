@@ -1,7 +1,7 @@
 module Cluster
 
 
-export L2, KL, LP, cos_dist 
+export L2, KL, LP, CD, JD 
 export kmeans_cluster, find_best_cluster, find_best_info_for_ks
 
 import LinearAlgebra as LA
@@ -10,9 +10,10 @@ import StatsBase as SB
 import Random as R
 import DataStructures as DS
 
+const TOL=1.0e-6
 
 """
-    L2(x,y[;tol=1.0e-3, C=nothing])
+    L2(x,y[; C=nothing])
 
 Computes the ``L_2`` distance between two vectors.
 One of the features that may be different from other packages
@@ -26,7 +27,6 @@ is the use of weighted metrics in some instances.
 - `y::Vector{T}` : A numeric vector of dimension `n`.
 
 ## Keyword Arguments
-- `tol::Float64` : A tolerance -- **NOT** used.
 - `C::Union{Nothing, Matrix{T}` : Optional Weight matrix.
 
 ## Input Contract (Low level function -- Input contract not checked)
@@ -38,7 +38,6 @@ is the use of weighted metrics in some instances.
 """
 function L2(x::Vector{T},
             y::Vector{T};
-            tol::Float64=1.0e-10,
             C::Union{Nothing,AbstractMatrix{T}}=nothing) where {T<:Real}
 
     d = x .- y
@@ -50,7 +49,7 @@ function L2(x::Vector{T},
 end
 
 """
-    LP(x,y,p[;tol=1.0e-3, C=nothing])
+    LP(x,y,p[; C=nothing])
 
 Computes the ``L_p`` distance between two vectors.
 
@@ -63,7 +62,6 @@ Computes the ``L_p`` distance between two vectors.
 - `p::Int64`     : The power of the norm.
 
 ## Keyword Arguments
-- `tol::Float64` : A tolerance -- **NOT** used.
 - `C::Union{Nothing, Matrix{T}` : Optional Weight matrix -- **NOT** used.
 
 ## Input Contract (Low level function -- Input contract not checked)
@@ -76,14 +74,13 @@ Computes the ``L_p`` distance between two vectors.
 function LP(x::Vector{T},
             y::Vector{T},
             p::Int64;
-            tol::Float64=1.0e-10,
             C::Union{Nothing,AbstractMatrix{T}}=nothing) where {T<:Real}
     return LA.norm(x .- y, p)
 end
 
 
 """
-    JD(x,y[;tol=1.0e-3, C=nothing])
+    JD(x,y[; C=nothing])
 
 Computes the Jaccard metric between two vectors of a discrete type.
 For instance, the vectors could be integers; however, they can 
@@ -95,7 +92,6 @@ If both `x` and `y`, a distance of 0 is returned.
 - `y::Vector{T}` : A numeric vector of dimension `n`.
 
 ## Keyword Arguments
-- `tol::Float64`                : A tolerance -- **NOT** used.
 - `C::Union{Nothing, Matrix{T}` : Optional Weight matrix -- **NOT** used.
 
 ## Input Contract (Low level function -- Input contract not checked)
@@ -111,7 +107,6 @@ If both `x` and `y`, a distance of 0 is returned.
 """
 function JD(x::Vector{T},
             y::Vector{T};
-            tol::Float64=1.0e-10,
             C::Union{Nothing,AbstractMatrix{T}}=nothing) where {T}
     d = length(symdiff(x,y))
     u = length(union(x,y)) 
@@ -120,7 +115,7 @@ end
 
 
 """
-    KL(x,y[;tol=1.0e-3, C=nothing])
+    KL(x,y[; C=nothing])
 
 Computes the ``Kullback-Leibler`` distance between two vectors.
 
@@ -132,7 +127,6 @@ Computes the ``Kullback-Leibler`` distance between two vectors.
 - `y::Vector{T}` : A numeric vector of dimension `n`.
 
 ## Keyword Arguments
-- `tol::Float64`                : A tolerance -- **NOT** used.
 - `C::Union{Nothing, Matrix{T}` : Optional Weight matrix -- **NOT** used.
 
 ## Input Contract (Low level function -- Input contract not checked)
@@ -148,7 +142,6 @@ Let ``N = |{\\bf x}|``.
 """
 function KL(x::Vector{T},
             y::Vector{T};
-            tol::Float64=1.0e-10,
             C::Union{Nothing,AbstractMatrix{T}}=nothing) where {T<:Real}
     z = zero(T)
     d1 = map((a, b) -> a == z ? z : a * log(a / b), x, y)
@@ -158,7 +151,7 @@ end
 
 
 """
-    cos_dist(x,y[;tol=1.0e-3, C=nothing])
+    CD(x,y[; C=nothing])
 
 Computes the "cosine" distance between two vectors.
 
@@ -170,7 +163,6 @@ Computes the "cosine" distance between two vectors.
 - `y::Vector{T}` : A numeric vector of dimension `n`.
 
 ## Keyword Arguments
-- `tol::Float64` : A tolerance used to test for zero vectors.
 - `C::Union{Nothing, Matrix{T}` : Optional Weight matrix.
 
 ## Input Contract (Low level function -- Input contract not checked)
@@ -181,14 +173,15 @@ Computes the "cosine" distance between two vectors.
 Cosine distance measure between the two vectors.
 
 """
-function cos_dist(x::Vector{T},
-                  y::Vector{T};
-                  tol::Float64=1.0e-10,
-                  C::Union{Nothing,AbstractMatrix{T}}=nothing) where {T<:Real}
+function CD(x::Vector{T},
+            y::Vector{T};
+            C::Union{Nothing,AbstractMatrix{T}}=nothing) where {T<:Real}
     z = zero(T)
     o = one(T)
-    if all(abs.(x .- y .< tol))
-        return z
+    tol = T(TOL)
+
+    if all(abs.(x .- y) / (2.0 .* (abs.(x) .+ abs.(y)))) < tol
+        return o
     elseif all(abs.(x .- z .< tol))
         return o
     elseif all(abs.(y .- z .< tol))

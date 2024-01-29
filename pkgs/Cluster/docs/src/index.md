@@ -12,18 +12,20 @@ Additionally, some of the metrics may be weighted which can be used to help alle
 
 Cluster functions:
 - kmeans_cluster: 
-    - This clustering algorithm can use any of the metrics: `L2`, `LP`, `DL`, and `cos_dist`.
-    - In the case of `L2` and `cos_dist`, the metrics allow for weighted distances.
+    - This clustering algorithm can use any of the metrics: 
+        `L2` (default), `LP`, `KL` (Kullback-Leibler), `CD` (Cosine Distance), and `JD` (Jaccard Distance).
+    - In the case of `L2` and `CD`, the metrics allow for weighted distances.
 
 ## Metric Definitions:
 - `L2`: The standard ``L_2`` norm. ``{\rm L2}({\bf x}, {\bf y}) = \sqrt{\sum_{i=1}^N (x_i - y_i)^2}``
     -  With a symmetric, positive semi-definite weight matrix `W` this becomes: ``{\rm L2}({\bf x}, {\bf y}, W) = \sqrt{{\bf x} {\boldsymbol \cdot} (W {\bf y})}``
 - `LP`: The standard ``L_p`` norm. ``{\rm LP}({\bf x}, {\bf y}) = \left(\sum_{i=1}^N |x_i - y_i|^p)\right)^{\frac{1}{p}}``
 - `KL`: A symmetrized Kullback-Leibler divergence: ``{\rm DL}({\bf x}, {\bf y}) = \sum_{i=1}^N x_i \log(x_i/y_i) + y_i \log(y_i/x_i)``
-- `cos_dist`: The "cosine" distance: ``{\rm cos\_dist}({\bf x}, {\bf y}) = 1 - {\bf x} {\boldsymbol \cdot} {\bf y} / (\|{\bf x}\|  \|{\bf y}\|)``
+- `CD`: The "cosine" distance: ``{\rm cos\_dist}({\bf x}, {\bf y}) = 1 - {\bf x} {\boldsymbol \cdot} {\bf y} / (\|{\bf x}\|  \|{\bf y}\|)``
     - With a symmetric strictly positive definite weight matrix `W` this becomes: 
         ``\\ {\rm cos\_dist}({\bf x}, {\bf y}, W) = 1 - {\bf x} {\boldsymbol \cdot} \left( W {\bf y}\right) / (|\!|\!|{\bf x}|\!|\!|  |\!|\!|{\bf y}|\!|\!|)`` 
         - Here: ``|\!|\!| {\bf z} |\!|\!| = \sqrt{{\bf z} {\boldsymbol \cdot} \left( W {\bf z}\right)}``
+- `JD`: The Jaccard distance.
 
 ## What is the best cluster number?
 The function `find_best_cluster` attempts to find the best cluster number.
@@ -43,7 +45,7 @@ To do this, we start by assuming that the data is uniformly distributed in our d
 We assume that the `k` clusters have the same number of points and fill a sphere 
 of radius, `R`. This means that ``R^n \approx k r_k^n``.
 
-Solving for ``r_k`` we have ``{r_k=R\\\frac{1}{k}^{\\\frac{1}{n}}}``.
+Solving for ``r_k`` we have ``{r_k=R\\\left(\\\frac{1}{k}\\\right)^{\\\frac{1}{n}}}``.
 The total variation of `k` clusters is then roughly: ``{k r_k\\\left(\\\frac{m}{k}\\\right)}``. 
 This becomes: ``\\\frac{m R}{k^{\\\frac{1}{n}}}``.
 Thus, even in the absence of any true clusters, the total variation decays like ``k^{\\\frac{1}{n}}``.
@@ -91,7 +93,7 @@ JD(::Vector{T},::Vector{T}; ::Float64 = 1.0e-3, ::Union{Nothing, AbstractMatrix{
 ```
 
 ```@docs
-cos_dist(::Vector{T},::Vector{T}; ::Float64 = 1.0e-3, ::Union{Nothing, AbstractMatrix{T}} = nothing) where {T <: Real}
+CD(::Vector{T},::Vector{T}; ::Float64 = 1.0e-3, ::Union{Nothing, AbstractMatrix{T}} = nothing) where {T <: Real}
 ```
 
 ## Index
