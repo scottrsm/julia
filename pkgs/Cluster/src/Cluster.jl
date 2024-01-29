@@ -1,7 +1,7 @@
 module Cluster
 
 
-export L2, KL, LP, CD, JD 
+export L2, KL, LP, LI, CD, JD 
 export kmeans_cluster, find_best_cluster, find_best_info_for_ks
 
 import LinearAlgebra as LA
@@ -76,6 +76,33 @@ function LP(x::Vector{T},
             p::Int64;
             C::Union{Nothing,AbstractMatrix{T}}=nothing) where {T<:Real}
     return LA.norm(x .- y, p)
+end
+
+"""
+    LI(x,y,p[; C=nothing])
+
+Computes the ``L_\\infty`` distance between two vectors.
+
+## Type Constraints
+- `T <: Real`
+
+## Arguments
+- `x::Vector{T}` : A numeric vector of dimension `n`.
+- `y::Vector{T}` : A numeric vector of dimension `n`.
+
+## Keyword Arguments
+- `C::Union{Nothing, Matrix{T}` : Optional Weight matrix -- **NOT** used.
+
+## Input Contract (Low level function -- Input contract not checked)
+- ``|{\\bf x}| = |{\\bf y}|``
+
+## Return
+``L_\\infty`` distance measure between the two vectors.
+"""
+function LI(x::Vector{T},
+            y::Vector{T},
+            C::Union{Nothing,AbstractMatrix{T}}=nothing) where {T<:Real}
+            return max.(abs.(x .- y))
 end
 
 

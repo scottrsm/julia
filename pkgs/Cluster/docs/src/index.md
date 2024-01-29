@@ -14,16 +14,21 @@ Cluster functions:
 - kmeans_cluster: 
     - This clustering algorithm can use any of the metrics: 
         `L2` (default), `LP`, `KL` (Kullback-Leibler), `CD` (Cosine Distance), and `JD` (Jaccard Distance).
-    - In the case of `L2` and `CD`, the metrics allow for weighted distances.
+    - In the case of `L2` and `CD`, the metrics allow for weighted distances represented as a positive definite matrix.
 
 ## Metric Definitions:
-- `L2`: The standard ``L_2`` norm. ``{\rm L2}({\bf x}, {\bf y}) = \sqrt{\sum_{i=1}^N (x_i - y_i)^2}``
+Given `N` vectors, ``{\bf x}, {\bf y}`` :
+- `L2`: The standard ``L_2`` norm: ``{\rm L2}({\bf x}, {\bf y}) = \sqrt{\sum_{i=1}^N (x_i - y_i)^2}``
     -  With a symmetric, positive semi-definite weight matrix `W` this becomes: ``{\rm L2}({\bf x}, {\bf y}, W) = \sqrt{{\bf x} {\boldsymbol \cdot} (W {\bf y})}``
-- `LP`: The standard ``L_p`` norm. ``{\rm LP}({\bf x}, {\bf y}) = \left(\sum_{i=1}^N |x_i - y_i|^p)\right)^{\frac{1}{p}}``
+- `LP`: The standard ``L_p`` norm: ``{\rm LP}({\bf x}, {\bf y}) = \left(\sum_{i=1}^N |x_i - y_i|^p)\right)^{\frac{1}{p}}``
+    - **Note:** To use this metric with `find_best_cluster` for a given value of `p`, 
+        you will need to pass the closure, `(x,y; kwargs...) -> LP(x,y, p; kwargs...)`
+        to the keyword parameter `dmetric`.
+- `LI`: The standard ``L_\infty`` norm: ``{\rm LI}({\bf x}, {\bf y}) = \mathop{\rm max}_{i \in [1,N]}\limits |x_i - y_i|`` 
 - `KL`: A symmetrized Kullback-Leibler divergence: ``{\rm DL}({\bf x}, {\bf y}) = \sum_{i=1}^N x_i \log(x_i/y_i) + y_i \log(y_i/x_i)``
-- `CD`: The "cosine" distance: ``{\rm cos\_dist}({\bf x}, {\bf y}) = 1 - {\bf x} {\boldsymbol \cdot} {\bf y} / (\|{\bf x}\|  \|{\bf y}\|)``
+- `CD`: The "cosine" distance: ``{\rm CD}({\bf x}, {\bf y}) = 1 - {\bf x} {\boldsymbol \cdot} {\bf y} / (\|{\bf x}\|  \|{\bf y}\|)``
     - With a symmetric strictly positive definite weight matrix `W` this becomes: 
-        ``\\ {\rm cos\_dist}({\bf x}, {\bf y}, W) = 1 - {\bf x} {\boldsymbol \cdot} \left( W {\bf y}\right) / (|\!|\!|{\bf x}|\!|\!|  |\!|\!|{\bf y}|\!|\!|)`` 
+        ``\\ {\rm CD}({\bf x}, {\bf y}, W) = 1 - {\bf x} {\boldsymbol \cdot} \left( W {\bf y}\right) / (|\!|\!|{\bf x}|\!|\!|  |\!|\!|{\bf y}|\!|\!|)`` 
         - Here: ``|\!|\!| {\bf z} |\!|\!| = \sqrt{{\bf z} {\boldsymbol \cdot} \left( W {\bf z}\right)}``
 - `JD`: The Jaccard distance.
 
@@ -43,10 +48,10 @@ this "ambient" decay.
 To do this, we start by assuming that the data is uniformly distributed in our domain 
 (with respect to the metric used) with `k` clusters; `m` points; and the domain is in `n` dimensions.
 We assume that the `k` clusters have the same number of points and fill a sphere 
-of radius, `R`. This means that ``R^n \approx k r_k^n``.
+of radius, `R`. This means that ``R^n \approx k \, r_k^n``.
 
 Solving for ``r_k`` we have ``{r_k=R\\\left(\\\frac{1}{k}\\\right)^{\\\frac{1}{n}}}``.
-The total variation of `k` clusters is then roughly: ``{k r_k\\\left(\\\frac{m}{k}\\\right)}``. 
+The total variation of `k` clusters is then roughly: ``{k \\\, r_k\\\left(\\\frac{m}{k}\\\right)}``. 
 This becomes: ``\\\frac{m R}{k^{\\\frac{1}{n}}}``.
 Thus, even in the absence of any true clusters, the total variation decays like ``k^{\\\frac{1}{n}}``.
 
@@ -77,23 +82,27 @@ find_best_info_for_ks(::Matrix{T}, ::UnitRange{Int64}; ::F=L2, ::Float64=1.0e-3,
 ## Metric Functions
 
 ```@docs
-L2(::Vector{T},::Vector{T}; ::Float64 = 1.0e-3, ::Union{Nothing, AbgstractMatrix{T}} = nothing) where {T <: Real}
+L2(::Vector{T},::Vector{T}; ::Union{Nothing, AbstractMatrix{T}} = nothing) where {T <: Real}
 ```
 
 ```@docs
-LP(::Vector{T},::Vector{T}, ::Int64; ::Float64 = 1.0e-3, ::Union{Nothing, AbstractMatrix{T}}= nothing) where {T <: Real}
+LP(::Vector{T},::Vector{T}, ::Int64; ::Union{Nothing, AbstractMatrix{T}}= nothing) where {T <: Real}
 ```
 
 ```@docs
-KL(::Vector{T},::Vector{T}; ::Float64 = 1.0e-3, ::Union{Nothing, AbstractMatrix{T}}= nothing) where {T <: Real}
+LI(::Vector{T},::Vector{T}, ::Union{Nothing, AbstractMatrix{T}}= nothing) where {T <: Real}
 ```
 
 ```@docs
-JD(::Vector{T},::Vector{T}; ::Float64 = 1.0e-3, ::Union{Nothing, AbstractMatrix{T}}= nothing) where {T}
+KL(::Vector{T},::Vector{T}; ::Union{Nothing, AbstractMatrix{T}}= nothing) where {T <: Real}
 ```
 
 ```@docs
-CD(::Vector{T},::Vector{T}; ::Float64 = 1.0e-3, ::Union{Nothing, AbstractMatrix{T}} = nothing) where {T <: Real}
+JD(::Vector{T},::Vector{T}; ::Union{Nothing, AbstractMatrix{T}}= nothing) where {T}
+```
+
+```@docs
+CD(::Vector{T},::Vector{T}; ::Union{Nothing, AbstractMatrix{T}} = nothing) where {T <: Real}
 ```
 
 ## Index
