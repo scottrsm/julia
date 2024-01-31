@@ -137,6 +137,24 @@ end
     @test xc ≈ C          rtol=TOL
     @test ds ≈ best_var   rtol=TOL
 
+    #----- Jaccard metric.
+    kbest, mp, xc, ds = find_best_cluster(MI, 2:7                     ; 
+                                          dmetric    = JD             , 
+                                          num_trials = NUM_TRIALS_IRIS, 
+                                          N          = NUM_ITERATIONS , 
+                                          threshold  = KM_THRESHOLD    )
+
+    C = [3.0540540540540544 3.2 3.0                           ; 
+         5.798198198198198 5.884615384615383 6.015384615384615 ]
+
+    best_var = 135.6666666666667
+
+    @test size(xc)   == (2, kbest)
+    @test kbest      == 3
+    @test xc ≈ C          rtol=TOL
+    @test ds ≈ best_var   rtol=TOL
+
+
 end
 
 

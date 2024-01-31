@@ -24,21 +24,21 @@ Computes the ``L_2`` distance between two vectors.
 One of the features that may be different from other packages
 is the use of weighted metrics in some instances.
 
-## Type Constraints
+# Type Constraints
 - `T <: Real`
 
-## Arguments
-- `x::Vector{T}` : A numeric vector of dimension `n`.
-- `y::Vector{T}` : A numeric vector of dimension `n`.
+# Arguments
+- `x::Vector{T}` : A numeric vector.
+- `y::Vector{T}` : A numeric vector.
 
-## Keyword Arguments
+# Keyword Arguments
 - `C::Union{Nothing, Matrix{T}` : Optional Weight matrix.
 
-## Input Contract (Low level function -- Input contract not checked)
+# Input Contract (Low level function -- Input contract not checked)
 - ``|{\\bf x}| = |{\\bf y}|``
 - ``C = {\\rm nothing} ∨ \\left( ({\\rm typeof}(C) = {\\rm Matrix}\\{T\\}) ∧ C \\in {\\boldsymbol S}_{+}^{|{\\bf x}|} \\right)``
 
-## Return
+# Return
 ``L_2`` (optionally weighted) distance measure between the two vectors.
 """
 function L2(x::Vector{T},
@@ -58,22 +58,22 @@ end
 
 Computes the ``L_p`` distance between two vectors.
 
-## Type Constraints
+# Type Constraints
 - `T <: Real`
 
-## Arguments
-- `x::Vector{T}` : A numeric vector of dimension `n`.
-- `y::Vector{T}` : A numeric vector of dimension `n`.
+# Arguments
+- `x::Vector{T}` : A numeric vector.
+- `y::Vector{T}` : A numeric vector.
 - `p::Int64`     : The power of the norm.
 
-## Keyword Arguments
+# Keyword Arguments
 - `C::Union{Nothing, Matrix{T}` : Optional Weight matrix -- **NOT** used.
 
-## Input Contract (Low level function -- Input contract not checked)
+# Input Contract (Low level function -- Input contract not checked)
 - ``|{\\bf x}| = |{\\bf y}|``
 - `p > 0`
 
-## Return
+# Return
 ``L_p`` distance measure between the two vectors.
 """
 function LP(x::Vector{T},
@@ -88,20 +88,20 @@ end
 
 Computes the ``L_\\infty`` distance between two vectors.
 
-## Type Constraints
+# Type Constraints
 - `T <: Real`
 
-## Arguments
-- `x::Vector{T}` : A numeric vector of dimension `n`.
-- `y::Vector{T}` : A numeric vector of dimension `n`.
+# Arguments
+- `x::Vector{T}` : A numeric vector.
+- `y::Vector{T}` : A numeric vector.
 
-## Keyword Arguments
+# Keyword Arguments
 - `C::Union{Nothing, Matrix{T}` : Optional Weight matrix -- **NOT** used.
 
-## Input Contract (Low level function -- Input contract not checked)
+# Input Contract (Low level function -- Input contract not checked)
 - ``|{\\bf x}| = |{\\bf y}|``
 
-## Return
+# Return
 ``L_\\infty`` distance measure between the two vectors.
 """
 function LI(x::Vector{T},
@@ -114,27 +114,22 @@ end
 """
     JD(x,y[; C=nothing])
 
-Computes the Jaccard metric between two vectors of a discrete type.
+Computes the `Jaccard` metric between two vectors of a "discrete" type.
 For instance, the vectors could be integers; however, they can 
-also be of non-numeric type.
-If both `x` and `y`, a distance of 0 is returned.
+also be of non-numeric type. The metric can also be used with 
+floating point values but, in that case, it may be more useful 
+to round/truncate to a particular "block" size.
 
-## Arguments
-- `x::Vector{T}` : A numeric vector of dimension `n`.
-- `y::Vector{T}` : A numeric vector of dimension `n`.
+If both `x` and `y` are vectors of zero length, a distance of ``0`` is returned.
 
-## Keyword Arguments
+# Arguments
+- `x::Vector{T}` : A numeric vector.
+- `y::Vector{T}` : A numeric vector.
+
+# Keyword Arguments
 - `C::Union{Nothing, Matrix{T}` : Optional Weight matrix -- **NOT** used.
 
-## Input Contract (Low level function -- Input contract not checked)
-- ``| {\\bf x} | = | {\\rm unique}({\\bf x}) |``
-- ``| {\\bf y} | = | {\\rm unique}({\\bf y}) |``
-- ``\\forall i \\in [1, N]: x_i \\ge 0``
-- ``\\forall i \\in [1, N]: y_i \\ge 0``
-- ``\\sum_{i=1}^N x_i = 1``
-- ``\\sum_{i=1}^N y_i = 1``
-
-## Return
+# Return
 `Jaccard` distance measure between the two vectors.
 """
 function JD(x::Vector{T},
@@ -151,17 +146,17 @@ end
 
 Computes the ``Kullback-Leibler`` distance between two vectors.
 
-## Type Constraints
+# Type Constraints
 - `T <: Real`
 
-## Arguments
-- `x::Vector{T}` : A numeric vector of dimension `n`.
-- `y::Vector{T}` : A numeric vector of dimension `n`.
+# Arguments
+- `x::Vector{T}` : A numeric vector of dimension `N`.
+- `y::Vector{T}` : A numeric vector of dimension `N`.
 
-## Keyword Arguments
+# Keyword Arguments
 - `C::Union{Nothing, Matrix{T}` : Optional Weight matrix -- **NOT** used.
 
-## Input Contract (Low level function -- Input contract not checked)
+# Input Contract (Low level function -- Input contract not checked)
 Let ``N = |{\\bf x}|``.
 - ``|{\\bf x}| = |{\\bf y}|``
 - ``\\forall i \\in [1, N]: x_i \\ge 0``
@@ -169,7 +164,7 @@ Let ``N = |{\\bf x}|``.
 - ``\\sum_{i=1}^N x_i = 1``
 - ``\\sum_{i=1}^N y_i = 1``
 
-## Return
+# Return
 `KL` distance measure between the two vectors.
 """
 function KL(x::Vector{T},
@@ -187,21 +182,21 @@ end
 
 Computes the "cosine" distance between two vectors.
 
-## Type Constraints
+# Type Constraints
 - `T <: Real`
 
-## Arguments
-- `x::Vector{T}` : A numeric vector of dimension `n`.
-- `y::Vector{T}` : A numeric vector of dimension `n`.
+# Arguments
+- `x::Vector{T}` : A numeric vector.
+- `y::Vector{T}` : A numeric vector.
 
-## Keyword Arguments
+# Keyword Arguments
 - `C::Union{Nothing, Matrix{T}` : Optional Weight matrix.
 
-## Input Contract (Low level function -- Input contract not checked)
+# Input Contract (Low level function -- Input contract not checked)
 - ``|{\\bf x}| = |{\\bf y}|``
 - ``C = {\\rm nothing} \\wedge \\left( ({\\rm typeof}(C) = {\\rm Matrix}\\{T\\}) \\vee C \\in {\\boldsymbol S}_{++}^{|{\\bf x}|} \\right)``
 
-## Return
+# Return
 Cosine distance measure between the two vectors.
 
 """
@@ -233,29 +228,29 @@ end
 
 Groups a set of points into `k` clusters based on the distance metric, `dmetric`.
 
-## Type Constraints
+# Type Constraints
 - `T <: Real`
 - `F <: Function`
 
-## Arguments
+# Arguments
 - `X::Matrix{T}`  : (n,m) Matrix representing `m` points of dimension `n`.
 - `k::Int64=3`    : The number of clusters to form.
 
-## Keyword Arguments
+# Keyword Arguments
 - `dmetric::F=L2` : The distance metric to use.
 - `threshold::Float=1.0e-2`  : The relative error improvement threshold (using total variation)
 - `W::Union{Nothing, AbstractMatrix{T}}=nothing` : Optional Weight matrix for metric.
 - `N::Int64=1000`    : The maximum number of iterations to try.
 - `seed::Int64=0`    : Set the random seed if value > 0 -- used for initial clustering.
     
-## Input Contract
+# Input Contract
 - ``W = {\\rm nothing} ∨ \\left( ({\\rm typeof}(W) = {\\rm Matrix}\\{T\\}) ∧ W \\in {\\boldsymbol S}_{++}^{|{\\bf x}|} \\right)``
 - `k > 0`
 - `N > 0`
 - `threshold > 0.0`
 - `dmetric <: Function`
 
-## Return
+# Return
 A Tuple:
 - `Dict{Int64, Int64}`: Mapping of points (`n`-vectors) indices to centroid indices.
 - `Matrix{T}`         : (nxk) Matrix representing `k` centroids of `n`-vectors.
@@ -392,15 +387,15 @@ end
 Groups a set of`m` points (`n`-vectors) as an (nxm) matrix, `X`, into `k` clusters where `k` is in the range, `kRng`.
 The groupings are determined based on the distance metric, `dmetric`.
 
-## Type Constraints
+# Type Constraints
 - `T <: Real`
 - `F <: Function`
 
-## Arguments
+# Arguments
 - `X::Matrix{T}`           : (n,m) Matrix representing `m` points of dimension `n`.
 - `kRng::UnitRange{Int64}` : The number of clusters to form.
 
-## Keyword Arguments
+# Keyword Arguments
 - `dmetric::F=L2`          : The distance metric to use.
 - `threshold::Float=1.0e-2`: The relative error improvement threshold (using total variation)
 - `W::Union{Nothing, AbstractMatrix{T}}=nothing` : Optional Weight matrix for metric.
@@ -408,14 +403,14 @@ The groupings are determined based on the distance metric, `dmetric`.
 - `num_trials::Int64=300`  : The number of times to run kmeans_clustering for a given cluster number. 
 - `seed::Int64=1`          : The random seed to use. (Used by kmeans_cluster to do initial clustering.)
     
-## Input Contract
+# Input Contract
 - ``W = {\\rm nothing} ∨ \\left( ({\\rm typeof}(W) = {\\rm Matrix}\\{T\\}) ∧ W \\in {\\boldsymbol S}_{++}^{|{\\bf x}|} \\right)``
 - `N > 0`
 - ``∀ i \\in {\\rm kRng}, i > 1``
 - `threshold > 0.0`
 - `dmetric <: Function`
 
-## Return
+# Return
 A Tuple with entries:
 - `OrderedDict{Int64, Float}`             : 1:k -> The Total Variation for each cluster number.
 - `OrderedDict{Int64, Dict{Int64, Int64}}`: 1:k -> Mapping of index of points (n-vectors in `X`) to centroid indices.
@@ -491,15 +486,15 @@ centroids were not used, then the value of `k` will be set to the number of cent
 are used and the centroids that were not used will be removed. In this case it may be
 that the returned value of `k` is less that any value in the cluster range, `kRng`.
 
-## Type Constraints
+# Type Constraints
 - `T <: Real`
 - `F <: Function`
 
-## Arguments
+# Arguments
 - `X::Matrix{T}`           : (n,m) Matrix representing `m` points of dimension `n`.
 - `kRng::UnitRange{Int64}` : The range of potential cluster values to try.
 
-## Keyword Arguments
+# Keyword Arguments
 - `dmetric::F=L2`          : The distance metric to use.
 - `threshold::Float=1.0e-2`: The relative error improvement threshold (using total variation)
 - `W::Union{Nothing, AbstractMatrix{T}}=nothing` : Optional Weight matrix for metric.
@@ -508,14 +503,14 @@ that the returned value of `k` is less that any value in the cluster range, `kRn
 - `seed::Int64=1`          : The random seed to use. (Used by kmeans_cluster to do initial clustering.)
 - `verbose::Bool=false`    : The random seed to use. (Used by kmeans_cluster to do initial clustering.)
     
-## Input Contract
+# Input Contract
 - ``W = {\\rm nothing} ∨ \\left( ({\\rm typeof}(W) = {\\rm Matrix}\\{T\\}) ∧ W \\in {\\boldsymbol S}_{++}^{|{\\bf x}|} \\right)``
 - `N > 0`
 - ``∀ i \\in {\\rm kRng}, i > 1``
 - `threshold > 0.0`
 - `dmetric <: Function`
 
-## Return
+# Return
 A Tuple:
 - `Int64`             : The "best" cluster number, `k`.
 - `Dict{Int64, Int64}`: Mapping of points (`n`-vectors) indices to centroid indices.
@@ -570,7 +565,7 @@ function find_best_cluster(X::Matrix{T},
         println("rel change of var $(diff(var_by_k_mod) ./ var_by_k_mod[2:end])") 
     end
 
-    ## Find the cluster number with the least adjusted total variation.
+    # Find the cluster number with the least adjusted total variation.
     # kbest = argmin(var_by_k_mod) + (kRng.start - 1)
 
     # Find the cluster number with the largest relative decrease in 

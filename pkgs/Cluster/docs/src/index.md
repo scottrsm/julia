@@ -98,12 +98,13 @@ KL(::Vector{T},::Vector{T}; ::Union{Nothing, AbstractMatrix{T}}= nothing) where 
 ```
 
 ```@docs
-JD(::Vector{T},::Vector{T}; ::Union{Nothing, AbstractMatrix{T}}= nothing) where {T}
+CD(::Vector{T},::Vector{T}; ::Union{Nothing, AbstractMatrix{T}} = nothing) where {T <: Real}
 ```
 
 ```@docs
-CD(::Vector{T},::Vector{T}; ::Union{Nothing, AbstractMatrix{T}} = nothing) where {T <: Real}
+JD(::Vector{T},::Vector{T}; ::Union{Nothing, AbstractMatrix{T}}= nothing) where {T}
 ```
+
 
 ## Index
 
