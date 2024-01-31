@@ -570,10 +570,11 @@ function find_best_cluster(X::Matrix{T},
         println("rel change of var $(diff(var_by_k_mod) ./ var_by_k_mod[2:end])") 
     end
 
-    # Find the cluster number with the least adjusted total variation.
-    kbest = argmin(var_by_k_mod) + (kRng.start - 1)
+    ## Find the cluster number with the least adjusted total variation.
+    # kbest = argmin(var_by_k_mod) + (kRng.start - 1)
 
-    #kbest = argmin(var_by_k_mod) + (kRng.start - 1)
+    # Find the cluster number with the largest relative decrease in 
+    # adjusted total variation.
     kbest = argmin(diff(var_by_k_mod) ./ var_by_k_mod[2:end]) + kRng.start
     
     # Number of unused clusters.

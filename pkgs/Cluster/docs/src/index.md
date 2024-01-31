@@ -56,7 +56,7 @@ This becomes: ``\\\frac{m R}{k^{\\\frac{1}{n}}}``.
 Thus, even in the absence of any true clusters, the total variation decays like ``k^{\\\frac{1}{n}}``.
 
 The function `find_best_cluster` compares the total variation of cluster numbers in a range.
-It chooses the cluster number, `k`, which minimizes the adjusted total variation.
+It chooses the cluster number, `k`, with the largest relative decrease in adjusted total variation.
 The adjusted variation modifies the total variation for each `k` by the multiplicative factor  ``k^{\\\frac{1}{n}}``. 
 The variation is further adjusted by the 
 fraction of unused cluster centroids.
