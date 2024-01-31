@@ -130,7 +130,7 @@ If both `x` and `y`, a distance of 0 is returned.
 - ``\\sum_{i=1}^N y_i = 1``
 
 ## Return
-`JD` distance measure between the two vectors.
+`Jaccard` distance measure between the two vectors.
 """
 function JD(x::Vector{T},
             y::Vector{T};
@@ -207,11 +207,11 @@ function CD(x::Vector{T},
     o = one(T)
     tol = T(TOL)
 
-    if all(abs.(x .- y) / (2.0 .* (abs.(x) .+ abs.(y)))) < tol
+    if all(abs.(x .- y) / (2.0 .* (abs.(x) .+ abs.(y))) .< tol)
         return o
-    elseif all(abs.(x .- z .< tol))
+    elseif all(abs.(x) .< tol)
         return o
-    elseif all(abs.(y .- z .< tol))
+    elseif all(abs.(y) .< tol)
         return o
     elseif C === nothing
         return o - LA.dot(x, y) / sqrt(LA.dot(x, x) * LA.dot(y, y))

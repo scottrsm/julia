@@ -69,6 +69,8 @@ end
 
 # Try clustering with metrics: L2 (default), L1, KL (Kullback-Liebler).
 @testset "Test find_best_cluster (IRIS)" begin
+
+    #----- Default metric, L2.
     kbest, mp, xc, ds = find_best_cluster(MI, 2:7                     ; 
                                           dmetric=L2                  , 
                                           num_trials = NUM_TRIALS_IRIS, 
@@ -85,6 +87,7 @@ end
     @test ds ≈ best_var   rtol=TOL
 
 
+    #----- L1 metric.
     L1_metric = (x,y;kwargs...) -> LP(x,y,1;kwargs...) 
     kbest, mp, xc, ds = find_best_cluster(MI, 2:7                     ; 
                                           dmetric    = L1_metric      ,
@@ -101,6 +104,7 @@ end
     @test xc ≈ C          rtol=TOL
     @test ds ≈ best_var   rtol=TOL
 
+    #----- Kullback-Leibler metric.
     kbest, mp, xc, ds = find_best_cluster(MI, 2:7                     ; 
                                           dmetric    = KL             , 
                                           num_trials = NUM_TRIALS_IRIS, 
@@ -115,6 +119,24 @@ end
     @test kbest      == 3
     @test xc ≈ C          rtol=TOL
     @test ds ≈ best_var   rtol=TOL
+
+    #----- Cosine metric.
+    kbest, mp, xc, ds = find_best_cluster(MI, 2:7                     ; 
+                                          dmetric    = CD             , 
+                                          num_trials = NUM_TRIALS_IRIS, 
+                                          N          = NUM_ITERATIONS , 
+                                          threshold  = KM_THRESHOLD    )
+
+    C = [2.7590163934426224 3.451020408163265 3.0300000000000002;
+         6.406557377049179 5.016326530612244 5.9975000000000005  ]
+
+    best_var = 0.05506255741915245
+
+    @test size(xc)   == (2, kbest)
+    @test kbest      == 3
+    @test xc ≈ C          rtol=TOL
+    @test ds ≈ best_var   rtol=TOL
+
 end
 
 
