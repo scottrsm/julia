@@ -1,7 +1,7 @@
 module Cluster
 
 
-export L2, KL, LP, LI, CD, JD 
+export L2, KL, LP, LI, CD, Jd 
 export kmeans_cluster, find_best_cluster, find_best_info_for_ks
 
 import LinearAlgebra as LA
