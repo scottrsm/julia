@@ -14,11 +14,12 @@ import Statistics as S
 import StatsBase as SB
 import Random as R
 import DataStructures as DS
+import SharedArrays as SA
 
 const TOL=1.0e-6
 
 """
-    L2(x,y[; C=nothing])
+    L2(x,y[; M=nothing])
 
 Computes the ``L_2`` distance between two vectors.
 One of the features that may be different from other packages
@@ -36,25 +37,25 @@ is the use of weighted metrics in some instances.
 
 # Input Contract (Low level function -- Input contract not checked)
 - ``|{\\bf x}| = |{\\bf y}|``
-- ``C = {\\rm nothing} ∨ \\left( ({\\rm typeof}(C) = {\\rm Matrix}\\{T\\}) ∧ C \\in {\\boldsymbol S}_{+}^{|{\\bf x}|} \\right)``
+- ``M = {\\rm nothing} \\vee \\left( ({\\rm typeof}(M) = {\\rm Matrix}\\{T\\}) \\wedge M \\in {\\boldsymbol S}_{++}^{|{\\bf x}|} \\right)``
 
 # Return
 ``L_2`` (optionally weighted) distance measure between the two vectors.
 """
 function L2(x::Vector{T},
             y::Vector{T};
-            C::Union{Nothing,AbstractMatrix{T}}=nothing) where {T<:Real}
+            M::Union{Nothing,AbstractMatrix{T}}=nothing) where {T<:Real}
 
     d = x .- y
-    if C === nothing
+    if M === nothing
         return LA.norm2(d)
     else
-        return sqrt(LA.dot(d, C, d))
+        return sqrt(LA.dot(d, M, d))
     end
 end
 
 """
-    LP(x,y,p[; C=nothing])
+    LP(x,y,p)
 
 Computes the ``L_p`` distance between two vectors.
 
@@ -66,9 +67,6 @@ Computes the ``L_p`` distance between two vectors.
 - `y::Vector{T}` : A numeric vector.
 - `p::Int64`     : The power of the norm.
 
-# Keyword Arguments
-- `C::Union{Nothing, Matrix{T}` : Optional Weight matrix -- **NOT** used.
-
 # Input Contract (Low level function -- Input contract not checked)
 - ``|{\\bf x}| = |{\\bf y}|``
 - `p > 0`
@@ -78,13 +76,13 @@ Computes the ``L_p`` distance between two vectors.
 """
 function LP(x::Vector{T},
             y::Vector{T},
-            p::Int64;
-            C::Union{Nothing,AbstractMatrix{T}}=nothing) where {T<:Real}
+            p::Int64     ) where {T <: Real}
+
     return LA.norm(x .- y, p)
 end
 
 """
-    LI(x,y,p[; C=nothing])
+    LI(x,y)
 
 Computes the ``L_\\infty`` distance between two vectors.
 
@@ -95,9 +93,6 @@ Computes the ``L_\\infty`` distance between two vectors.
 - `x::Vector{T}` : A numeric vector.
 - `y::Vector{T}` : A numeric vector.
 
-# Keyword Arguments
-- `C::Union{Nothing, Matrix{T}` : Optional Weight matrix -- **NOT** used.
-
 # Input Contract (Low level function -- Input contract not checked)
 - ``|{\\bf x}| = |{\\bf y}|``
 
@@ -105,14 +100,14 @@ Computes the ``L_\\infty`` distance between two vectors.
 ``L_\\infty`` distance measure between the two vectors.
 """
 function LI(x::Vector{T},
-            y::Vector{T},
-            C::Union{Nothing,AbstractMatrix{T}}=nothing) where {T<:Real}
-            return max.(abs.(x .- y))
+            y::Vector{T} ) where {T <: Real}
+
+    return max.(abs.(x .- y))
 end
 
 
 """
-    JD(x,y[; C=nothing])
+    JD(x,y)
 
 Computes the `Jaccard` metric between two vectors of a "discrete" type.
 For instance, the vectors could be integers; however, they can 
@@ -126,23 +121,20 @@ If both `x` and `y` are vectors of zero length, a distance of ``0`` is returned.
 - `x::Vector{T}` : A numeric vector.
 - `y::Vector{T}` : A numeric vector.
 
-# Keyword Arguments
-- `C::Union{Nothing, Matrix{T}` : Optional Weight matrix -- **NOT** used.
-
 # Return
 `Jaccard` distance measure between the two vectors.
 """
 function JD(x::Vector{T},
-            y::Vector{T};
-            C::Union{Nothing,AbstractMatrix{T}}=nothing) where {T}
+            y::Vector{T} ) where {T <: Real}
     d = length(symdiff(x,y))
     u = length(union(x,y)) 
+
     return length(u) == 0 ? 0.0 : d / u
 end
 
 
 """
-    KL(x,y[; C=nothing])
+    KL(x,y)
 
 Computes the ``Kullback-Leibler`` distance between two vectors.
 
@@ -150,11 +142,8 @@ Computes the ``Kullback-Leibler`` distance between two vectors.
 - `T <: Real`
 
 # Arguments
-- `x::Vector{T}` : A numeric vector of dimension `N`.
-- `y::Vector{T}` : A numeric vector of dimension `N`.
-
-# Keyword Arguments
-- `C::Union{Nothing, Matrix{T}` : Optional Weight matrix -- **NOT** used.
+- `x::Vector{T}` : A numeric vector.
+- `y::Vector{T}` : A numeric vector.
 
 # Input Contract (Low level function -- Input contract not checked)
 Let ``N = |{\\bf x}|``.
@@ -168,17 +157,18 @@ Let ``N = |{\\bf x}|``.
 `KL` distance measure between the two vectors.
 """
 function KL(x::Vector{T},
-            y::Vector{T};
-            C::Union{Nothing,AbstractMatrix{T}}=nothing) where {T<:Real}
+            y::Vector{T} ) where {T <: Real}
+
     z = zero(T)
     d1 = map((a, b) -> a == z ? z : a * log(a / b), x, y)
     d2 = map((a, b) -> b == z ? z : b * log(b / a), x, y)
+
     return sum(d1 .+ d2)
 end
 
 
 """
-    CD(x,y[; C=nothing])
+    CD(x,y[; M=nothing])
 
 Computes the "cosine" distance between two vectors.
 
@@ -190,11 +180,11 @@ Computes the "cosine" distance between two vectors.
 - `y::Vector{T}` : A numeric vector.
 
 # Keyword Arguments
-- `C::Union{Nothing, Matrix{T}` : Optional Weight matrix.
+- `M::Union{Nothing, Matrix{T}` : Optional Weight matrix.
 
 # Input Contract (Low level function -- Input contract not checked)
 - ``|{\\bf x}| = |{\\bf y}|``
-- ``C = {\\rm nothing} \\wedge \\left( ({\\rm typeof}(C) = {\\rm Matrix}\\{T\\}) \\vee C \\in {\\boldsymbol S}_{++}^{|{\\bf x}|} \\right)``
+- ``M = {\\rm nothing} \\vee \\left( ({\\rm typeof}(M) = {\\rm Matrix}\\{T\\}) \\wedge M \\in {\\boldsymbol S}_{++}^{|{\\bf x}|} \\right)``
 
 # Return
 Cosine distance measure between the two vectors.
@@ -202,7 +192,7 @@ Cosine distance measure between the two vectors.
 """
 function CD(x::Vector{T},
             y::Vector{T};
-            C::Union{Nothing,AbstractMatrix{T}}=nothing) where {T<:Real}
+            M::Union{Nothing,AbstractMatrix{T}}=nothing) where {T<:Real}
     z = zero(T)
     o = one(T)
     tol = T(TOL)
@@ -213,18 +203,18 @@ function CD(x::Vector{T},
         return o
     elseif all(abs.(y) .< tol)
         return o
-    elseif C === nothing
+    elseif M === nothing
         return o - LA.dot(x, y) / sqrt(LA.dot(x, x) * LA.dot(y, y))
     end
 
-    return o - LA.dot(x, C, y) / sqrt(LA.dot(x, C, x) * LA.dot(y, C, y))
+    return o - LA.dot(x, M, y) / sqrt(LA.dot(x, M, x) * LA.dot(y, M, y))
 end
 
 
 
 
 """
-    kmeans_cluster(X, k[; dmetric, threshold, W, N, seed])
+    kmeans_cluster(X, k=3[; dmetric, threshold, W, N, seed])
 
 Groups a set of points into `k` clusters based on the distance metric, `dmetric`.
 
@@ -241,11 +231,11 @@ Groups a set of points into `k` clusters based on the distance metric, `dmetric`
 - `threshold::Float=1.0e-2`  : The relative error improvement threshold (using total variation)
 - `W::Union{Nothing, AbstractMatrix{T}}=nothing` : Optional Weight matrix for metric.
 - `N::Int64=1000`    : The maximum number of iterations to try.
-- `seed::Int64=0`    : Set the random seed if value > 0 -- used for initial clustering.
+- `seed::Int64=0`    : If value > 0, create a random number generator to use for initial clustering.
     
 # Input Contract
 - ``W = {\\rm nothing} ∨ \\left( ({\\rm typeof}(W) = {\\rm Matrix}\\{T\\}) ∧ W \\in {\\boldsymbol S}_{++}^{|{\\bf x}|} \\right)``
-- `k > 0`
+- ``1 \\le k \\le m``
 - `N > 0`
 - `threshold > 0.0`
 - `dmetric <: Function`
@@ -262,7 +252,7 @@ A Tuple:
 function kmeans_cluster(X::Matrix{T},
                         k::Int64=3;
                         dmetric::F=L2,
-                        threshold::Float64=1.0e-2,
+                        threshold::Float64=1.0e-3,
                         W::Union{Nothing,AbstractMatrix{T}}=nothing,
                         N::Int64=1000,
                         seed::Int64=0) where {T<:Real,F<:Function}
@@ -275,14 +265,12 @@ function kmeans_cluster(X::Matrix{T},
     #       We do not check for symmetry or strict positive definiteness.
     if !((W === nothing) || ((typeof(W) <: AbstractMatrix{T}) && (size(W) == (n, n))))
         throw(DomainError(W, "The variable, `W`, which is not of type `Nothing` must be of type `Matrix{T}` with size(W) = $((n,n))"))
-    elseif !(k > 0)
-        throw(DomainError(k, "The variable, `k`, is less than 1."))
+    elseif !(1 <= k <= m)
+        throw(DomainError(k, "The variable, `k`, is not in the range `[1, m]`."))
     elseif !(N > 0)
         throw(DomainError(N, "The variable, `N`, is less than 1."))
     elseif !(threshold > 0.0)
         throw(DomainError(threshold, "The variable, `threshold`, is <= 0.0."))
-    elseif !(typeof(dmetric) <: Function)
-        throw(DomainError(typeof(dmetric), "The variable, `dmetric`, is not a subtype of `Function`."))
     end
 
     rng=nothing
@@ -298,7 +286,6 @@ function kmeans_cluster(X::Matrix{T},
     else
         idx = SB.sample(rng, 1:m, m, replace=false)
     end
-    XR = X[:, idx]
 
     # Group the `m` vectors into `k` groups, find each of their means.
     # These will be the initial `k` centers.
@@ -307,44 +294,61 @@ function kmeans_cluster(X::Matrix{T},
     idx[end] = min(idx[end], m)
 
     # Average the vectors in each group to form the group centers.
-    XC = Array{T}(undef, n, k)
+    # The averaging below double counts some points -- not important
+    # as this just a starting point for cluster centers.
+    #XC = Array{T,2}(undef, n, k)
+    XCS = SA.SharedArray{T}(n,k)
     for j in 1:k
-        XC[:, j] = S.mean(XR[:, idx[j]:idx[j+1]], dims=2)
+        XCS[:, j] = S.mean(X[:, idx[j]:idx[j+1]], dims=2)
     end
 
-    # A dictionary to map the original points (their indices) to centroids indices.
+    # A map of points to centroids using indices: 1:m -> 1:k
     # The map will change as the centroids change.
-    cmap = Dict{Int64,Int64}()
+    cmap = Vector{Int64}(undef, m)
 
-    # Now loop until convergence -- or max iterations: 
-    # - Map the `m` values of (`n`-vectors) from X into the nearest cluster.
-    # - Form new centers by averaging groups.
+    # Number of points per centroid.
+    cntC = Vector{Int64}(undef, m)
 
-    # `ds_last`: The previous total variation.
+
+    # Variable used to keep track of previous total variation of clusters.
     tmax = typemax(T)
-    ds_last = tmax
+    tv_last = tmax
 
-    # The number of iterations we allow `N`.
+    XS = SA.SharedArray{T}(size(X)...)
+    for i in eachindex(X)
+        XS[i] = X[i]
+    end
+
+    adj_metric = dmetric
+    if W !== nothing
+        adj_metric = (x,y) -> dmetric(x,y; M=W)
+    end
+
+
+    # Now loop until convergence: abs(tv - tv_last) is small -- or max iterations (N): 
+    # - Map the `m` values of (`n`-vectors) from X into the nearest cluster.
+    # - Form new centers by averaging associated points.
     for l in 1:N
-        ds = zero(T)
-        cmini = -1
+        tv = zero(T) # Total variation (sum of distances) of all points to their centers.
+        cv = zero(T) # Distance of one point with one center. 
+        c_closest = -1 # Closest center (by index) of a point.
 
         # Loop over the `m` points.
         # For each point, find the nearest cluster (by centroid index).
+        # Collect the variation.
         for i in 1:m
-            dvmin = tmax
-            dt = zero(T)
+            cv_min = tmax
             for j in 1:k
-                dt = dmetric(X[:, i], XC[:, j]; C=W)
-                if dt < dvmin
-                    dvmin = dt
-                    cmini = j
+                cv = adj_metric(XS[:, i], XCS[:, j])
+                if cv < cv_min
+                    cv_min    = cv
+                    c_closest = j
                 end
             end
-            ds += dvmin
-            cmap[i] = cmini
+            tv     += cv_min
+            cmap[i] = c_closest
         end
-        
+
         # IF: No appreciable change based on relative error, return.
         # 1. The mapping dictionary:
         #     (Original point index -> centroid index)
@@ -353,30 +357,30 @@ function kmeans_cluster(X::Matrix{T},
         # 4. Unused centroid indices.
         # 5. Number of runs to completion.
         # 6. Did algorithm converge.
-        if abs(ds_last - ds) / max(ds, ds_last) < threshold
-            return (cmap, XC, ds, setdiff(1:k, unique(values(cmap))), l, true)
+        if abs(tv_last - tv) / max(tv, tv_last) < threshold
+            return (cmap, XCS, tv, setdiff(1:k, unique(values(cmap))), l, true)
         end
 
         # ELSE: Update last total distance measure.
-        ds_last = ds
+        tv_last = tv
 
         # Compute the new centroids, for each cluster.
-        XC = zeros(T, n, k)
-        cntC = Dict{Int64,Int64}()
+        XCS = zeros(T, n, k)
+        cntC .= 0 
 
         # Accumulate vectors in each centroid mapping.
-        for mi in keys(cmap)
-            ci          = cmap[mi]
-            XC[:, ci] .+= X[:, mi]
-            cntC[ci]    = get(cntC, ci, 0) + 1
+        for mi in 1:m
+            ci           = cmap[mi]
+            XCS[:, ci] .+= X[:, mi]
+            cntC[ci]    += 1
         end
 
-        # Compute new centroids.
+        # Compute new centroids by averaging associated points.
         for ci in unique(values(cmap))
-            XC[:, ci] ./= cntC[ci]
+            XCS[:, ci] ./= cntC[ci]
         end
     end
-    return (cmap, XC, ds_last, setdiff(1:k, unique(values(cmap))), N, false)
+    return (cmap, XCS, tv_last, setdiff(1:k, unique(values(cmap))), N, false)
 end
 
 
@@ -405,39 +409,44 @@ The groupings are determined based on the distance metric, `dmetric`.
     
 # Input Contract
 - ``W = {\\rm nothing} ∨ \\left( ({\\rm typeof}(W) = {\\rm Matrix}\\{T\\}) ∧ W \\in {\\boldsymbol S}_{++}^{|{\\bf x}|} \\right)``
-- `N > 0`
-- ``∀ i \\in {\\rm kRng}, i > 1``
+- ``N > 0``
+- ``∀ i \\in {\\rm kRng}, i \\ge 1``
 - `threshold > 0.0`
-- `dmetric <: Function`
 
 # Return
 A Tuple with entries:
-- `OrderedDict{Int64, Float}`             : 1:k -> The Total Variation for each cluster number.
-- `OrderedDict{Int64, Dict{Int64, Int64}}`: 1:k -> Mapping of index of points (n-vectors in `X`) to centroid indices.
-- `OrderedDict{Int64, Matrix{T}`          : 1:k -> (nxk) Matrix representing `k` `n`-vector centroids.
-- `OrderedDict{Int64, Vector{In64}}`      : 1:k -> Vector of unused centroids by index.
+- `OrderedDict{Int64, Float}`         : 1:k -> The Total Variation for each cluster number.
+- `OrderedDict{Int64, Vector{Int64}}` : 1:k -> Mapping of index of points (n-vectors in `X`) to centroid indices.
+- `OrderedDict{Int64, Matrix{T}}`     : 1:k -> (nxk) Matrix representing `k` `n`-vector centroids.
+- `OrderedDict{Int64, Vector{In64}}`  : 1:k -> Vector of unused centroids by index.
 """
 function find_best_info_for_ks(X::Matrix{T},
                                kRng::UnitRange{Int64};
                                dmetric::F=L2,
-                               threshold::Float64=1.0e-2,
+                               threshold::Float64=1.0e-3,
                                W::Union{Nothing,AbstractMatrix{T}}=nothing,
                                N::Int64=1000,
                                num_trials::Int64=300,
                                seed::Int64=1) where {T<:Real,F<:Function}
 
-    ds_by_k   = DS.OrderedDict{Int64,T}()
-    cmap_by_k = DS.OrderedDict{Int64,Dict{Int64,Int64}}()
+    tv_by_k   = DS.OrderedDict{Int64,T}()
+    cmap_by_k = DS.OrderedDict{Int64,Vector{Int64}}()
     XC_by_k   = DS.OrderedDict{Int64,Matrix{T}}()
-    sd_by_k   = DS.OrderedDict{Int64,Vector{Int64}}()
+    ucnt_by_k = DS.OrderedDict{Int64,Vector{Int64}}()
     tmax = typemax(T)
     cnt = 0
+    _, m = size(X)
 
-    # Check input contract.
-    for i in kRng
-        if i < 2
-            throw(DomainError(typeof(kRng), "The variable, `kRng`, has at least one value in its range that is < 2."))
-        end
+    # Check input contract -- except the matrix `W`.
+    if N <= 0
+        throw(DomainError(N, "The parameter `N` is not in the range: [1, ...)"))
+    elseif threshold <= 0.0
+        throw(DomainError(threshold, "The parameter `threshold` is not in the range: (0, ...)"))
+    elseif length(setdiff(collect(kRng), collect(1:m))) != 0
+        throw(DomainError(typeof(kRng), 
+            """The variable, `kRng`, has at least one value in its range 
+               that is not in the discrete interval [1, m]. Here `m` is the number 
+               of points in the data matrix `X`."""))
     end
 
     # Loop over the cluster range.
@@ -450,25 +459,25 @@ function find_best_info_for_ks(X::Matrix{T},
     #  - The number of iterations used to complete kmeans_cluster.
     #  - Did kmeans_cluster converge before max iterates used? 
     for k in kRng
-        ds_by_k[k] = tmax
+        tv_by_k[k] = tmax
         for _ in 1:num_trials
             cnt += 1
-            cmap, XC, ds, sd, N, _ = kmeans_cluster(X, k;
-                                                    dmetric=dmetric,
-                                                    threshold=threshold,
-                                                    W=W,
-                                                    N=N,
-                                                    seed=(seed+cnt))
-            if ds < ds_by_k[k]
-                ds_by_k[k]   = ds
+            cmap, XC, tv, ucnt, N, _ = kmeans_cluster(X, k               ;
+                                                      dmetric=dmetric    ,
+                                                      threshold=threshold,
+                                                      W=W                ,
+                                                      N=N                ,
+                                                      seed=(seed+cnt)     )
+            if tv < tv_by_k[k]
+                tv_by_k[k]   = tv
                 cmap_by_k[k] = cmap
                 XC_by_k[k]   = XC
-                sd_by_k[k]   = sd
+                ucnt_by_k[k] = ucnt
             end
         end
     end
 
-    return (ds_by_k, cmap_by_k, XC_by_k, sd_by_k)
+    return (tv_by_k, cmap_by_k, XC_by_k, ucnt_by_k)
 
 end
 
@@ -501,14 +510,13 @@ that the returned value of `k` is less that any value in the cluster range, `kRn
 - `N::Int64=1000`          : The maximum number of kmeans_clustering iterations to try for each cluster number.
 - `num_trials::Int64=300`  : The number of times to run kmeans_clustering for a given cluster number. 
 - `seed::Int64=1`          : The random seed to use. (Used by kmeans_cluster to do initial clustering.)
-- `verbose::Bool=false`    : The random seed to use. (Used by kmeans_cluster to do initial clustering.)
+- `verbose::Bool=false`    : If `true`, print diagnostic information.
     
 # Input Contract
 - ``W = {\\rm nothing} ∨ \\left( ({\\rm typeof}(W) = {\\rm Matrix}\\{T\\}) ∧ W \\in {\\boldsymbol S}_{++}^{|{\\bf x}|} \\right)``
 - `N > 0`
-- ``∀ i \\in {\\rm kRng}, i > 1``
+- ``∀ i \\in {\\rm kRng}, i \\ge 1``
 - `threshold > 0.0`
-- `dmetric <: Function`
 
 # Return
 A Tuple:
@@ -520,68 +528,103 @@ A Tuple:
 function find_best_cluster(X::Matrix{T},
                            kRng::UnitRange{Int64};
                            dmetric::F=L2,
-                           threshold::Float64=1.0e-2,
+                           threshold::Float64=1.0e-3,
                            W::Union{Nothing,AbstractMatrix{T}}=nothing,
                            N::Int64=1000,
                            num_trials::Int64=300,
                            seed::Int64=1,
                            verbose::Bool=false ) where {T<:Real, F<:Function}
 
+    _, m = size(X)
+
+    # Check input contract -- except the matrix `W`.
+    if N <= 0
+        throw(DomainError(N, "The parameter `N` is not in the range: [1, ...)"))
+    elseif threshold <= 0.0
+        throw(DomainError(threshold, "The parameter `threshold` is not in the range: (0, ...)"))
+    elseif length(setdiff(collect(kRng), collect(1:m))) != 0
+        throw(DomainError(typeof(kRng), 
+            """The variable, `kRng`, has at least one value in its range 
+               that is not in the discrete interval [1, m]. Here `m` is the number 
+               of points in the data matrix `X`."""))
+    end
+
     # Get the info for the best clusters in the range: `kRng`.
-    ds, cmap, xc, sd = find_best_info_for_ks(X,
-                                             kRng;
-                                             dmetric=dmetric,
-                                             threshold=threshold,
-                                             W=W,
-                                             N=N,
-                                             num_trials=num_trials,
-                                             seed=seed)
+    tv, cmap, xc, unct = find_best_info_for_ks(X, kRng              ;
+                                               dmetric=dmetric      ,
+                                               threshold=threshold  ,
+                                               W=W                  ,
+                                               N=N                  ,
+                                               num_trials=num_trials,
+                                               seed=seed             )
 
     # Get the dimension of the points.
     n, _ = size(X)
 
     # Used to adjust to cluster variation by data dimension and
     # number of clusters.
-    fact = map(j -> j^(1.0 / n), kRng)
+    kfact = map(j -> j^(1.0 / n), kRng)
 
     # Get all of the cluster choices.
     mv = collect(values(kRng))
 
     # Get the total variation for each cluster number.
-    dsv = collect(values(ds))
+    tvv = collect(values(tv))
 
     # Get the number of unused cluster nodes for each cluster number.
-    sdv = length.(collect(values(sd)))
+    unctv = length.(collect(values(unct)))
 
-    # Adjust the total variation, `dsv`, by `kfact`.
+    # Adjust the total variation, `tvv`, by `kfact`.
     # The `kfact` values adjust for the natural tendency for more clusters
-    # to give less variation.
+    # to give less total variation.
     # Also, penalize the variation by multiplying by a fraction that
     # takes into account unused centroids.
-    var_by_k_mod = dsv .* fact .* (mv .+ sdv) ./ mv
-    if verbose
-        println("var_by_k     = $dsv")
-        println("var_by_k_mod = $var_by_k_mod")
-        println("rel change of var $(diff(var_by_k_mod) ./ var_by_k_mod[2:end])") 
-    end
+    var_by_k_mod = tvv .* kfact .* (mv .+ unctv) ./ mv
 
-    # Find the cluster number with the least adjusted total variation.
-    # kbest = argmin(var_by_k_mod) + (kRng.start - 1)
+    if verbose
+        println("var_by_k     = $tvv")
+        println("var_by_k_mod = $var_by_k_mod")
+        if length(var_by_k_mod) > 1
+            println("rel change of var $(diff(var_by_k_mod) ./ var_by_k_mod[2:end])") 
+        end
+    end
 
     # Find the cluster number with the largest relative decrease in 
     # adjusted total variation.
-    kbest = argmin(diff(var_by_k_mod) ./ var_by_k_mod[2:end]) + kRng.start
-    
-    # Number of unused clusters.
-    sdl = length(sd[kbest])
+    kbest = kRng.start 
+    vlen = length(var_by_k_mod)
+    min_idx = Vector{Int64}(undef, vlen)
+    mono_var_by_k_mod = Vector{Float64}(undef, vlen)
+    if vlen > 1
+        monvar = var_by_k_mod[1]
+        last_min_idx = 1
+        for (l,v) in enumerate(var_by_k_mod)
+            min_idx[l] = last_min_idx
+            v = min(v, monvar)
+            mono_var_by_k_mod[l] =  v
+            if v < monvar 
+                last_min_idx = l 
+                monvar  = v
+                min_idx[l] = l
+            end
+        end
+        kbest = argmin(diff(mono_var_by_k_mod) ./ mono_var_by_k_mod[2:end] ./ (1.0 .+ diff(min_idx))) + kRng.start 
+        if verbose
+            println("mono_var_by_mod: $mono_var_by_k_mod")
+            println("mono_var_series: $(diff(mono_var_by_k_mod) ./ mono_var_by_k_mod[2:end] ./ (1.0 .+ diff(min_idx)))")
+        end
+    end
+        
+    # Number of unused clusters in best cluster.
+    unct_len = length(unct[kbest])
 
     # If no unused centroids, return.
-    if sdl == 0
-        return (kbest, cmap[kbest], xc[kbest], ds[kbest])
+    if unct_len == 0
+        return (kbest, cmap[kbest], xc[kbest], tv[kbest])
     end
 
     # Else we need to remove unused centroids and re-index the used centroids.
-    viable_centroid_idxs = setdiff(1:kbest, sd[kbest])
+    viable_centroid_idxs = setdiff(1:kbest, unct[kbest])
     reindex_centroids = DS.OrderedDict{Int64, Int64}()
     bcmap = DS.OrderedDict{Int64, Int64}()
     cnt = 1
@@ -590,15 +633,19 @@ function find_best_cluster(X::Matrix{T},
         cnt += 1
     end
 
+    if verbose
+        println("kbest is $kbest; however, there are $unct_len centroids with no associated points -- re-adjusting...")
+    end
+
     # Remap the points to the index of the nearest centroid using the re-index map.
     for k in keys(cmap[kbest])
         bcmap[k] = reindex_centroids[cmap[kbest][k]]
     end
     
     # Return (number-of-clusters, map-of-point-to-cluster-index, clusters, total-variation-of-fit)
-    return (length(viable_centroid_idxs), bcmap, xc[kbest][:, viable_centroid_idxs], ds[kbest])
+    return (length(viable_centroid_idxs), bcmap, xc[kbest][:, viable_centroid_idxs], tv[kbest])
+
 end
 
 end # End module Cluster
-
 
