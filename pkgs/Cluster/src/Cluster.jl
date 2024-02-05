@@ -4,7 +4,7 @@ module Cluster
 # Export metrics: L_2, L_p, L_∞, Kullback-Leibler, Cosine, and Jaccard.
 export L2, LP, LI, KL, CD, JD 
 
-# Export the K-means functions: i
+# Export the K-means functions: 
 # Base k-means function; K-means function to get informaton over a range of clusters;
 # and function that finds the K-means best cluster.
 export kmeans_cluster, find_best_info_for_ks, find_best_cluster

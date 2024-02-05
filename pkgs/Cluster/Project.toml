@@ -1,7 +1,7 @@
 name = "Cluster"
 uuid = "1e9e0daf-e287-4c87-bb27-167a6bd94a1f"
 authors = ["Scott McIntire <scottrsm@gmail.com>"]
-version = "0.7.0"
+version = "0.7.1"
 
 [deps]
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
