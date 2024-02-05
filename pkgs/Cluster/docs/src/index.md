@@ -98,27 +98,27 @@ find_best_cluster(::Matrix{T}, ::UnitRange{Int64}; ::F=L2, ::Float64=1.0e-3, ::U
 ## Metric Functions
 
 ```@docs
-L2(::Vector{T},::Vector{T}; M=::Union{Nothing, AbstractMatrix{T}} = nothing) where {T <: Real}
+L2(::AbstractVector{T},::AbstractVector{T}; M=::Union{Nothing, AbstractMatrix{T}} = nothing) where {T <: Real}
 ```
 
 ```@docs
-LP(::Vector{T},::Vector{T}, ::Int64) where {T <: Real}
+LP(::AbstractVector{T},::AbstractVector{T}, ::Int64) where {T <: Real}
 ```
 
 ```@docs
-LI(::Vector{T},::Vector{T}) where {T <: Real}
+LI(::AbstractVector{T},::AbstractVector{T}) where {T <: Real}
 ```
 
 ```@docs
-KL(::Vector{T},::Vector{T}) where {T <: Real}
+KL(::AbstractVector{T},::AbstractVector{T}) where {T <: Real}
 ```
 
 ```@docs
-CD(::Vector{T},::Vector{T}; M=::Union{Nothing, AbstractMatrix{T}} = nothing) where {T <: Real}
+CD(::AbstractVector{T},::AbstractVector{T}; M=::Union{Nothing, AbstractMatrix{T}} = nothing) where {T <: Real}
 ```
 
 ```@docs
-JD(::Vector{T},::Vector{T}) where {T <: Real}
+JD(::AbstractVector{T},::AbstractVector{T}) where {T <: Real}
 ```
 
 

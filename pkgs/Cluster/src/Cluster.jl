@@ -1,6 +1,5 @@
 module Cluster
 
-
 # Export metrics: L_2, L_p, L_∞, Kullback-Leibler, Cosine, and Jaccard.
 export L2, LP, LI, KL, CD, JD 
 
@@ -14,7 +13,6 @@ import Statistics as S
 import StatsBase as SB
 import Random as R
 import DataStructures as DS
-import SharedArrays as SA
 
 const TOL=1.0e-6
 
@@ -29,8 +27,8 @@ is the use of weighted metrics in some instances.
 - `T <: Real`
 
 # Arguments
-- `x::Vector{T}` : A numeric vector.
-- `y::Vector{T}` : A numeric vector.
+- `x::AbstractVector{T}` : A numeric vector.
+- `y::AbstractVector{T}` : A numeric vector.
 
 # Keyword Arguments
 - `C::Union{Nothing, Matrix{T}` : Optional Weight matrix.
@@ -42,8 +40,8 @@ is the use of weighted metrics in some instances.
 # Return
 ``L_2`` (optionally weighted) distance measure between the two vectors.
 """
-function L2(x::Vector{T},
-            y::Vector{T};
+function L2(x::AbstractVector{T},
+            y::AbstractVector{T};
             M::Union{Nothing,AbstractMatrix{T}}=nothing) where {T<:Real}
 
     d = x .- y
@@ -63,8 +61,8 @@ Computes the ``L_p`` distance between two vectors.
 - `T <: Real`
 
 # Arguments
-- `x::Vector{T}` : A numeric vector.
-- `y::Vector{T}` : A numeric vector.
+- `x::AbstractVector{T}` : A numeric vector.
+- `y::AbstractVector{T}` : A numeric vector.
 - `p::Int64`     : The power of the norm.
 
 # Input Contract (Low level function -- Input contract not checked)
@@ -74,8 +72,8 @@ Computes the ``L_p`` distance between two vectors.
 # Return
 ``L_p`` distance measure between the two vectors.
 """
-function LP(x::Vector{T},
-            y::Vector{T},
+function LP(x::AbstractVector{T},
+            y::AbstractVector{T},
             p::Int64     ) where {T <: Real}
 
     return LA.norm(x .- y, p)
@@ -90,8 +88,8 @@ Computes the ``L_\\infty`` distance between two vectors.
 - `T <: Real`
 
 # Arguments
-- `x::Vector{T}` : A numeric vector.
-- `y::Vector{T}` : A numeric vector.
+- `x::AbstractVector{T}` : A numeric vector.
+- `y::AbstractVector{T}` : A numeric vector.
 
 # Input Contract (Low level function -- Input contract not checked)
 - ``|{\\bf x}| = |{\\bf y}|``
@@ -99,8 +97,8 @@ Computes the ``L_\\infty`` distance between two vectors.
 # Return
 ``L_\\infty`` distance measure between the two vectors.
 """
-function LI(x::Vector{T},
-            y::Vector{T} ) where {T <: Real}
+function LI(x::AbstractVector{T},
+            y::AbstractVector{T} ) where {T <: Real}
 
     return max.(abs.(x .- y))
 end
@@ -118,14 +116,14 @@ to round/truncate to a particular "block" size.
 If both `x` and `y` are vectors of zero length, a distance of ``0`` is returned.
 
 # Arguments
-- `x::Vector{T}` : A numeric vector.
-- `y::Vector{T}` : A numeric vector.
+- `x::AbstractVector{T}` : A numeric vector.
+- `y::AbstractVector{T}` : A numeric vector.
 
 # Return
 `Jaccard` distance measure between the two vectors.
 """
-function JD(x::Vector{T},
-            y::Vector{T} ) where {T <: Real}
+function JD(x::AbstractVector{T},
+            y::AbstractVector{T} ) where {T <: Real}
     d = length(symdiff(x,y))
     u = length(union(x,y)) 
 
@@ -142,8 +140,8 @@ Computes the ``Kullback-Leibler`` distance between two vectors.
 - `T <: Real`
 
 # Arguments
-- `x::Vector{T}` : A numeric vector.
-- `y::Vector{T}` : A numeric vector.
+- `x::AbstractVector{T}` : A numeric vector.
+- `y::AbstractVector{T}` : A numeric vector.
 
 # Input Contract (Low level function -- Input contract not checked)
 Let ``N = |{\\bf x}|``.
@@ -156,8 +154,8 @@ Let ``N = |{\\bf x}|``.
 # Return
 `KL` distance measure between the two vectors.
 """
-function KL(x::Vector{T},
-            y::Vector{T} ) where {T <: Real}
+function KL(x::AbstractVector{T},
+            y::AbstractVector{T} ) where {T <: Real}
 
     z = zero(T)
     d1 = map((a, b) -> a == z ? z : a * log(a / b), x, y)
@@ -176,8 +174,8 @@ Computes the "cosine" distance between two vectors.
 - `T <: Real`
 
 # Arguments
-- `x::Vector{T}` : A numeric vector.
-- `y::Vector{T}` : A numeric vector.
+- `x::AbstractVector{T}` : A numeric vector.
+- `y::AbstractVector{T}` : A numeric vector.
 
 # Keyword Arguments
 - `M::Union{Nothing, Matrix{T}` : Optional Weight matrix.
@@ -190,8 +188,8 @@ Computes the "cosine" distance between two vectors.
 Cosine distance measure between the two vectors.
 
 """
-function CD(x::Vector{T},
-            y::Vector{T};
+function CD(x::AbstractVector{T},
+            y::AbstractVector{T};
             M::Union{Nothing,AbstractMatrix{T}}=nothing) where {T<:Real}
     z = zero(T)
     o = one(T)
@@ -296,10 +294,9 @@ function kmeans_cluster(X::Matrix{T},
     # Average the vectors in each group to form the group centers.
     # The averaging below double counts some points -- not important
     # as this just a starting point for cluster centers.
-    #XC = Array{T,2}(undef, n, k)
-    XCS = SA.SharedArray{T}(n,k)
-    for j in 1:k
-        XCS[:, j] = S.mean(X[:, idx[j]:idx[j+1]], dims=2)
+    XCS = Array{T,2}(undef, n, k)
+    @inbounds  for j in 1:k
+        @views XCS[:, j] = S.mean(X[:, idx[j]:idx[j+1]], dims=2)
     end
 
     # A map of points to centroids using indices: 1:m -> 1:k
@@ -309,15 +306,9 @@ function kmeans_cluster(X::Matrix{T},
     # Number of points per centroid.
     cntC = Vector{Int64}(undef, m)
 
-
     # Variable used to keep track of previous total variation of clusters.
     tmax = typemax(T)
     tv_last = tmax
-
-    XS = SA.SharedArray{T}(size(X)...)
-    for i in eachindex(X)
-        XS[i] = X[i]
-    end
 
     adj_metric = dmetric
     if W !== nothing
@@ -328,7 +319,7 @@ function kmeans_cluster(X::Matrix{T},
     # Now loop until convergence: abs(tv - tv_last) is small -- or max iterations (N): 
     # - Map the `m` values of (`n`-vectors) from X into the nearest cluster.
     # - Form new centers by averaging associated points.
-    for l in 1:N
+    @inbounds for l in 1:N
         tv = zero(T) # Total variation (sum of distances) of all points to their centers.
         cv = zero(T) # Distance of one point with one center. 
         c_closest = -1 # Closest center (by index) of a point.
@@ -338,8 +329,10 @@ function kmeans_cluster(X::Matrix{T},
         # Collect the variation.
         for i in 1:m
             cv_min = tmax
-            for j in 1:k
-                cv = adj_metric(XS[:, i], XCS[:, j])
+            xv = @view X[:, i]
+            @simd for j in 1:k
+                xcsv = @view XCS[:, j]
+                cv = adj_metric(xv, xcsv)
                 if cv < cv_min
                     cv_min    = cv
                     c_closest = j
@@ -595,7 +588,7 @@ function find_best_cluster(X::Matrix{T},
     vlen = length(var_by_k_mod)
     min_idx = Vector{Int64}(undef, vlen)
     mono_var_by_k_mod = Vector{Float64}(undef, vlen)
-    if vlen > 1
+    @inbounds if vlen > 1
         monvar = var_by_k_mod[1]
         last_min_idx = 1
         for (l,v) in enumerate(var_by_k_mod)
