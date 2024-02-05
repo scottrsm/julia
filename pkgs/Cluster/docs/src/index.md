@@ -49,7 +49,7 @@ Given `N` vectors, ``{\bf x}, {\bf y}`` :
 ## What is the best cluster number?
 The function `find_best_cluster` attempts to find the best cluster number.
 To do this, it monitors the total variation as one increases the cluster number. The total variation goes 
-down generally as we find (potentially locally) optimal solutions for each cluster number.
+down (generally) as we find (potentially locally) optimal solutions for each cluster number.
 If we pick a cluster number using only the total variation, we will miss the "natural cluster" number.
 
 To avoid this, we adjust the total variation by a function that depends on the dimension of the space
@@ -70,10 +70,12 @@ This becomes: ``\\\frac{m R}{k^{\\\frac{1}{n}}}``.
 Thus, even in the absence of any true clusters, the total variation decays like ``k^{\\\frac{1}{n}}``.
 
 The function `find_best_cluster` compares the total variation of cluster numbers in a range.
-It chooses the cluster number, `k`, with the largest relative decrease in adjusted total variation.
+It chooses the cluster number, `k`, with the largest relative *rate* 
+of decrease (with respect to cluster size) in adjusted total variation.
 The adjusted variation modifies the total variation for each `k` by the multiplicative factor  ``k^{\\\frac{1}{n}}``. 
 The variation is further adjusted by the 
-fraction of unused cluster centroids.
+fraction of unused cluster centroids. Finally, before computing the relative rate of variation decrease, the 
+series is further adjusted to be monotonically non-increasing.
 
 **NOTE:** This analysis may not be as useful if the "natural" clusters (or a substantial subset) 
 lie in some lower dimensional hyperplane in the ambient space.
