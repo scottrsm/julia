@@ -121,6 +121,9 @@ CD(::AbstractVector{T},::AbstractVector{T}; M=::Union{Nothing, AbstractMatrix{T}
 JD(::AbstractVector{T},::AbstractVector{T}) where {T <: Real}
 ```
 
+```@docs
+Confusion_Matrix(::AbstractVector{S},::AbstractVector{T}) where {S, T}
+```
 
 ## Index
 

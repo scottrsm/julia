@@ -1,215 +1,19 @@
 module Cluster
 
-# Export metrics: L_2, L_p, L_∞, Kullback-Leibler, Cosine, and Jaccard.
-export L2, LP, LI, KL, CD, JD 
-
 # Export the K-means functions: 
 # Base k-means function; K-means function to get informaton over a range of clusters;
 # and function that finds the K-means best cluster.
 export kmeans_cluster, find_best_info_for_ks, find_best_cluster
 
-import LinearAlgebra as LA
 import Statistics as S
 import StatsBase as SB
 import Random as R
 import DataStructures as DS
 
-const TOL=1.0e-6
+include("Metrics.jl")
+using .Metrics: L2, LP, LI, KL, CD, JD, Confusion_Matrix
 
-"""
-    L2(x,y[; M=nothing])
-
-Computes the ``L_2`` distance between two vectors.
-One of the features that may be different from other packages
-is the use of weighted metrics in some instances.
-
-# Type Constraints
-- `T <: Real`
-
-# Arguments
-- `x::AbstractVector{T}` : A numeric vector.
-- `y::AbstractVector{T}` : A numeric vector.
-
-# Keyword Arguments
-- `C::Union{Nothing, Matrix{T}` : Optional Weight matrix.
-
-# Input Contract (Low level function -- Input contract not checked)
-- ``|{\\bf x}| = |{\\bf y}|``
-- ``M = {\\rm nothing} \\vee \\left( ({\\rm typeof}(M) = {\\rm Matrix}\\{T\\}) \\wedge M \\in {\\boldsymbol S}_{++}^{|{\\bf x}|} \\right)``
-
-# Return
-``L_2`` (optionally weighted) distance measure between the two vectors.
-"""
-function L2(x::AbstractVector{T},
-            y::AbstractVector{T};
-            M::Union{Nothing,AbstractMatrix{T}}=nothing) where {T<:Real}
-
-    d = x .- y
-    if M === nothing
-        return LA.norm2(d)
-    else
-        return sqrt(LA.dot(d, M, d))
-    end
-end
-
-"""
-    LP(x,y,p)
-
-Computes the ``L_p`` distance between two vectors.
-
-# Type Constraints
-- `T <: Real`
-
-# Arguments
-- `x::AbstractVector{T}` : A numeric vector.
-- `y::AbstractVector{T}` : A numeric vector.
-- `p::Int64`     : The power of the norm.
-
-# Input Contract (Low level function -- Input contract not checked)
-- ``|{\\bf x}| = |{\\bf y}|``
-- `p > 0`
-
-# Return
-``L_p`` distance measure between the two vectors.
-"""
-function LP(x::AbstractVector{T},
-            y::AbstractVector{T},
-            p::Int64     ) where {T <: Real}
-
-    return LA.norm(x .- y, p)
-end
-
-"""
-    LI(x,y)
-
-Computes the ``L_\\infty`` distance between two vectors.
-
-# Type Constraints
-- `T <: Real`
-
-# Arguments
-- `x::AbstractVector{T}` : A numeric vector.
-- `y::AbstractVector{T}` : A numeric vector.
-
-# Input Contract (Low level function -- Input contract not checked)
-- ``|{\\bf x}| = |{\\bf y}|``
-
-# Return
-``L_\\infty`` distance measure between the two vectors.
-"""
-function LI(x::AbstractVector{T},
-            y::AbstractVector{T} ) where {T <: Real}
-
-    return max.(abs.(x .- y))
-end
-
-
-"""
-    JD(x,y)
-
-Computes the `Jaccard` metric between two vectors of a "discrete" type.
-For instance, the vectors could be integers; however, they can 
-also be of non-numeric type. The metric can also be used with 
-floating point values but, in that case, it may be more useful 
-to round/truncate to a particular "block" size.
-
-If both `x` and `y` are vectors of zero length, a distance of ``0`` is returned.
-
-# Arguments
-- `x::AbstractVector{T}` : A numeric vector.
-- `y::AbstractVector{T}` : A numeric vector.
-
-# Return
-`Jaccard` distance measure between the two vectors.
-"""
-function JD(x::AbstractVector{T},
-            y::AbstractVector{T} ) where {T <: Real}
-    d = length(symdiff(x,y))
-    u = length(union(x,y)) 
-
-    return length(u) == 0 ? 0.0 : d / u
-end
-
-
-"""
-    KL(x,y)
-
-Computes the ``Kullback-Leibler`` distance between two vectors.
-
-# Type Constraints
-- `T <: Real`
-
-# Arguments
-- `x::AbstractVector{T}` : A numeric vector.
-- `y::AbstractVector{T}` : A numeric vector.
-
-# Input Contract (Low level function -- Input contract not checked)
-Let ``N = |{\\bf x}|``.
-- ``|{\\bf x}| = |{\\bf y}|``
-- ``\\forall i \\in [1, N]: x_i \\ge 0``
-- ``\\forall i \\in [1, N]: y_i \\ge 0``
-- ``\\sum_{i=1}^N x_i = 1``
-- ``\\sum_{i=1}^N y_i = 1``
-
-# Return
-`KL` distance measure between the two vectors.
-"""
-function KL(x::AbstractVector{T},
-            y::AbstractVector{T} ) where {T <: Real}
-
-    z = zero(T)
-    d1 = map((a, b) -> a == z ? z : a * log(a / b), x, y)
-    d2 = map((a, b) -> b == z ? z : b * log(b / a), x, y)
-
-    return sum(d1 .+ d2)
-end
-
-
-"""
-    CD(x,y[; M=nothing])
-
-Computes the "cosine" distance between two vectors.
-
-# Type Constraints
-- `T <: Real`
-
-# Arguments
-- `x::AbstractVector{T}` : A numeric vector.
-- `y::AbstractVector{T}` : A numeric vector.
-
-# Keyword Arguments
-- `M::Union{Nothing, Matrix{T}` : Optional Weight matrix.
-
-# Input Contract (Low level function -- Input contract not checked)
-- ``|{\\bf x}| = |{\\bf y}|``
-- ``M = {\\rm nothing} \\vee \\left( ({\\rm typeof}(M) = {\\rm Matrix}\\{T\\}) \\wedge M \\in {\\boldsymbol S}_{++}^{|{\\bf x}|} \\right)``
-
-# Return
-Cosine distance measure between the two vectors.
-
-"""
-function CD(x::AbstractVector{T},
-            y::AbstractVector{T};
-            M::Union{Nothing,AbstractMatrix{T}}=nothing) where {T<:Real}
-    z = zero(T)
-    o = one(T)
-    tol = T(TOL)
-
-    if all(abs.(x .- y) / (2.0 .* (abs.(x) .+ abs.(y))) .< tol)
-        return o
-    elseif all(abs.(x) .< tol)
-        return o
-    elseif all(abs.(y) .< tol)
-        return o
-    elseif M === nothing
-        return o - LA.dot(x, y) / sqrt(LA.dot(x, x) * LA.dot(y, y))
-    end
-
-    return o - LA.dot(x, M, y) / sqrt(LA.dot(x, M, x) * LA.dot(y, M, y))
-end
-
-
-
+export L2, LP, LI, KL, CD, JD, Confusion_Matrix
 
 """
     kmeans_cluster(X, k=3[; dmetric, threshold, W, N, seed])
@@ -379,7 +183,7 @@ end
 
 
 """
-    find_best_info_for_ks(X, kRng[; dmetric=L2, threshold=1.0e-3, W, N=1000, num_trials=100, seed=1])
+    find_best_info_for_ks(X, kRng[; dmetric=.L2, threshold=1.0e-3, W, N=1000, num_trials=100, seed=1])
 
 Groups a set of`m` points (`n`-vectors) as an (nxm) matrix, `X`, into `k` clusters where `k` is in the range, `kRng`.
 The groupings are determined based on the distance metric, `dmetric`.
@@ -640,5 +444,5 @@ function find_best_cluster(X::Matrix{T},
 
 end
 
-end # End module Cluster
+end # module Cluster
 

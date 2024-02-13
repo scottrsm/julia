@@ -1,6 +1,8 @@
 import Random
 import RDatasets
 using Test
+using DataFrames
+using Chain
 
 using Cluster
 
@@ -83,6 +85,11 @@ end
 
     C = [3.409803921568628 2.6999999999999997 3.0782608695652165; 
          5.003921568627451 5.800000000000001 6.823913043478258   ] 
+    CM = [50 0 0  ;
+           0 38 12;
+           1 15 34 ]
+
+
     best_var = 62.69987288875754
 
     @test size(xc)   == (2, kbest)
@@ -90,6 +97,15 @@ end
     @test xc ≈ C          rtol=TOL
     @test ds ≈ best_var   rtol=TOL
 
+    N, M = size(iris)
+    iris[!, :Cluster] = map(i -> mp[i], 1:N)
+    specs = @chain iris begin
+       getproperty(:Species) # same as above
+       end
+    clus = @chain iris begin
+       getproperty(:Cluster) # same as above
+       end
+    @test Matrix(Confusion_Matrix(specs, clus)) == CM
 
     #--------------------------
     #----- L1 metric.
@@ -170,6 +186,5 @@ end
 
 
 end
-
 
 
