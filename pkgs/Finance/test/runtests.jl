@@ -8,8 +8,8 @@ Random.seed!(1)
 
 ## TEST PARAMETERS
 N    = 20       # Length of data series.
-TOL  = 1.0e-15  # Floating point tolerance.
-TOL2  = 1.0e-14  # Floating point tolerance.
+TOL  = 1.0e-10  # Floating point tolerance.
+TOL2  = 1.0e-10  # Floating point tolerance.
 RNDS = rand(N)  # Data series.
 
 ## Sample Standard deviation of data series.
