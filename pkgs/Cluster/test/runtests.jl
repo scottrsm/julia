@@ -22,10 +22,10 @@ const KM_THRESHOLD   ::Float64 = 1.0e-2
 
 # Synthetic data for test: T1.
 # There are 10 "natural" clusters.
-M1 = [-1,-2] .+ rand(2, 100)
-M2 = 3.0 .* [1,2] .+ rand(2, 100)
-M3 = 6.0 .* [2,1] .+ rand(2, 100)
-M4 = 9.0 .* [1,1] .+ rand(2, 100)
+M1 = [-1, -2] .+ rand(2, 100)
+M2 = 3.0 .* [1, 2] .+ rand(2, 100)
+M3 = 6.0 .* [2, 1] .+ rand(2, 100)
+M4 = 9.0 .* [1, 1] .+ rand(2, 100)
 M5 = 12.0 .* [-1, 1] .+ rand(2, 100)
 M6 = 15.0 .* [0.5, 3.0] .+ rand(2, 100)
 M7 = 18.0 .+ [-2.4, 1.0] .+ rand(2, 100)
@@ -48,9 +48,9 @@ end
 @testset "Test Metrics" begin
     C = [1. 2.; 2. 5.]
 
-    @test L2([1., 2.], [3., -4.]   )   ≈  6.324555320336759   rtol=TOL
-    @test L2([1., 2.], [3., -4.]; M=C) ≈ 11.661903789690601   rtol=TOL
-    @test LP([1., 2.], [3., -4.], 3)   ≈  6.0731779437513245  rtol=TOL
+    @test L2([1., 2.], [3., -4.]     )   ≈  6.324555320336759   rtol=TOL
+    @test L2([1., 2.], [3., -4.]; M=C)   ≈ 11.661903789690601   rtol=TOL
+    @test LP([1., 2.], [3., -4.], 3  )   ≈  6.0731779437513245  rtol=TOL
 end
 
 
@@ -86,8 +86,8 @@ end
     C = [3.409803921568628 2.6999999999999997 3.0782608695652165; 
          5.003921568627451 5.800000000000001 6.823913043478258   ] 
     CM = [50 0 0  ;
-           0 38 12;
-           1 15 34 ]
+           0 12 38;
+           1 34 15 ]
 
 
     best_var = 62.69987288875754
@@ -99,13 +99,10 @@ end
 
     N, M = size(iris)
     iris[!, :Cluster] = map(i -> mp[i], 1:N)
-    specs = @chain iris begin
-       getproperty(:Species) # same as above
-       end
-    clus = @chain iris begin
-       getproperty(:Cluster) # same as above
-       end
-    @test Matrix(Confusion_Matrix(specs, clus)) == CM
+    specs = Symbol.(iris[!, :Species])
+    clus = Int64.(iris[!, :Cluster])
+    res = confusion_matrix(specs, clus)
+    @test res[3] == CM
 
     #--------------------------
     #----- L1 metric.

@@ -11,9 +11,9 @@ import Random as R
 import DataStructures as DS
 
 include("Metrics.jl")
-using .Metrics: L2, LP, LI, KL, CD, JD, Confusion_Matrix
+using .Metrics: L2, LP, LI, KL, CD, JD, confusion_matrix
 
-export L2, LP, LI, KL, CD, JD, Confusion_Matrix
+export L2, LP, LI, KL, CD, JD, confusion_matrix
 
 """
     kmeans_cluster(X, k=3[; dmetric, threshold, W, N, seed])

@@ -1,7 +1,7 @@
 name = "Cluster"
 uuid = "1e9e0daf-e287-4c87-bb27-167a6bd94a1f"
 authors = ["Scott McIntire <scottrsm@gmail.com>"]
-version = "0.9.0"
+version = "0.10.0"
 
 [deps]
 Chain = "8be319e6-bccf-4806-a6f7-6fae938471bc"
