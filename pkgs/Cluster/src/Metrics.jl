@@ -5,7 +5,6 @@ module Metrics
 export L2, LP, LI, KL, CD, JD, confusion_matrix, aug_confusion_matrix
 
 import LinearAlgebra as LA
-import FreqTables as F
 
 
 const TOL=1.0e-6
@@ -231,7 +230,7 @@ function confusion_matrix(act::AbstractVector{A}, pred::AbstractVector{P}) where
     if length(pred) != N
         throw(DomainError(N, "confusion_matrix: Vector inputs, `act` and `pred` do NOT have the same length"))
     end
-    # Get unique values of actual values and the associated length.
+    # Get unique values of actual values and their associated length.
     a_vals = unique(act)
     try 
         if ! ( a_vals[1] < a_vals[1] )
@@ -242,7 +241,7 @@ function confusion_matrix(act::AbstractVector{A}, pred::AbstractVector{P}) where
 
     a_N = length(a_vals)
 
-    # Get unique values of predicted values and the associated length.
+    # Get unique values of predicted values and their associated length.
     p_vals = unique(pred)
     try 
         if ! ( p_vals[1] < p_vals[1] )

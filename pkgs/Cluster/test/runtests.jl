@@ -1,8 +1,7 @@
+using DataFrames
 import Random
 import RDatasets
 using Test
-using DataFrames
-using Chain
 
 using Cluster
 
