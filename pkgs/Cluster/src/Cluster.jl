@@ -1,19 +1,20 @@
 module Cluster
 
-# Export the K-means functions: 
-# Base k-means function; K-means function to get informaton over a range of clusters;
-# and function that finds the K-means best cluster.
-export kmeans_cluster, find_best_info_for_ks, find_best_cluster
-
 import Statistics as S
 import StatsBase as SB
 import Random as R
 import DataStructures as DS
 
 include("Metrics.jl")
-using .Metrics: L2, LP, LI, KL, CD, JD, confusion_matrix
+using .Metrics: L2, LP, LI, KL, CD, JD, confusion_matrix, aug_confusion_matrix
 
-export L2, LP, LI, KL, CD, JD, confusion_matrix
+# Export the K-means functions: 
+# Base k-means function; K-means function to get informaton over a range of clusters;
+# and function that finds the K-means best cluster.
+export kmeans_cluster, find_best_info_for_ks, find_best_cluster
+
+# Export the metric and fit metric functions: 
+export L2, LP, LI, KL, CD, JD, confusion_matrix, aug_confusion_matrix
 
 """
     kmeans_cluster(X, k=3[; dmetric, threshold, W, N, seed])

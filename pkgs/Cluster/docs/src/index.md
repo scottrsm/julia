@@ -121,8 +121,14 @@ CD(::AbstractVector{T},::AbstractVector{T}; M=::Union{Nothing, AbstractMatrix{T}
 JD(::AbstractVector{T},::AbstractVector{T}) where {T <: Real}
 ```
 
+## Fit Metric Functions
+
 ```@docs
-Confusion_Matrix(::AbstractVector{S},::AbstractVector{T}) where {S, T}
+confusion_matrix(::AbstractVector{A},::AbstractVector{P}) where {A, P}
+```
+
+```@docs
+aug_confusion_matrix(::AbstractVector{A},::AbstractVector{P}) where {A, P}
 ```
 
 ## Index
