@@ -174,7 +174,7 @@ function kmeans_cluster(X::Matrix{T},
         end
 
         # Compute new centroids by averaging associated points.
-        for ci in unique(values(cmap))
+        @inbounds for ci in unique(values(cmap))
             XCS[:, ci] ./= cntC[ci]
         end
     end
@@ -256,7 +256,7 @@ function find_best_info_for_ks(X::Matrix{T},
     #  - The list of cluster indices that were not used.
     #  - The number of iterations used to complete kmeans_cluster.
     #  - Did kmeans_cluster converge before max iterates used? 
-    for k in kRng
+    @inbounds for k in kRng
         tv_by_k[k] = tmax
         for _ in 1:num_trials
             cnt += 1
@@ -436,7 +436,7 @@ function find_best_cluster(X::Matrix{T},
     end
 
     # Remap the points to the index of the nearest centroid using the re-index map.
-    for k in keys(cmap[kbest])
+    @inbounds for k in keys(cmap[kbest])
         bcmap[k] = reindex_centroids[cmap[kbest][k]]
     end
     
