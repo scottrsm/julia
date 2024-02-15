@@ -1,11 +1,11 @@
 name = "Boolean"
 uuid = "d4def8ba-741e-4784-adc0-3f6248bfb1a9"
 authors = ["Scott McIntire <scottrsm@gmail.com>"]
-version = "0.1.1"
+version = "0.1.2"
 
 [deps]
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [compat]
-julia = "1.9"
+julia = "1.10"
