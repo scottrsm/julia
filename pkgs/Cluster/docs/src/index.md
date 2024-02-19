@@ -36,7 +36,7 @@ Given `N` vectors, ``{\bf x}, {\bf y}`` :
        this becomes: ``{\rm L2}({\bf x}, {\bf y}, \hbox{M=W}) = \sqrt{{\bf x} {\boldsymbol \cdot} (M {\bf y})}``
 - `LP`: The standard ``L_p`` norm: ``{\rm LP}({\bf x}, {\bf y}, p) = \left(\sum_{i=1}^N |x_i - y_i|^p)\right)^{\frac{1}{p}}``
     - **Note:** To use this metric with `find_best_cluster` for a given value of `p`, 
-        you will need to pass the closure, `(x,y; kwargs...) -> LP(x,y, p; kwargs...)`
+        you will need to pass the closure, `(x,y; kwargs...) -> LP(x,y, p; kwargs...)`,
         to the keyword parameter `dmetric`.
 - `LI`: The standard ``L_\infty`` norm: ``{\rm LI}({\bf x}, {\bf y}) = \mathop{\rm max}_{i \in [1,N]}\limits |x_i - y_i|`` 
 - `KL`: A symmetrized Kullback-Leibler divergence: ``{\rm KL}({\bf x}, {\bf y}) = \sum_{i=1}^N x_i \log(x_i/y_i) + y_i \log(y_i/x_i)``
@@ -124,11 +124,11 @@ JD(::AbstractVector{T},::AbstractVector{T}) where {T <: Real}
 ## Fit Metric Functions
 
 ```@docs
-confusion_matrix(::AbstractVector{A},::AbstractVector{P}) where {A, P}
+raw_confusion_matrix(::AbstractVector{A},::AbstractVector{P}) where {A, P}
 ```
 
 ```@docs
-aug_confusion_matrix(::AbstractVector{A},::AbstractVector{P}) where {A, P}
+confusion_matrix(::AbstractVector{A},::AbstractVector{P}) where {A, P}
 ```
 
 ## Index

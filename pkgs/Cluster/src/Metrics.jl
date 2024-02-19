@@ -1,8 +1,8 @@
 module Metrics
 
 # Export metrics metrics: L_2, L_p, L_∞, Kullback-Leibler, Cosine, and Jaccard.
-# and fit metrics: confusion_matrix, aug_confusion_matrix
-export L2, LP, LI, KL, CD, JD, confusion_matrix, aug_confusion_matrix
+# and fit metrics: raw_confusion_matrix, confusion_matrix
+export L2, LP, LI, KL, CD, JD, raw_confusion_matrix, confusion_matrix
 
 import LinearAlgebra as LA
 
@@ -203,9 +203,10 @@ end
 
 
 """
-    confusion_matrix(act, pred)
+    raw_confusion_matrix(act, pred)
 
-Computes the confusion matrix of the discrete variables, `act` and `pred`.
+Computes a confusion matrix of the discrete variables, `act` and `pred`.
+There are no row or column labels for this matrix.
 
 # Type Constraints:
 - Expects types, `A` and `P` to have discrete values.
@@ -223,7 +224,7 @@ Matrix{Int64}: A 3-tuple consisting of:
 - Vector of unique values of `pred`. (Sorted from lowest to highest, otherwise the order returned from unique.)
 - A matrix of counts for all pairings of discrete values of `act` with `pred`.
 """
-function confusion_matrix(act::AbstractVector{A}, pred::AbstractVector{P}) where {A, P}
+function raw_confusion_matrix(act::AbstractVector{A}, pred::AbstractVector{P}) where {A, P}
     N = length(act) 
 
     # Check Input Contract:
@@ -284,7 +285,7 @@ end
 
 
 """
-    aug_confusion_matrix(act, pred)
+    confusion_matrix(act, pred)
 
 Computes the confusion matrix of the *discrete* variables, `act` and `pred`.
 
@@ -300,12 +301,12 @@ Computes the confusion matrix of the *discrete* variables, `act` and `pred`.
 
 # Return
 Matrix{Any}:
-- A confusion matrix augmented by a column on the left listing 
+- The raw confusion matrix augmented by a column on the left listing 
   all *actual* values (in sorted order if sortable) and 
   augmented on top with a row listing 
   all *predicted* values (in sorted order if sortable).
 """
-function aug_confusion_matrix(act::AbstractVector{A}, pred::AbstractVector{P}) where {A, P}
+function confusion_matrix(act::AbstractVector{A}, pred::AbstractVector{P}) where {A, P}
     res = confusion_matrix(act, pred)
     N, M = size(res[3])
     PM = Matrix(undef, N+1, M+1)

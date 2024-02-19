@@ -100,7 +100,7 @@ end
     iris[!, :Cluster] = map(i -> mp[i], 1:N)
     specs = Symbol.(iris[!, :Species])
     clus = Int64.(iris[!, :Cluster])
-    res = confusion_matrix(specs, clus)
+    res = raw_confusion_matrix(specs, clus)
 
     @test res[3] == CM
 

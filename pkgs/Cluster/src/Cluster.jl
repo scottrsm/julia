@@ -6,15 +6,15 @@ import Random as R
 import DataStructures as DS
 
 include("Metrics.jl")
-using .Metrics: L2, LP, LI, KL, CD, JD, confusion_matrix, aug_confusion_matrix
+using .Metrics: L2, LP, LI, KL, CD, JD, raw_confusion_matrix, confusion_matrix
 
 # Export the K-means functions: 
-# Base k-means function; K-means function to get informaton over a range of clusters;
-# and function that finds the K-means best cluster.
+# Base k-means function; K-means function to get information over a range of clusters;
+# and function that finds the best K-means cluster.
 export kmeans_cluster, find_best_info_for_ks, find_best_cluster
 
 # Export the metric and fit metric functions: 
-export L2, LP, LI, KL, CD, JD, confusion_matrix, aug_confusion_matrix
+export L2, LP, LI, KL, CD, JD, raw_confusion_matrix, confusion_matrix
 
 """
     kmeans_cluster(X, k=3[; dmetric, threshold, W, N, seed])
@@ -32,12 +32,12 @@ Groups a set of points into `k` clusters based on the distance metric, `dmetric`
 # Keyword Arguments
 - `dmetric::F=L2` : The distance metric to use.
 - `threshold::Float=1.0e-2`  : The relative error improvement threshold (using total variation)
-- `W::Union{Nothing, AbstractMatrix{T}}=nothing` : Optional Weight matrix for metric.
+- `W::Union{Nothing, AbstractMatrix{T}}=nothing` : Optional `(nxn)` weight matrix for metric.
 - `N::Int64=1000`    : The maximum number of iterations to try.
 - `seed::Int64=0`    : If value > 0, create a random number generator to use for initial clustering.
     
 # Input Contract
-- ``W = {\\rm nothing} ∨ \\left( ({\\rm typeof}(W) = {\\rm Matrix}\\{T\\}) ∧ W \\in {\\boldsymbol S}_{++}^{|{\\bf x}|} \\right)``
+- ``W = {\\rm nothing} ∨ \\left( ({\\rm typeof}(W) = {\\rm Matrix}\\{T\\}) ∧ W \\in {\\boldsymbol S}_{++}^{n} \\right)``
 - ``1 \\le k \\le m``
 - `N > 0`
 - `threshold > 0.0`
@@ -184,9 +184,9 @@ end
 
 
 """
-    find_best_info_for_ks(X, kRng[; dmetric=.L2, threshold=1.0e-3, W, N=1000, num_trials=100, seed=1])
+    find_best_info_for_ks(X, kRng[; dmetric=L2, threshold=1.0e-3, W, N=1000, num_trials=100, seed=1])
 
-Groups a set of`m` points (`n`-vectors) as an (nxm) matrix, `X`, into `k` clusters where `k` is in the range, `kRng`.
+Groups a set of `m` points (`n`-vectors) as an (nxm) matrix, `X`, into `k` clusters where `k` is in the range, `kRng`.
 The groupings are determined based on the distance metric, `dmetric`.
 
 # Type Constraints
@@ -206,7 +206,7 @@ The groupings are determined based on the distance metric, `dmetric`.
 - `seed::Int64=1`          : The random seed to use. (Used by kmeans_cluster to do initial clustering.)
     
 # Input Contract
-- ``W = {\\rm nothing} ∨ \\left( ({\\rm typeof}(W) = {\\rm Matrix}\\{T\\}) ∧ W \\in {\\boldsymbol S}_{++}^{|{\\bf x}|} \\right)``
+- ``W = {\\rm nothing} ∨ \\left( ({\\rm typeof}(W) = {\\rm Matrix}\\{T\\}) ∧ W \\in {\\boldsymbol S}_{++}^{n} \\right)``
 - ``N > 0``
 - ``∀ i \\in {\\rm kRng}, i \\ge 1``
 - `threshold > 0.0`
@@ -235,7 +235,7 @@ function find_best_info_for_ks(X::Matrix{T},
     cnt = 0
     _, m = size(X)
 
-    # Check input contract -- except the matrix `W`.
+    # Check input contract -- except the contract for the matrix `W`.
     if N <= 0
         throw(DomainError(N, "The parameter `N` is not in the range: [1, ...)"))
     elseif threshold <= 0.0
@@ -311,7 +311,7 @@ that the returned value of `k` is less that any value in the cluster range, `kRn
 - `verbose::Bool=false`    : If `true`, print diagnostic information.
     
 # Input Contract
-- ``W = {\\rm nothing} ∨ \\left( ({\\rm typeof}(W) = {\\rm Matrix}\\{T\\}) ∧ W \\in {\\boldsymbol S}_{++}^{|{\\bf x}|} \\right)``
+- ``W = {\\rm nothing} ∨ \\left( ({\\rm typeof}(W) = {\\rm Matrix}\\{T\\}) ∧ W \\in {\\boldsymbol S}_{++}^{n} \\right)``
 - `N > 0`
 - ``∀ i \\in {\\rm kRng}, i \\ge 1``
 - `threshold > 0.0`
