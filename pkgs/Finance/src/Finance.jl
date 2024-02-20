@@ -48,7 +48,8 @@ with respect to `t` when the values in `t` are possibly irregular.
 
 # Arguments
 - `t :: AbstractVector{T}`   -- A vector of times.
-- `x :: AbstractVector{T}`   -- A vector of values.
+- `x :: AbstractVector{S}`   -- A vector of values.
+
 
 # Keyword Arguments
 - `chk_inp=false :: Bool`  -- Check the input contract?
@@ -59,26 +60,25 @@ The inputs are assumed to satisfy the constraints below.
 | Constraint                     | Description                                                               |
 |:------------------------------:|:------------------------------------------------------------------------- |
 | `\\|t\\| = \\|x\\|`            | The length of the time and data vectors match.                            |
-| `S => T`                       | Type `S` can be converted to type `T`.                                    |
+| `T => S`                       | Type `T` can be converted to type `S`.                                    |
 | ``\\forall i, t_{i+1} > t_i``  | The times are increasing; consequently, we have a 1-1 map from `t` to `x`.|
 
 # Return
-`:: AbstractVector{T}`
+`:: AbstractVector{S}`
 """
-@noinline function tic_diff1(t::AbstractVector{S} , 
-                             x::AbstractVector{T} ;
-                             chk_inp::Bool = false,
-                  ) :: AbstractVector{T} where {S <: Real, T <: Real}
+function tic_diff1(t::AbstractVector{T} , 
+                   x::AbstractVector{S} ;
+                   chk_inp::Bool = false ) :: AbstractVector{T} where {S <: Real, T <: Real}
     n = length(x)
 
     if chk_inp
         n != length(t)           && throw(DomainError(n-t, "The length of the time and data series must match."))
         !all(diff(t) .> zero(S)) && throw(DomainError(n-t, "The time series must have be strictly increasing."))
-        !isConvertible(S, T)     && throw(DomainError(0, "Type S is not convertible to type T."))
+        !isConvertible(T, S)     && throw(DomainError(0, "Type T is not convertible to type S."))
     end
 
-    tc = map(x -> convert(T, x), t)
-    df = Vector{T}(undef, n-2)
+    tc = map(x -> convert(S, x), t)
+    df = Vector{S}(undef, n-2)
     @inbounds @simd for i in 2:(n-1)
         h1 = tc[i  ] - tc[i-1]
         h2 = tc[i+1] - tc[i  ]
@@ -95,12 +95,12 @@ Compute the numerical second derivative of a function represented by `x`
 with respect to `t` when the values in `t` are possibly irregular.
 
 # Type Constraints
-- `S <: Real`
 - `T <: Real`
+- `S <: Real`
 
 # Arguments
-- `t :: AbstractVector{S}` -- A vector of times.
-- `x :: AbstractVector{T}` -- A vector of values.
+- `t :: AbstractVector{T}` -- A vector of times.
+- `x :: AbstractVector{S}` -- A vector of values.
 
 # Keyword Arguments
 - `chk_inp=false :: Bool`  -- Check the input contract?
@@ -111,26 +111,25 @@ The inputs are assumed to satisfy the constraints below.
 | Constraint                     | Description                                                               |
 |:------------------------------:|:--------------------------------------------------------------------------|
 | `\\|t\\| = \\|x\\|`            | The length of the time and data vectors match.                            |
-| `S => T`                       | Type `S` can be converted to type `T`.                                    |
+| `T => S`                       | Type `T` can be converted to type `S`.                                    |
 | ``\\forall i, t_{i+1} > t_i``  | The times are increasing; consequently, we have a 1-1 map from `t` to `x`.|
 
 # Return
-`:: AbstractVector{T}`
+`:: AbstractVector{S}`
 """
-@noinline function tic_diff2(t::AbstractVector{S}, 
-                   x::AbstractVector{T}          ;
-                   chk_inp::Bool = false         ,
-                  ) :: AbstractVector{T} where {S <: Real, T <: Real}
+function tic_diff2(t::AbstractVector{T}  , 
+                   x::AbstractVector{S}  ;
+                   chk_inp::Bool = false  ) :: AbstractVector{S} where {T <: Real, S <: Real}
     n = length(x)
 
     if chk_inp
         n != length(t)           && throw(DomainError(n-t, "The length of the time and data series must match."))
         !all(diff(t) .> zero(S)) && throw(DomainError(n-t, "The time series must have be strictly increasing."))
-        !isConvertible(S, T)     && throw(DomainError(0, "Type S is not convertible to type T."))
+        !isConvertible(T, S)     && throw(DomainError(0, "Type T is not convertible to type S."))
     end
 
-    tc = map(x -> convert(T, x), t)
-    df = Vector{T}(undef, n-2)
+    tc = map(x -> convert(S, x), t)
+    df = Vector{S}(undef, n-2)
     @simd for i in 2:(n-1)
         @inbounds h1 = tc[i  ] - tc[i-1]
         @inbounds h2 = tc[i+1] - tc[i  ]
@@ -781,6 +780,78 @@ function pow_n(x::T, n::Int64, m::S) where {T <: Real, S <: Real}
     end
 
     return s
+end
+
+
+"""
+    ewt_mean(ts, xs, b, lm)
+    
+
+Computes the moving (exponential decayed) temporal average of the data `xs` over windows of length `b`.
+Temporal averaging over a window means that the time stamps are differenced and we associate the difference
+of time points ``t_{i}, t_{i+1}``, ``\\Delta_{i} = t_{i+1} - t_i``, with the data point ``x_i``.
+The rationale: The data point ``x_i`` has been around since ``t_i`` until ``t_{i+1}``, so it should be should 
+weight it (in an un-nornalized way) by this distance.
+The temporal decay will adjust the temporal weights by an exponential which puts more weight on recent data within the window.
+This is also done in an un-normalized way. Then the weights are normalized and data, `xs`, is averaged within the window.
+
+**NOTE:** Set `lm` to 1.0 to just have temporal weighting *without* decay.
+
+# Parameters
+- ts::Vector{Float64} -- Data time stamps -- ordered from smallest (oldest) to largest (newest).
+- xs::Vectpr{Float64} -- Data values associated with time stamps.
+- b::Int64            -- The width of the window
+- lm::Float64         -- The decay factor: 0.0 < lm <= 1.0
+
+# Input Contract
+- |ts| == |xs|
+- 0 < b < |xs|
+- 0.0 < lm <= 1.0
+
+# Return
+::Vector{Float64} -- A vector of length |xs| - b.
+
+"""
+function ewt_mean(ts::Vector{Float64}, 
+                  xs::Vector{Float64}, 
+                  b::Int64           , 
+                  lm::Float64         )
+    n = length(ts)
+
+    # Check input contract.
+    @assert n == length(xs)
+    @assert 0 < b < n
+    @assert 0.0 < lm <= 1.0
+
+    # `wm` will be the weighted mean that is returned.
+    wm = Vector{Float64}(undef, n-b)
+
+    # Construct the temporal decay factors -- decay more as we go back in time.
+    decayFs    = Vector{Float64}(undef, b)
+    decayFs[b] = 1.0    
+    for k in (b-1):1
+        decayFs[k] = decayFs[k+1] * lm
+    end
+    
+    # Get temporal weighting.
+    dts = diff(ts)
+
+    # Average over all windows (length b -- bandwidth) the data, xs[i, i+b-1], 
+    # using the temporal difference weighting but modifying them by a factor
+    # which is based on how far back in time one goes within the band: data[i] * temporal_weight[i] * decay_factor[i]
+    # Here decay_factor looks like l^(b-1), l^(b-2), ... l^2, l, 1.
+    # Finally we need to normalize these modified weights: ws[i] =  (temporal_weight[i] * decay_factor[i]) 
+    # so that within the band they sum to 1.
+    
+    ws = Vector{Float64}(undef, b)                     # This will be the modified (un-normalized) weights over the band.
+    for i in 1:(n-b)
+        for j in 1:b
+            ws[j] = decayFs[j] * dts[i+j-1]            # Modified (un-normalized) weights.
+        end
+        wm[i] = sum(ws .* xs[i:(i+b-1)]) / sum(ws)     # Since weights are not normalized, must divide by their sum.
+    end
+    
+    return wm
 end
 
 

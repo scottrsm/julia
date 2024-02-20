@@ -21,6 +21,7 @@ in time series data.
 - `ema_stat:`  Computes the Exponential Moving Average along with
                the associated moving standard deviation, relative skewness, 
                relative kurtosis.
+- `ewt_mean`   Computes a exponentially decayed temporal weighted moving average.
 - `pow_n:`     Computes the power of a value to a positive integer power 
                using repeated squaring.
 
@@ -54,11 +55,11 @@ isConvertible
 ```
 
 ```@docs
-tic_diff1
+tic_diff1(::AbstractVector{T}, ::AbstractVector{S}; ::Bool=false) where {T <: Real, S <: Real}
 ```
 
 ```@docs
-tic_diff2
+tic_diff2(::AbstractVector{T}, ::AbstractVector{S}; ::Bool=false) where {T <: Real, S <: Real}
 ```
 
 ```@docs
@@ -70,9 +71,12 @@ pow_n(::T, ::Int64, ::S) where {T <: Real, S <: Real}
 ```
 
 ```@docs
-entropy_index
+entropy_index(::Vector{T}; ::Int64=10, ::Float64=1.0 / (100 * n), ::Vector{Float64}=[0.01, 0.99], ::Float64=1.0) where {T <: Real}
 ```
 
+```@docs
+ewt_mean(::Vector{Float64}, ::Vector{Float64}, ::Int64, ::Float64)
+```
 
 ## Index
 
