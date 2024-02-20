@@ -818,9 +818,9 @@ function ewt_mean(ts::Vector{Float64},
     n = length(ts)
 
     # Check input contract.
-    @assert n == length(xs)
-    @assert 0 < b < n
-    @assert 0.0 < lm <= 1.0
+    !(n == length(xs))  && throw(DomainError(n, "The length of the time and data series must match."))
+    !(0 < b < n)        && throw(DomainError(b, "The length of the moving window, `b`, must be in the interval (0, |xs|)."))
+    !(0.0 < lm <= 1.0)  && throw(DomainError(lm, "The decay factor, `lm`, must be in the interval (0.0, 1.0]."))
 
     # `wm` will be the weighted mean that is returned.
     wm = Vector{Float64}(undef, n-b)
