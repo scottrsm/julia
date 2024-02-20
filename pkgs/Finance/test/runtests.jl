@@ -1,7 +1,7 @@
 using Test
 using Finance
-using Random
-using PropCheck
+import Random
+import PropCheck
 
 ## Set random seed.
 Random.seed!(1)
@@ -125,8 +125,8 @@ function normalize(w::Vector{T}) where {T <: Real}
 end
 
 @testset "PropCheck Test" begin
-    ivec = PropCheck.vector(iconst(N), isample(0.0001:0.001:1.0))
-    @test check(v -> permargs(Finance.WWsum, v, TOL2), ivec)
+    ivec = PropCheck.vector(PropCheck.iconst(N), PropCheck.isample(0.0001:0.001:1.0))
+    @test PropCheck.check(v -> permargs(Finance.WWsum, v, TOL2), ivec)
 end
 
 end

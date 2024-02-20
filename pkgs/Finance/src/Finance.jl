@@ -1,6 +1,6 @@
 module Finance
 
-import Random, Distributions, Statistics
+import Statistics
 
 
 export sig_cumsum, tic_diff1, tic_diff2, isConvertible 
@@ -66,9 +66,9 @@ The inputs are assumed to satisfy the constraints below.
 # Return
 `:: AbstractVector{S}`
 """
-function tic_diff1(t::AbstractVector{T} , 
-                   x::AbstractVector{S} ;
-                   chk_inp::Bool = false ) :: AbstractVector{T} where {S <: Real, T <: Real}
+@noinline function tic_diff1(t::AbstractVector{T} , 
+                            x::AbstractVector{S}  ;
+                            chk_inp::Bool = false  ) :: AbstractVector{T} where {S <: Real, T <: Real}
     n = length(x)
 
     if chk_inp
@@ -117,9 +117,9 @@ The inputs are assumed to satisfy the constraints below.
 # Return
 `:: AbstractVector{S}`
 """
-function tic_diff2(t::AbstractVector{T}  , 
-                   x::AbstractVector{S}  ;
-                   chk_inp::Bool = false  ) :: AbstractVector{S} where {T <: Real, S <: Real}
+@noinline function tic_diff2(t::AbstractVector{T}  , 
+                             x::AbstractVector{S}  ;
+                             chk_inp::Bool = false  ) :: AbstractVector{S} where {T <: Real, S <: Real}
     n = length(x)
 
     if chk_inp
@@ -375,7 +375,6 @@ The inputs are assumed to satisfy the constraints below.
 
     ## We don't need the following line (like what we have in the corresponding ema code)
     ## as `(x - ma)[1]` = 0, and the xadj array is already set to 0.
-    ## @inbounds xadj[1:m] .= (x - ma)[1] * (x - ma)[1] 
     @inbounds xadj[(m+1):end] = (x - ma) .* (x - ma)
     w  = zeros(T, m)
 
@@ -696,7 +695,7 @@ representation of `n`.
 # Return
 `::T`        -- The Power Value.
 """
-function pow_n(x::T, n::Int64) where T <: Number
+@noinline function pow_n(x::T, n::Int64) where T <: Number
 
     # Check input contract.
     if n < 0
@@ -748,7 +747,7 @@ The output will be of type `T^* = typeof(promote(x, m))`.
 # Return
 ``::T^*``    -- The Power Value mod `m`.
 """
-function pow_n(x::T, n::Int64, m::S) where {T <: Real, S <: Real}
+@noinline function pow_n(x::T, n::Int64, m::S) where {T <: Real, S <: Real}
 
     # Check input contract.
     if n < 0
@@ -791,7 +790,7 @@ Computes the moving (exponential decayed) temporal average of the data `xs` over
 Temporal averaging over a window means that the time stamps are differenced and we associate the difference
 of time points ``t_{i}, t_{i+1}``, ``\\Delta_{i} = t_{i+1} - t_i``, with the data point ``x_i``.
 The rationale: The data point ``x_i`` has been around since ``t_i`` until ``t_{i+1}``, so it should be should 
-weight it (in an un-nornalized way) by this distance.
+weight it (in an un-normalized way) by this distance.
 The temporal decay will adjust the temporal weights by an exponential which puts more weight on recent data within the window.
 This is also done in an un-normalized way. Then the weights are normalized and data, `xs`, is averaged within the window.
 
@@ -829,7 +828,7 @@ function ewt_mean(ts::Vector{Float64},
     # Construct the temporal decay factors -- decay more as we go back in time.
     decayFs    = Vector{Float64}(undef, b)
     decayFs[b] = 1.0    
-    for k in (b-1):1
+    @inbounds for k in (b-1):1
         decayFs[k] = decayFs[k+1] * lm
     end
     
@@ -844,7 +843,7 @@ function ewt_mean(ts::Vector{Float64},
     # so that within the band they sum to 1.
     
     ws = Vector{Float64}(undef, b)                     # This will be the modified (un-normalized) weights over the band.
-    for i in 1:(n-b)
+    @inbounds for i in 1:(n-b)
         for j in 1:b
             ws[j] = decayFs[j] * dts[i+j-1]            # Modified (un-normalized) weights.
         end
