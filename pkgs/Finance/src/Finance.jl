@@ -3,7 +3,7 @@ module Finance
 import Statistics
 
 
-export sig_cumsum, tic_diff1, tic_diff2, isConvertible 
+export sig_cumsum, tic_diff1, tic_diff2, isConvertible
 export ema, ema_std, ema_stats, std
 export entropy_index, pow_n
 
@@ -25,14 +25,14 @@ can be converted to a value of type `T`.
 # Return
 `::Bool`
 """
-function isConvertible(::Type{S}, ::Type{T})  where {S <:Real, T <:Real}
+function isConvertible(::Type{S}, ::Type{T}) where {S<:Real,T<:Real}
     try
         convert(one(S), one(T))
     catch _
-        return(false)
+        return (false)
     end
 
-    return(true)
+    return (true)
 end
 
 
@@ -66,26 +66,26 @@ The inputs are assumed to satisfy the constraints below.
 # Return
 `:: AbstractVector{S}`
 """
-@noinline function tic_diff1(t::AbstractVector{T} , 
-                            x::AbstractVector{S}  ;
-                            chk_inp::Bool = false  ) :: AbstractVector{T} where {S <: Real, T <: Real}
+@noinline function tic_diff1(t::AbstractVector{T},
+    						 x::AbstractVector{S};
+    					     chk_inp::Bool=false  )::AbstractVector{T} where {S<:Real,T<:Real}
     n = length(x)
 
     if chk_inp
-        n != length(t)           && throw(DomainError(n-t, "The length of the time and data series must match."))
-        !all(diff(t) .> zero(S)) && throw(DomainError(n-t, "The time series must have be strictly increasing."))
-        !isConvertible(T, S)     && throw(DomainError(0, "Type T is not convertible to type S."))
+        n == length(t)          || throw(DomainError(1, "The length of the time and data series must match."))
+        isConvertible(T, S)     || throw(DomainError(0, "Type T is not convertible to type S."))
+        all(diff(t) .> zero(S)) || throw(DomainError(1, "The time series must have be strictly increasing."))
     end
 
     tc = map(x -> convert(S, x), t)
-    df = Vector{S}(undef, n-2)
+    df = Vector{S}(undef, n - 2)
     @inbounds @simd for i in 2:(n-1)
-        h1 = tc[i  ] - tc[i-1]
-        h2 = tc[i+1] - tc[i  ]
+        h1 = tc[i] - tc[i-1]
+        h2 = tc[i+1] - tc[i]
         df[i-1] = (x[i+1] - x[i-1]) / (h1 + h2)
     end
 
-    return(df)
+    return (df)
 end
 
 """
@@ -117,26 +117,26 @@ The inputs are assumed to satisfy the constraints below.
 # Return
 `:: AbstractVector{S}`
 """
-@noinline function tic_diff2(t::AbstractVector{T}  , 
-                             x::AbstractVector{S}  ;
-                             chk_inp::Bool = false  ) :: AbstractVector{S} where {T <: Real, S <: Real}
+@noinline function tic_diff2(t::AbstractVector{T},
+    						 x::AbstractVector{S};
+    						 chk_inp::Bool=false  )::AbstractVector{S} where {T<:Real,S<:Real}
     n = length(x)
 
     if chk_inp
-        n != length(t)           && throw(DomainError(n-t, "The length of the time and data series must match."))
-        !all(diff(t) .> zero(S)) && throw(DomainError(n-t, "The time series must have be strictly increasing."))
-        !isConvertible(T, S)     && throw(DomainError(0, "Type T is not convertible to type S."))
+        n == length(t)          || throw(DomainError(n - t, "The length of the time and data series must match."))
+        isConvertible(T, S)     || throw(DomainError(0, "Type T is not convertible to type S."))
+        all(diff(t) .> zero(S)) || throw(DomainError(n - t, "The time series must have be strictly increasing."))
     end
 
     tc = map(x -> convert(S, x), t)
-    df = Vector{S}(undef, n-2)
+    df = Vector{S}(undef, n - 2)
     @simd for i in 2:(n-1)
-        @inbounds h1 = tc[i  ] - tc[i-1]
-        @inbounds h2 = tc[i+1] - tc[i  ]
+        @inbounds h1 = tc[i] - tc[i-1]
+        @inbounds h2 = tc[i+1] - tc[i]
         @inbounds df[i-1] = (h2 * x[i+1] - (h1 + h2) * x[i] + h1 * x[i-1]) / (h1 * h2 * (h1 + h2))
     end
 
-    return(df)
+    return (df)
 end
 
 
@@ -191,47 +191,45 @@ The inputs are assumed to satisfy the constraints below.
 # Return
 `(td, xd) :: Tuple{AbstractVector{S}, AbstractVector{T}}`
 """
-function sig_cumsum(t::AbstractVector{S}, 
-                    x::AbstractVector{T}, 
-                    w::Int64            , 
-                    h::T                ;
-                    chk_inp::Bool=false ,
-                   ) :: Tuple{AbstractVector{S}, AbstractVector{T}} where {S <: Real, T <: Real}
+function sig_cumsum(t::AbstractVector{S},
+    				x::AbstractVector{T},
+    				w::Int64            ,
+    				h::T                ;
+    				chk_inp::Bool=false  )::Tuple{AbstractVector{S},AbstractVector{T}} where {S<:Real,T<:Real}
     n = length(x)
 
     ## Input contract.
     if chk_inp
-        nt = length(t)
-        n < 2                    && throw(DomainError(n, "Vector length must be >= 2."))
-        w <= 1                   && throw(DomainError(n, "Window length must be > 1."))
-        h <= zero(T)             && throw(DomainError(n, "Devitation threshold must be > 0."))
-        n != length(t)           && throw(DomainError(nt, "Length of time sequence should match length of data."))
-        !all(diff(t) .> zero(S)) && throw(DomainError(0, "Sequential differences of time seq must always be > 0."))
+        n >= 2                   || throw(DomainError(n, "Vector length of `x` must be >= 2."))
+		n == length(t)           || throw(DomainError(nt, "Length of time sequence should match length of data."))
+        w > 1                    || throw(DomainError(n, "Window length must be > 1."))
+        h > zero(T)              || throw(DomainError(n, "Devitation threshold must be > 0."))
+		all(diff(t) .> zero(S))  || throw(DomainError(0, "Sequential differences of time seq must always be > 0."))
     end
 
     Sp = Vector{T}(undef, n)
     Sn = Vector{T}(undef, n)
-    z  = zero(T)
+    z = zero(T)
     Sp[1] = z
     Sn[1] = z
 
-    xm   = x[1]  # Running mean of the input `x` computed based on window, `w`.
+    xm = x[1]  # Running mean of the input `x` computed based on window, `w`.
     sigs = T[]   # The signals/deviations to be returned. 
     tics = S[]   # The tics where the deviations occurred.
 
     ## Loop over the series and populate, `tics` and `sigs`.
     @inbounds @simd for i in 2:n
-        xm = ( (w - 1) * xm + x[i-1] ) / w
-        Sp[i] = max(z, Sp[i-1] +  x[i]  - xm)
-        Sn[i] = min(z, Sp[i-1] +  x[i]  - xm)
+        xm = ((w - 1) * xm + x[i-1]) / w
+        Sp[i] = max(z, Sp[i-1] + x[i] - xm)
+        Sn[i] = min(z, Sp[i-1] + x[i] - xm)
         delta = max(Sp[i], -Sn[i])
         if delta >= h
-            push!(sigs, delta) 
+            push!(sigs, delta)
             push!(tics, t[i])
         end
     end
 
-    return((tics, sigs))
+    return ((tics, sigs))
 end
 
 
@@ -269,21 +267,20 @@ The inputs are assumed to satisfy the constraints below.
 `ema::AbstractVector{T}`
 
 """
-@noinline function ema(x :: AbstractVector{T}          , 
-                       m :: Int64                      ; 
-                       h = div(m, 2) :: Int64          ,
-                      ) :: AbstractVector{T} where { T <: Real }
+@noinline function ema(x::AbstractVector{T},
+    				   m::Int64            ;
+    				   h=div(m, 2)::Int64   )::AbstractVector{T} where {T<:Real}
 
-    ## Check input constraints.
-    m <= 1 && throw(DomainError(m, "The window length must be > 1."))
-    h <= 1 && throw(DomainError(h, "The half-life must be > 1."))
+    ## Check Input Contract
+    m > 1 || throw(DomainError(m, "The window length must be > 1."))
+    h > 1 || throw(DomainError(h, "The half-life must be > 1."))
 
     N = length(x)
     ma = zeros(T, N)
-    xadj = zeros(T, N+m)
+    xadj = zeros(T, N + m)
     @inbounds xadj[1:m] .= x[1]
     @inbounds xadj[(m+1):end] = x
-    w  = zeros(T, m)
+    w = zeros(T, m)
 
     ## Term by term decay factor.
     l = exp(-log(2 * one(T)) / h)
@@ -297,10 +294,10 @@ The inputs are assumed to satisfy the constraints below.
     ## Compute the EMA using the difference equation recursion.
     ma[1] = xadj[m+1]
     @inbounds @simd for i in 2:N
-        ma[i] =  l * (ma[i-1] - w[m] * xadj[i]) + w[1] * xadj[i+m]     
+        ma[i] = l * (ma[i-1] - w[m] * xadj[i]) + w[1] * xadj[i+m]
     end
 
-    return(ma)
+    return (ma)
 end
 
 
@@ -342,28 +339,27 @@ The inputs are assumed to satisfy the constraints below.
 # Return
 `stda::AbstractVector{T}`
 """
-@noinline function ema_std(x                  :: AbstractVector{T},
-                           m                  :: Int64            ;
-                           h = div(m, 2)      :: Int64            ,
-                           init_sig = nothing :: Union{T, Nothing},
-                )  :: AbstractVector{T} where {T <: Real}
+@noinline function ema_std(x::AbstractVector{T}             ,
+    					   m::Int64                         ;
+    					   h=div(m, 2)::Int64               ,
+    					   init_sig=nothing::Union{T,Nothing})::AbstractVector{T} where {T<:Real}
 
     N = length(x)
 
     ## Check input constraints.
-    N <= 1                                      && throw(DomainError(N, "The length of the data series must be > 1."))
-    m <= 1                                      && throw(DomainError(m, "The window length must be > 1."))
-    h <= 1                                      && throw(DomainError(h, "The half-life must be > 1."))
-    typeof(init_sig) == T && init_sig < zero(T) && throw(DomainError(init_sig, "The initial sigma must be non-negative."))
+    m > 1 || throw(DomainError(m, "The window length must be > 1."))
+    h > 1 || throw(DomainError(h, "The half-life must be > 1."))
+    N > 1 || throw(DomainError(N, "The length of the data series must be > 1."))
+	(init_sig == nothing || init_sig >= zero(T)) || throw(DomainError(init_sig, "The initial sigma must be `nothing` or non-negative."))
 
     ## Compute the ema for `x`.
-    ma = ema(x, m, h=h) 
+    ma = ema(x, m, h=h)
 
     ## Variance estimates.
     mvar = zeros(T, N)
 
     ## Set the initial estimated/supplied variance.
-    mvar[1] = init_sig !== nothing ? init_sig : std(x[1:min(m,N)])
+    mvar[1] = init_sig !== nothing ? init_sig : std(x[1:min(m, N)])
     mvar[1] *= mvar[1]
 
     ## Add history (`m` zeros) for variance.
@@ -371,12 +367,12 @@ The inputs are assumed to satisfy the constraints below.
     ## to have size `N + m`, so we can go "back" m. This means that
     ## xadj has to be indexed differently than the way 
     ## the formula does indexing.
-    xadj = zeros(T, N+m)
+    xadj = zeros(T, N + m)
 
     ## We don't need the following line (like what we have in the corresponding ema code)
     ## as `(x - ma)[1]` = 0, and the xadj array is already set to 0.
     @inbounds xadj[(m+1):end] = (x - ma) .* (x - ma)
-    w  = zeros(T, m)
+    w = zeros(T, m)
 
     ## Term by term decay factor.
     l = exp(-log(2 * one(T)) / h)
@@ -392,11 +388,11 @@ The inputs are assumed to satisfy the constraints below.
 
     ## Recursive formula for variance.
     @inbounds @simd for n in 1:(N-1)
-        mvar[n+1] = l * (mvar[n] - xadj[n+1] * w[m]) + xadj[n+m+1] * w[1] 
+        mvar[n+1] = l * (mvar[n] - xadj[n+1] * w[m]) + xadj[n+m+1] * w[1]
     end
 
     ## Return corrected variances (unbiased).
-    return(sqrt.(mvar ./ (one(T) - w2)))
+    return (sqrt.(mvar ./ (one(T) - w2)))
 end
 
 
@@ -440,27 +436,26 @@ The inputs are assumed to satisfy the constraints below:
 # Return
 `stat::Matrix{T}`
 """
-@noinline function ema_stats(x      :: AbstractVector{T},
-                   m                :: Int64            ;
-                   h=div(m,2)       :: Int64            ,
-                   init_sig=nothing :: Union{Nothing, T},
-                  ) :: Matrix{T} where {T <: Real}
+@noinline function ema_stats(x::AbstractVector{T}             ,
+    					   	 m::Int64                         ;
+    						 h=div(m, 2)::Int64               ,
+    						 init_sig=nothing::Union{Nothing,T})::Matrix{T} where {T<:Real}
     N = length(x)
-    
+
     ## Check input constraints.
-    m <= 1                                      && throw(DomainError(m, "The window length must be > 1."))
-    h <= 1                                      && throw(DomainError(h, "The half-life must be > 1."))
-    N <= 3                                      && throw(DomainError(N, "N must be > 3."))
+    m > 1 || throw(DomainError(m, "The window length must be > 1."))
+    h > 1 || throw(DomainError(h, "The half-life must be > 1."))
+	N > 3 || throw(DomainError(N, "N must be > 3."))
     typeof(init_sig) == T && init_sig < zero(T) && throw(DomainError(init_sig, "The initial sigma must be non-negative."))
 
     ## Compute the EMA of `x`.
-    ma = ema(x, m, h=h) 
+    ma = ema(x, m, h=h)
 
-    mstat = zeros(T, (N,4))
-    mstat[1, 1] = x[1] 
+    mstat = zeros(T, (N, 4))
+    mstat[1, 1] = x[1]
 
     ## Set the initial estimated/supplied variance.
-    mstat[1, 2]  = init_sig !== nothing ? init_sig : std(x[1:min(m,N)])
+    mstat[1, 2] = init_sig !== nothing ? init_sig : std(x[1:min(m, N)])
     mstat[1, 2] *= mstat[1, 2]
 
     ## Add history (`m` zeros) for variance, etc.
@@ -468,14 +463,14 @@ The inputs are assumed to satisfy the constraints below:
     ## to have size `N + m`, so we can go "back" `m`. This means that
     ## `xadj` has to be indexed differently than the way 
     ## the formula does indexing.
-    xadj  = zeros(T, (N+m,4))
-    v = (x - ma).*(x - ma)
-    @inbounds xadj[1:m, 1]       .= x[1]
+    xadj = zeros(T, (N + m, 4))
+    v = (x - ma) .* (x - ma)
+    @inbounds xadj[1:m, 1] .= x[1]
     @inbounds xadj[(m+1):end, 1] .= x
     @inbounds xadj[(m+1):end, 2] .= v
-    @inbounds xadj[(m+1):end, 3] .= v.*(x - ma) 
-    @inbounds xadj[(m+1):end, 4] .= v.*v
-    w  = zeros(T, m)
+    @inbounds xadj[(m+1):end, 3] .= v .* (x - ma)
+    @inbounds xadj[(m+1):end, 4] .= v .* v
+    w = zeros(T, m)
 
     ## Term by term decay factor.
     l = exp(-log(2 * one(T)) / h)
@@ -502,23 +497,23 @@ The inputs are assumed to satisfy the constraints below:
     WW = WWsum(w)
 
     ## Expressions needed to unbias our estimates.
-    C1 = 6 * W2 * W5 - 6 * W2 + 12 * W2^2 - 12 * W2 * W4 + W2 * W3 - W5 - 6 * WW 
+    C1 = 6 * W2 * W5 - 6 * W2 + 12 * W2^2 - 12 * W2 * W4 + W2 * W3 - W5 - 6 * WW
     C2 = 1 - 3 * W2 + 6 * W3 - 3 * W4
 
     ## Recursion to compute the moving stats.
     for i in 1:4
         @inbounds @simd for n in 1:(N-1)
-            mstat[n+1, i] = l * (mstat[n,i] - xadj[n+1,i] * w[m]) + xadj[n+m+1,i] * w[1] 
+            mstat[n+1, i] = l * (mstat[n, i] - xadj[n+1, i] * w[m]) + xadj[n+m+1, i] * w[1]
         end
     end
 
     ## Unbias the estimates.
     mstat[:, 2] ./= one(T) - W2
-    mstat[:, 2]   = sqrt.(mstat[:, 2])
-    mstat[:, 3] ./= ( mstat[:, 2].^1.5 .* (one(T) - 3*W2 + 2*W3) )
-    mstat[:, 4] = ( mstat[:, 4] ./ mstat[:, 2].^2 .+ C1 ) ./ C2
+    mstat[:, 2] = sqrt.(mstat[:, 2])
+    mstat[:, 3] ./= (mstat[:, 2] .^ 1.5 .* (one(T) - 3 * W2 + 2 * W3))
+    mstat[:, 4] = (mstat[:, 4] ./ mstat[:, 2] .^ 2 .+ C1) ./ C2
 
-    return(mstat)
+    return (mstat)
 end
 
 
@@ -542,7 +537,7 @@ The inputs are assumed to satisfy the constraints below.
 # Return
 `std::T` -- The sample standard deviation.
 """
-@noinline function std(x::AbstractVector{T}) where {T <: Real}
+@noinline function std(x::AbstractVector{T}) where {T<:Real}
     sd = zero(T)
     mn = zero(T)
     N = length(x)
@@ -554,7 +549,7 @@ The inputs are assumed to satisfy the constraints below.
     @inbounds @simd for i in 1:N
         sd += (x[i] - mn) * (x[i] - mn)
     end
-    return( sqrt(sd / (N-1)) )
+    return (sqrt(sd / (N - 1)))
 end
 
 """
@@ -574,18 +569,18 @@ Here, `N = |w|`.
 The above sum.
 
 """
-@noinline function WWsum(w::AbstractVector{T}) :: T  where {T <: Real}
+@noinline function WWsum(w::AbstractVector{T})::T where {T<:Real}
     WW = zero(T)
     m = length(w)
     for i in 1:(m-1)
         @inbounds wwi = w[i] * w[i]
         wwj = zero(T)
         @inbounds @simd for j in (i+1):m
-            wwj += w[j] * w[j] 
+            wwj += w[j] * w[j]
         end
         WW += wwi * wwj
-    end 
-    return(WW)
+    end
+    return (WW)
 end
 
 
@@ -625,17 +620,17 @@ the entropy of the corresponding uniform distribution (of `n` bins) is returned.
 # Return
 `::Real` -- The (discounted) binned entropy index.
 """
-function entropy_index(x::Vector{T}                ; 
-                n::Int64=10                        , 
-                tol::Float64=1.0 / (100 * n)       , 
-                probs::Vector{Float64}=[0.01, 0.99], 
-                λ=1.0                              ) where T <: Real
+function entropy_index(x::Vector{T}                       ;
+                       n::Int64=10                        ,
+    				   tol::Float64=1.0 / (100 * n)       ,
+     				   probs::Vector{Float64}=[0.01, 0.99],
+    				   λ=1.0                               ) where {T<:Real}
 
     # Check Input contract.
-    n > 2              || throw(DomainError(n    , "Bad number of bins."))
-    0.0 < tol < 0.1    || throw(DomainError(tol  , "Bad tolerance value."))
+    n > 2              || throw(DomainError(n,     "Bad number of bins."))
+    0.0 < tol < 0.01   || throw(DomainError(tol,   "Bad tolerance value."))
     length(probs) == 2 || throw(DomainError(probs, "Bad quantile vector, must have length 2."))
-    0.0 < λ <= 1.0     || throw(DomainError(λ    , "Bad discount parameter."))
+    0.0 < λ <= 1.0     || throw(DomainError(λ,     "Bad discount parameter."))
 
     # Get the data extrema for the quantile filtered data.
     qmin, qmax = Statistics.quantile(x, probs)
@@ -671,7 +666,7 @@ function entropy_index(x::Vector{T}                ;
 
     # Return the normalized discounted binned entropy.
     # Normalize by the entropy of the uniform distribution over `n` values.
-    return ent / log(n) 
+    return ent / log(n)
 end
 
 
@@ -695,7 +690,7 @@ representation of `n`.
 # Return
 `::T`        -- The Power Value.
 """
-@noinline function pow_n(x::T, n::Int64) where T <: Number
+@noinline function pow_n(x::T, n::Int64) where {T<:Number}
 
     # Check input contract.
     if n < 0
@@ -706,13 +701,13 @@ representation of `n`.
 
     # Anything to the 0'th power is 1.
     if n == 0
-        return(o)
+        return (o)
     end
 
     # -- Do repeated squaring based on the digits of `n-1`. --
     # Initialize values.
     s = x
-    n2d = digits(n-1, base=2)
+    n2d = digits(n - 1, base=2)
 
     # Repeated squaring.
     @simd for d in n2d
@@ -747,7 +742,7 @@ The output will be of type `T^* = typeof(promote(x, m))`.
 # Return
 ``::T^*``    -- The Power Value mod `m`.
 """
-@noinline function pow_n(x::T, n::Int64, m::S) where {T <: Real, S <: Real}
+@noinline function pow_n(x::T, n::Int64, m::S) where {T<:Real,S<:Real}
 
     # Check input contract.
     if n < 0
@@ -755,11 +750,11 @@ The output will be of type `T^* = typeof(promote(x, m))`.
     end
 
     # Promote to a common type, this will be the type of the output.
-    x, m, o = promote(x, m, Int8(1)) 
+    x, m, o = promote(x, m, Int8(1))
 
     # Anything to the 0'th power is 1.
     if n == 0
-        return(o)
+        return (o)
     end
 
     # Get modulus value.
@@ -767,8 +762,8 @@ The output will be of type `T^* = typeof(promote(x, m))`.
 
     # -- Do repeated squaring based on the digits of `n-1`. --
     # Initialize values.
-    s   = x
-    n2d = digits(n-1, base=2)
+    s = x
+    n2d = digits(n - 1, base=2)
 
     # Repeated squaring.
     @simd for d in n2d
@@ -811,27 +806,27 @@ This is also done in an un-normalized way. Then the weights are normalized and d
 ::Vector{Float64} -- A vector of length |xs| - b.
 
 """
-function ewt_mean(ts::Vector{Float64}, 
-                  xs::Vector{Float64}, 
-                  b::Int64           , 
+function ewt_mean(ts::Vector{Float64},
+                  xs::Vector{Float64},
+                  b::Int64           ,
                   lm::Float64         )
     n = length(ts)
 
     # Check input contract.
-    !(n == length(xs))  && throw(DomainError(n, "The length of the time and data series must match."))
-    !(0 < b < n)        && throw(DomainError(b, "The length of the moving window, `b`, must be in the interval (0, |xs|)."))
-    !(0.0 < lm <= 1.0)  && throw(DomainError(lm, "The decay factor, `lm`, must be in the interval (0.0, 1.0]."))
+    n == length(xs) || throw(DomainError(n, "The length of the time and data series must match."))
+    0 < b < n       || throw(DomainError(b, "The length of the moving window, `b`, must be in the interval (0, |xs|)."))
+    0.0 < lm <= 1.0 || throw(DomainError(lm, "The decay factor, `lm`, must be in the interval (0.0, 1.0]."))
 
     # `wm` will be the weighted mean that is returned.
-    wm = Vector{Float64}(undef, n-b)
+    wm = Vector{Float64}(undef, n - b)
 
     # Construct the temporal decay factors -- decay more as we go back in time.
-    decayFs    = Vector{Float64}(undef, b)
-    decayFs[b] = 1.0    
+    decayFs = Vector{Float64}(undef, b)
+    decayFs[b] = 1.0
     @inbounds for k in (b-1):1
         decayFs[k] = decayFs[k+1] * lm
     end
-    
+
     # Get temporal weighting.
     dts = diff(ts)
 
@@ -841,7 +836,7 @@ function ewt_mean(ts::Vector{Float64},
     # Here decay_factor looks like l^(b-1), l^(b-2), ... l^2, l, 1.
     # Finally we need to normalize these modified weights: ws[i] =  (temporal_weight[i] * decay_factor[i]) 
     # so that within the band they sum to 1.
-    
+
     ws = Vector{Float64}(undef, b)                     # This will be the modified (un-normalized) weights over the band.
     @inbounds for i in 1:(n-b)
         for j in 1:b
@@ -849,7 +844,7 @@ function ewt_mean(ts::Vector{Float64},
         end
         wm[i] = sum(ws .* xs[i:(i+b-1)]) / sum(ws)     # Since weights are not normalized, must divide by their sum.
     end
-    
+
     return wm
 end
 
