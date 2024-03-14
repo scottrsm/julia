@@ -23,13 +23,14 @@ that it can also serve as a function.
     - `DNN:` A structure representing a Deep Neural Net.
 - Functions
     - Non-linear Activation Functions
-        - sigmoid1
-        - sigmoid2
-        - sigmoid3
-        - relu
+        - `sigmoid1`
+        - `sigmoid2`
+        - `sigmoid3`
+        - `relu`
+        - `relur`
     - Associated Linearing Functions
-        - loss
-        - fit
+        - `loss`
+        - `fit`
 
 ## Data Structures
 

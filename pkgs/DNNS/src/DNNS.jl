@@ -65,8 +65,8 @@ A structure representing a piece-wise linear function.
 In practice, one uses one of two outer constructors to create a `PWL` struct.
 
 ## Type Constraints
-- T <: Number
-- The type T must have a total ordering.
+- `T <: Number`
+- The type `T` must have a total ordering.
 
 ## Fields
 - `xs :: Vector{T}`   -- The "x" values.
@@ -238,7 +238,8 @@ DLayer(Mn::Matrix{T}, bn::Vector{T}, opn) where {T<:Number} = DLayer{T}(Mn, bn, 
 """
     (L)(x)
 
-Treats the structure `DLayer` as a function: ``{\\cal R}^m \\mapsto {\\cal R}^n``
+Treats the structure `DLayer` as a function: ``{\\cal R}^m \\mapsto {\\cal R}^n`` .
+
 Takes input `x` and passes it through the layer.
 
 # Type Constraints
@@ -305,13 +306,13 @@ end
 Makes the parameters in the layers constants -- for the purpose of differentiation.
 
 # Type Constraints
-- T <: Number
+- `T <: Number`
 
 # Arguments
-- l :: DLayer{T,F}
+- `l :: DLayer{T}`
 
 # Return
-nothing
+`nothing`
 """
 function make_const!(l::DLayer{T}) where {T<:Number}
     t0 = zero(T)
@@ -335,15 +336,15 @@ end
 Sets the derivative of one of the elements of the bias vector in the layer.
 
 # Type Constraints
-- T <: Number
+- `T <: Number`
 
 # Arguments
-- l :: DLayer{T,F} -- A DNN layer
-- k :: Int64{T,F}  -- The index to access the layer biases vector.
-- d :: T           -- The value of the derivative to set at index `k`.
+- `l :: DLayer{T}` -- A DNN layer
+- `k :: Int64{T}`  -- The index to access the layer biases vector.
+- `d :: T`         -- The value of the derivative to set at index `k`.
 
 # Return
-nothing
+`nothing`
 """
 function set_bd_pd!(l::DLayer{T}, k::Int64, d::T) where {T<:Number}
     l.b[k].d = d
@@ -358,15 +359,15 @@ end
 Sets the derivative of one of the elements of the matrix in the layer.
 
 # Type Constraints
-- T <: Number
+- `T <: Number`
 
 # Arguments
-- l :: DLayer{T,F} -- A DNN layer.
-- k :: Int64{T,F}  -- The index to access the layer matrix.
-- d :: T           -- The value of the derivative to set at index `k`.
+- `l :: DLayer{T}` -- A DNN layer.
+- `k :: Int64{T}`  -- The index to access the layer matrix.
+- `d :: T`         -- The value of the derivative to set at index `k`.
 
 # Return
-nothing
+`nothing`
 """
 function set_md_pd!(l::DLayer{T}, k::Int64, d::T) where {T<:Number}
     l.M[k].d = d
@@ -381,17 +382,17 @@ end
 Computes the loss of the neural network given inputs, `X`, and outputs `Y`.
 
 # Type Constraints
-- T <: Number
+- `T <: Number`
 
 # Arguments
-- dnn :: DNN{T,F}   -- A DNN layer.
-- X   :: Matrix{T}  -- The matrix of input values.
-- Y   :: Matrix{T}  -- The matrix of output values.
+- `dnn :: DNN{T}`     -- A DNN layer.
+- `X   :: Matrix{T}`  -- The matrix of input values.
+- `Y   :: Matrix{T}`  -- The matrix of output values.
 
 # Return
-::AD{T} -- The loss of the network
+`::AD{T}` -- The loss of the network
 """
-function loss(dnn::DNN{T}, X::Matrix{T}, Y::Matrix{T}) where {T<:Number,F<:Function}
+function loss(dnn::DNN{T}, X::Matrix{T}, Y::Matrix{T}) where {T<:Number}
     _, m = size(X)
     _, my = size(Y)
     m == my || error("fit: Dimensions of `X` and `Y` are incompatible.")
@@ -414,15 +415,15 @@ the data: `X`, `Y`. The parameters of the network are all paris of
 matrices and biases for each layer in the network.
 
 # Type Constraints
-- T <: Number
+- `T <: Number`
 
 # Arguments
-- dnn :: DNN{T,F}   -- A DNN layer.
-- X   :: Matrix{T}  -- The matrix of input values.
-- Y   :: Matrix{T}  -- The matrix of output values.
+- `dnn :: DNN{T}`     -- A DNN layer.
+- `X   :: Matrix{T}`  -- The matrix of input values.
+- `Y   :: Matrix{T}`  -- The matrix of output values.
 
 # Return
-::nothing
+`::nothing`
 """
 function fit(dnn::DNN{T}, X::Matrix{T}, Y::Matrix{T};
     N=1000, relerr=1.0e-6, μ=1.0e-3, verbose=false) where {T<:Number}
@@ -762,7 +763,6 @@ the boundary moves randomly around the natural input boundary of `0`.
 # Return
 ::AD{T} -- The output AD value/derivative.
 """
-# Thresholding function: Relur
 function relur(x::AD{T}) where {T<:Number}
     d = x.v <= rand([-0.25, -0.1, -0.025, -0.01, 0.0, 0.01, 0.025, 0.1, 0.25]) ? zero(T) : one(T)
     d = x.v <= 0 ? zero(T) : one(T)
