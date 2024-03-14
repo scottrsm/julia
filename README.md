@@ -17,6 +17,17 @@ The potential novelty being:
 - For some metrics, weights can be used to help offset **kmeans** attraction 
   to spherical clusters.
 
+### Module DNNS
+A module to do Deep Neural Net Learning.
+
+Additional features:
+- Adds a structure that can be used to represent and compute *piece-wise linear functions*.
+- The module internally extends the base functions of arithmatic, 
+log and exponential functions, as well as all the trigonometric functions,
+to create a *Calculus of Automatic Differentiation*.
+- Automatic Differentiation is extended to piece-wise linear functions.
+
+
 ### Module Finance
 A module containing utilities for some rudimentary signal analysis.
 Some of the functions deal with the "Exponential Moving Average" and its
@@ -51,13 +62,14 @@ using data parallelization. See WquantileTest.ipynb for details.
 
 ### Jupyter Notebooks
 
-- BoolTest.ipynb      -- Jupyter notebook to test the Boolean module.
-- CardTest.ipynb      -- Jupyter notebook to test the Cards module.
+- BoolTest.ipynb      -- Tests the Boolean module.
+- CardTest.ipynb      -- Tests the Cards module.
   - Comparisons of various poker hands is produced.
   - A poker game is simulated with two players.
-- Cluster_Test.ipynb  -- Jupyter notebook to test Cluster module.
-- WordleTest.ipynb    -- Jupyter notebook to test Wordle puzzle solver strategies.
-- WquantileTest.ipynb -- Jupyter notebook to test Wquantiles module.
+- DNNS.ipynb          -- Fits an AutoEncoder to some simple data.
+- Cluster_Test.ipynb  -- Does fits with different data sets and metrics for the Cluster module.
+- WordleTest.ipynb    -- Tests the Wordle puzzle solver strategies.
+- WquantileTest.ipynb -- Tests the  Wquantiles module.
                          In order to examine parallelism you must ensure
                          that your notebooks are running Julia with multiple threads.
 
