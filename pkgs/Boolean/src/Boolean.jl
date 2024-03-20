@@ -22,16 +22,16 @@ Structure used to represent a boolean formula involving variables
 
 In practice, one uses a higher level constructor (`create_bool_rep`) 
 rather than the one provided here.
-## Fields
+# Fields
 - `formula :: String`    -- The string representation of the formula.
 - `var     :: String`    -- The base name of the logical variables.
 - `size    :: Int64`     -- The number of variables in the formula.
 - `val     :: BitVector` -- The bit vector representing the formula. 
                             It essentially expresses the values of all possible inputs.  
-## Constructors
+# Constructors
 `Blogic(form::String, v::String, value::BitVector)`
 
-## Examples
+# Examples
 ```jdoctest
 julia> Blogic("(z1 + z2) * z3", "z", BitVector(Bool[0, 0, 0, 0, 0, 1, 1, 1]))
 
@@ -81,14 +81,14 @@ function Base.show(io::IO, z::BitMatrix)
 end
 
 
-## Define how to order Int, Symbols, and Expr.
-## Needed for `simplifyLogic`.
+# Define how to order Int, Symbols, and Expr.
+# Needed for `simplifyLogic`.
 Base.isless(x::Int64 , y::Symbol) = true
 Base.isless(x::Symbol, y::Int64 ) = false
 Base.isless(x::Symbol, y::Expr  ) = true
 Base.isless(x::Expr  , y::Symbol) = false
 
-## Define equality for type `Blogic`.
+# Define equality for type `Blogic`.
 function Base.:(==)(b1::Blogic, b2::Blogic) 
     (b1.formula == b2.formula) &&
     (b1.var     == b2.var    ) &&    
@@ -101,10 +101,10 @@ end
 
 Count the number of true values possible in a given formula.
 
-## Arguments 
+# Arguments 
 - `l :: Blogic` -- A logic formula
 
-## Return
+# Return
 The number of true values that are possible with this formula.
 
 """
@@ -116,38 +116,43 @@ logicCount(l::Blogic) = count(l.val)
 
 Get up to `head` inputs that generate true values for a logic function, `l`.
 
-## Arguments
+# Arguments
 - `l    :: Blogic` -- A logic formula.
+
+# Optional Arguments
 - `head=1 :: Int64`  -- The maximum number of inputs to consider.
     
-## Return
+# Return
 A list of up to `head` input values that will give the 
 logic function, `l`, a value of `true`.
 """
 function nonZero(l::Blogic; head=1)
     n = logicCount(l)
-    get_non_zero_inputs(l.val, l.size[1], num=min(n,head))
+    get_non_zero_inputs(l.val, l.size, num=min(n,head))
 end
 
 
 """
-    get_non_zero_inputs
+	get_non_zero_inputs(v, n[; num=1])
 
 Get `num` inputs that generate true values for a logic function.
 `v` is a boolean vector that indicates which elements of the truth table
 yield a value of `true`.
 
-## Arguments
+# Arguments
 - `v   :: BitVector` -- A bit vector representing `true` and `false` values.
 - `n   :: Int64`     -- Describes the length of the truth table column: ``2^n``.
+
+# Optional Arguments
 - `num :: Int64`     -- The desired number of inputs that generate truth values.
 
-## Returns
-`::BitMatrix` -- Input values that generate truth values for the current function.
+# Returns
+`::Union{BitMatrix, Nothing}` -- Input values that generate truth values for the current function.
 """
 function get_non_zero_inputs(v::BitVector, n::Int64; num::Int64=1)
     idx = collect(1:2^n)[v]
-    return(vars[idx[1:num], :])
+	length(idx) == 0 && return(nothing)
+  	return(vars[idx[1:num], :])
 end
 
 
@@ -160,17 +165,17 @@ formula of `n` variables.
 Essentially, generate the truth table 
 of each of the variables collectively as a `BitArray`.
 
-## Arguments
+# Arguments
 - `n : Number` of logical variables.
 
-## Return
+# Return
 `::BitArray` -- The bit representation of all of the logical variables.
 """
 function bool_var_rep(n::Int64)
     if n > 30
         error("Can't represent more than 30 variables.")
     elseif n < 2
-        error("Can't represent more than 2 variables.")
+        error("Can't represent less than 2 variables.")
     else
         let nn::UInt64 = UInt64(n)
             # `BitArray([div(i-1, 2^(j-1)) % 2 != 0  for i in 1:2^n, j in 1:n])`
@@ -187,11 +192,11 @@ end
 This sets two global variables, the size of the boolean vectors and 
 the other the `Bitarray` representations of the variables.
 
-## Arguments
+# Arguments
 - `n :: Int64` -- The number of boolean variables used in the formulas
 this module will consider.
 
-## Return
+# Return
 Nothing
 
 """
@@ -209,10 +214,10 @@ grouping like values into arrays.
 
 The values are **assumed** to be sorted.
     
-## Arguments
+# Arguments
 - `xs :: Vector{T}` -- An array that is sortable.
 
-## Return
+# Return
 `::Vector{Tuple{T, Int64}}` -- A Vector of pairs of the form: `(T, Int64)`
 representing values from `xs` and the number of their occurrences.
 
@@ -249,10 +254,10 @@ end
 Walk an expression tree, converting variable names and operators
 to Julia operators and variables into `BitVector` representations.
 
-## Arguments
+# Arguments
 - `e :: Expr` -- An expression.
 
-## Return
+# Return
 `::Expr` -- A logic expression.
 """
 function modifyLogicExpr!(e::Expr)
@@ -279,23 +284,23 @@ The code splits the name off and uses the number to look up the
             `x3`, or `y3`, the bit vector for the 
             third "variable" will be used.
 
-## Arguments
+# Arguments
 - `e :: Symbol` -- An variable or operator.
 
-## Return
+# Return
 `::Expr` -- A logic expression.
 """
 function modifyLogicExpr!(e::Symbol)
     global vars
     global opMap
     
-    ## If this is a variable get the corresponding `BitVector`.
+    # If this is a variable get the corresponding `BitVector`.
     if match(r"[a-zA-Z]+", String(e)) !== nothing
         vn = parse(Int64, (split(String(e), r"[a-zA-Z]+"))[2])
         return(vars[:, vn])
     end
 
-    ## If this is an operator symbol, get the corresponding Julia operator.
+    # If this is an operator symbol, get the corresponding Julia operator.
     return(get(opMap, e, e))
 end
 
@@ -309,11 +314,11 @@ an expression.
 
 The default case is to just return the expression.
 
-## Arguments
+# Arguments
 - `::Op{T}`                    -- An operator type.
 - `pair :: Tuple{Expr, Int64}` -- Expression and its count.
 
-## Return
+# Return
 `::Expr` -- Simplified logic expression.
 """
 function redux(::Op{T}, pair::Tuple{S, Int64}) where {S, T}
@@ -330,11 +335,11 @@ an expression.
 For an XOR expression, we know that only the expression 
 remains or the value is 0.
 
-## Arguments
+# Arguments
 - `:::Opt{:⊕}`                 -- An operator type.
 - `pair :: Tuple{Expr, Int64}` -- Expression and its count.
 
-## Return
+# Return
 `::Expr` -- Simplified logic expression.
 """
 function redux(::Op{:⊕}, pair::Tuple{Expr, Int64})
@@ -353,10 +358,10 @@ Simplify a logical expression.
 This function calls a number of specialized variations of this function 
 to deal with different logical operators.
 
-## Arguments
+# Arguments
 - `e :: Expr` -- Logic expression.
 
-## Return
+# Return
 `::Expr` -- Simplified logic expression.
 
 """
@@ -365,7 +370,7 @@ function simplifyLogic(e::Expr)
         op = e.args[1]
         return(simplifyLogic(Op{op}(), e.args[2:end]))
     end
-    ## If this has the form: `~ expr...`
+    # If this has the form: `~ expr...`
     if length(e.args) == 2 && e.args[1] == :~
         arg = simplifyLogic(e.args[2])
         if typeof(arg) == Int64
@@ -461,19 +466,19 @@ function simplifyLogic(::Op{:⊕}, xargs::Vector{Any})
     iargs = filter(arg -> typeof(arg) == Int64, xargs)
     xargs = filter(arg -> typeof(arg) != Int64, xargs)
     
-    ## If there are no simple booleans (0 or 1s), return the xor expression 
-    ##      with the xargs.
+    # If there are no simple booleans (0 or 1s), return the xor expression 
+    #      with the xargs.
     if length(iargs) == 0
         return(Expr(:call, :⊕, xargs...))
     end
     
-    ## If there are no complex boolean expressions, return the xor 
-    ##      value of the simple booleans.
+    # If there are no complex boolean expressions, return the xor 
+    #      value of the simple booleans.
     if length(xargs) == 0
         return(sum(iargs) % 2)
-        ## else if there is one complex boolean expression, return the 
-        ## expression that is the xor of the resulting simple boolean XORS 
-        ## with the complex boolean expression.
+        # else if there is one complex boolean expression, return the 
+        # expression that is the xor of the resulting simple boolean XORS 
+        # with the complex boolean expression.
     elseif length(xargs) == 1
         if (sum(iargs) % 2) == 1
             return(Expr(:call, :~, xargs[1]))
@@ -486,8 +491,8 @@ function simplifyLogic(::Op{:⊕}, xargs::Vector{Any})
         end
     end
     
-    ## Otherwise, there is a simple component, find its xor value 
-    ## and then return an expression of the xor with the complex expressions.
+    # Otherwise, there is a simple component, find its xor value 
+    # and then return an expression of the xor with the complex expressions.
     if (sum(iargs) % 2) == 1
         return(Expr(:call, :~, Expr(:call, :⊕, xargs...)))
     else
@@ -520,11 +525,11 @@ This is done by the following procedure:
     mathematical operators substituted for user operators.
 - Evaluate the expression to create a `BitVector`.
 
-## Arguments 
+# Arguments 
 - `s :: String`      -- A logical string.
 - `simplify=false :: Bool` -- If `true` simplify the logical expression before 
                         creating the `BitVector`.
-## Examples
+# Examples
 ```jdoctest
 julia> create_bool_rep("(z1 + z2) * z3")
 
@@ -534,21 +539,21 @@ Size       = 3
 Bit vector = Bool[0, 0, 0, 0, 0, 1, 1, 1]
 ```
 
-## Return
+# Return
 `::Blogic` -- Type representing the logical expression.
 """
 function create_bool_rep(s::String, simplify=false)
     global logic_size
     
-    ## Check that the variables used have the same name:
-    ## Looking for x1, x2, x3. Not x1, y2, z3.
-    ## Get the array of unique variables names.
+    # Check that the variables used have the same name:
+    # Looking for x1, x2, x3. Not x1, y2, z3.
+    # Get the array of unique variables names.
     ar = []
     for m in eachmatch(r"[a-zA-Z]+([0-9]+)", s)
         push!(ar, split(m.match, r"[0-9]+")[1])
     end
     
-    ## If there are more than one, error.
+    # If there are more than one, error.
     ar = unique(ar)
     if length(ar) > 1
         error("Logic string uses more than one variable: ", 
@@ -567,11 +572,11 @@ end
 
 Determines if two logical functions are equivalent.
 
-## Arguments
+# Arguments
 - `f1 :: String` -- Formula 1.
 - `f2 :: String` -- Formula 2.
 
-## Return
+# Return
 `::Bool` -- `true` if the formulas are equivalent; `false` otherwise.
 
 """

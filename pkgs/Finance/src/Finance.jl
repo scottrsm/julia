@@ -276,11 +276,11 @@ The inputs are assumed to satisfy the constraints below.
     h > 1 || throw(DomainError(h, "The half-life must be > 1."))
 
     N = length(x)
-    ma = zeros(T, N)
-    xadj = zeros(T, N + m)
+	ma = Vector{T}(undef, N)
+	xadj = Vector{T}(undef, N + m)
     @inbounds xadj[1:m] .= x[1]
     @inbounds xadj[(m+1):end] = x
-    w = zeros(T, m)
+	w = Vector{T}(undef, m)
 
     ## Term by term decay factor.
     l = exp(-log(2 * one(T)) / h)
@@ -356,7 +356,7 @@ The inputs are assumed to satisfy the constraints below.
     ma = ema(x, m, h=h)
 
     ## Variance estimates.
-    mvar = zeros(T, N)
+	mvar = Vector{T}(undef, N)
 
     ## Set the initial estimated/supplied variance.
     mvar[1] = init_sig !== nothing ? init_sig : std(x[1:min(m, N)])
@@ -367,12 +367,13 @@ The inputs are assumed to satisfy the constraints below.
     ## to have size `N + m`, so we can go "back" m. This means that
     ## xadj has to be indexed differently than the way 
     ## the formula does indexing.
-    xadj = zeros(T, N + m)
+	xadj = Vector{T}(undef, N + m)
+	xadj[1:m] .= zero(T)
 
     ## We don't need the following line (like what we have in the corresponding ema code)
     ## as `(x - ma)[1]` = 0, and the xadj array is already set to 0.
     @inbounds xadj[(m+1):end] = (x - ma) .* (x - ma)
-    w = zeros(T, m)
+	w = Vector{T}(undef, m)
 
     ## Term by term decay factor.
     l = exp(-log(2 * one(T)) / h)
@@ -451,7 +452,7 @@ The inputs are assumed to satisfy the constraints below:
     ## Compute the EMA of `x`.
     ma = ema(x, m, h=h)
 
-    mstat = zeros(T, (N, 4))
+	mstat = Matrix{T}(undef, N, 4)
     mstat[1, 1] = x[1]
 
     ## Set the initial estimated/supplied variance.
@@ -463,14 +464,14 @@ The inputs are assumed to satisfy the constraints below:
     ## to have size `N + m`, so we can go "back" `m`. This means that
     ## `xadj` has to be indexed differently than the way 
     ## the formula does indexing.
-    xadj = zeros(T, (N + m, 4))
+	xadj = Matrix{T}(undef, N + m, 4)
     v = (x - ma) .* (x - ma)
     @inbounds xadj[1:m, 1] .= x[1]
     @inbounds xadj[(m+1):end, 1] .= x
     @inbounds xadj[(m+1):end, 2] .= v
     @inbounds xadj[(m+1):end, 3] .= v .* (x - ma)
     @inbounds xadj[(m+1):end, 4] .= v .* v
-    w = zeros(T, m)
+	w = Vector{T}(undef, m)
 
     ## Term by term decay factor.
     l = exp(-log(2 * one(T)) / h)
