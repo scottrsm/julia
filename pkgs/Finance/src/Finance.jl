@@ -662,7 +662,7 @@ function entropy_index(x::Vector{T}                       ;
     ent = 0.0
     @inbounds @simd for i in 1:n
         prb = bdist[i]
-        @fastmath ent -= isapprox(prb, 0.0; atol=tol) ? 0.0 : prb * log(prb)
+        ent -= isapprox(prb, 0.0; atol=tol) ? 0.0 : prb * log(prb)
     end
 
     # Return the normalized discounted binned entropy.
