@@ -573,10 +573,10 @@ The above sum.
 @noinline function WWsum(w::AbstractVector{T})::T where {T<:Real}
     WW = zero(T)
     m = length(w)
-    for i in 1:(m-1)
-        @inbounds wwi = w[i] * w[i]
+    @inbounds for i in 1:(m-1)
+        wwi = w[i] * w[i]
         wwj = zero(T)
-        @inbounds @simd for j in (i+1):m
+        @simd for j in (i+1):m
             wwj += w[j] * w[j]
         end
         WW += wwi * wwj
@@ -840,7 +840,7 @@ function ewt_mean(ts::Vector{Float64},
 
     ws = Vector{Float64}(undef, b)                     # This will be the modified (un-normalized) weights over the band.
     @inbounds for i in 1:(n-b)
-        for j in 1:b
+        @simd for j in 1:b
             ws[j] = decayFs[j] * dts[i+j-1]            # Modified (un-normalized) weights.
         end
         wm[i] = sum(ws .* xs[i:(i+b-1)]) / sum(ws)     # Since weights are not normalized, must divide by their sum.

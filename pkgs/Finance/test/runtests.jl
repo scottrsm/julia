@@ -99,7 +99,9 @@ end
     @test_throws DomainError ema_stats(RNDS, 3)
     @test_throws DomainError ema_stats(RNDS, 5; init_sig=-1.0)
 
+end
 
+@testset "Finance (PropCheck Test)" begin
 
     function prv(v)
         n = length(v)
@@ -123,12 +125,9 @@ end
         nw ./= s
         return (nw)
     end
+        ivec = PropCheck.vector(PropCheck.iconst(N), PropCheck.isample(0.0001:0.001:1.0))
+        @test PropCheck.check(v -> permargs(Finance.WWsum, v, TOL2), ivec)
 end
-
-#@testset "Finance (PropCheck Test)" begin
-#        ivec = PropCheck.vector(PropCheck.iconst(N), PropCheck.isample(0.0001:0.001:1.0))
-#        @test PropCheck.check(v -> permargs(Finance.WWsum, v, TOL2), ivec)
-#end
 
 
 
