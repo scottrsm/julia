@@ -3,11 +3,11 @@ using Wquantiles
 import Random
 
 
-@testset "Test Module \"Wquantiles\" Fidelity" begin
+@testset "Wquantiles (Fidelity)" begin
     @test length(detect_ambiguities(Wquantiles)) == 0
 end
 
-@testset "wquantiles (vector x, vector w) Types" begin
+@testset "Wquantiles (wquantiles (vector x, vector w) Types)" begin
 
     @test wquantile([1,3,5,7,9,11,15,7,9,11], [1,1,2,1,1,2,1,3,5,1], [0.25, 0.5, 0.6, 0.75])             == [7, 9, 11, 11]
     @test wquantile([1,3,5,7,9,11,15,7,9,11], [1.,1.,2.,1.,1.,2.,1.,3.,5.,1.], [1//4, 1//2, 3//5, 3//4]) == [7, 9, 11, 11]
@@ -28,7 +28,7 @@ Result = [0.0491718  0.0994036  0.347513;
           0.855718   0.801055   0.972564;
           0.89077    0.977264   0.983662]
 
-@testset "wquantile (matrix X, matrix W)" begin
+@testset "Wquantiles (wquantile (matrix X, matrix W))" begin
     @test all(isapprox.(vec(wquantile(X, W, qs)), vec(Result), atol=TOL))
 end
 

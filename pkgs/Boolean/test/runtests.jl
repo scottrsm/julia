@@ -3,11 +3,11 @@ using Test
 using Boolean
 
 
-@testset "Test Module \"Boolean\" Fidelity" begin
+@testset "Boolean (Fidelity)" begin
     @test length(detect_ambiguities(Boolean)) == 0
 end
 
-@testset "Boolean" begin
+@testset "Boolean (Formulas)" begin
     ## Set up
     init_logic(3)
     f1 = "x1 + x2 * x3"
@@ -29,6 +29,10 @@ end
     @test simplifyLogic(Meta.parse("((x1 + x2) * x3) * (x1 * 0 + x2 * 1)")) == :(x2 * (x3 * (x1 + x2)))
     @test simplifyLogic(Meta.parse("0 + x1")) == :x1
     @test simplifyLogic(Meta.parse("x1 * (x1 + 0)")) == :x1
+    @test simplifyLogic(Meta.parse("x1 * (x1 + 0)")) == :x1
+	@test simplifyLogic(Meta.parse("((0 + x2) * x3) * x2")) == :(x2 * (x2 * x3))
+	@test simplifyLogic(Meta.parse("((1 + x2) * x3) * x2")) == :(x2 * x3)
+
     @test isEquiv(f1, f1)
     @test ~ isEquiv(f1,f2)
 end

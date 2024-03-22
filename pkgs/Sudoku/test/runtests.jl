@@ -1,11 +1,11 @@
 using Test
 using Sudoku
 
-@testset "Test Module \"Sudoku\" Fidelity" begin
+@testset "Sudoku (Fidelity)" begin
     @test length(detect_ambiguities(Sudoku)) == 0
 end
 
-@testset "Test Sudoku 'E' Puzzles" begin
+@testset "Sudoku ('E' Puzzles)" begin
     # Corresponds to puzzle ../puzzles/easy1.csv.
     EP1 = Int8[[ 2 0 0 3 0 0 0 0 0]
                [ 8 0 4 0 6 2 0 0 3]
@@ -97,7 +97,7 @@ end
 
 end
 
-@testset "Test Sudoku 'M' Puzzles" begin
+@testset "Sudoku ('M' Puzzles)" begin
 
     # Corresponds to puzzle ../puzzles/medium1.csv.
     MP1 = Int8[[ 0 0 0 6 0 0 4 0 0]
@@ -194,7 +194,7 @@ end
 
 end
 
-@testset "Test Sudoku 'S' Puzzles" begin
+@testset "Sudoku ('S' Puzzles)" begin
 
     # Corresponds to puzzle ../puzzles/sm1.csv.
     SP1 = Int8[[ 0 0 0 2 6 0 7 0 1]

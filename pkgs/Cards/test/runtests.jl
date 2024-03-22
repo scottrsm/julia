@@ -2,11 +2,11 @@ using Test
 using Random
 using Cards
 
-@testset "Test Module \"Cards\" Fidelity" begin
+@testset "Cards (Fidelity)" begin
     @test length(detect_ambiguities(Cards)) == 0
 end
 
-@testset "Cards Test" begin
+@testset "Cards (PokerHand Creation, Comparison, Dealing)" begin
     Random.seed!(1)
     d = Deck()
     shuffle_deck!(d)

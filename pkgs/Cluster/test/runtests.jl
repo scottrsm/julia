@@ -39,12 +39,12 @@ iris = RDatasets.dataset("datasets", "iris")
 MI = permutedims(Matrix(iris[:, [:SepalWidth, :SepalLength]]), (2,1))
 
 
-@testset "Test Module \"Cluster\" Fidelity" begin
+@testset "Cluster (Fidelity)" begin
     @test length(detect_ambiguities(Cluster)) == 0
 end
 
 
-@testset "Test Metrics" begin
+@testset "Cluster (Test Metrics)" begin
     C = [1. 2.; 2. 5.]
 
     @test L2([1., 2.], [3., -4.]     )   ≈  6.324555320336759   rtol=TOL
@@ -53,7 +53,7 @@ end
 end
 
 
-@testset "Test find_best_cluster (T1)" begin
+@testset "Cluster (Test find_best_cluster: T1)" begin
     kbest, mp, xc, ds = find_best_cluster(M, 2:15                    ;
                                           num_trials = NUM_TRIALS_T1 , 
                                           N          = NUM_ITERATIONS, 
@@ -71,7 +71,7 @@ end
 
 
 # Try clustering with metrics: L2 (default), L1, KL (Kullback-Liebler).
-@testset "Test find_best_cluster (IRIS)" begin
+@testset "Cluster (Test find_best_cluster: IRIS)" begin
 
     #--------------------------
     #----- Default metric, L2.

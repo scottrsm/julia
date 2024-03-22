@@ -2,11 +2,11 @@ using Test
 using Wordle
 import InlineStrings: String7
 
-@testset "Test Module \"Wordle\" Fidelity" begin
+@testset "Wordle (Fidelity)" begin
     @test length(detect_ambiguities(Wordle)) == 0
 end
 
-@testset "create_wordle_info" begin
+@testset "Wordle (create_wordle_info)" begin
 
     winfo, d = create_wordle_info(String7("which"), String7("where"))
     @test  winfo == [('w', 1), ('h', 2)]
@@ -16,7 +16,7 @@ end
     @test  d == Dict('n' => (0, 0), 's' => (0, 0), 't' => (0, 0), 'e' => (1, 1))
 end
 
-@testset "filter_universe" begin
+@testset "Wordle (filter_universe)" begin
     ## Universe of words.
     words    = String7["state", "which", "where", "child", "there", "taste"]
 
@@ -25,7 +25,7 @@ end
     @test filter_words == String7["where"]
 end
 
-@testset "solve_wordle with String7 Database with String7 Inputs" begin
+@testset "Wordle (solve_wordle with String7 Database with String7 Inputs)" begin
     res = solve_wordle(String7("taste"); init_guess=String7("their"))
     @test res == (Any[(String7("their"), [('t', 1), ('e', -3)], 3585), 
                       (String7("taken"), [('t', 1), ('a', 2), ('e', -4)], 34), 
@@ -34,7 +34,7 @@ end
 
 end
 
-@testset "solve_wordle with String7 Database with String Inputs" begin
+@testset "Wordle (solve_wordle with String7 Database with String Inputs)" begin
     res = solve_wordle("taste"; init_guess="their")
     @test res == (Any[("their", [('t', 1), ('e', -3)], 3585), 
                       ("taken", [('t', 1), ('a', 2), ('e', -4)], 34), 

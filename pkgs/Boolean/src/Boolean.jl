@@ -85,6 +85,8 @@ end
 # Needed for `simplifyLogic`.
 Base.isless(x::Int64 , y::Symbol) = true
 Base.isless(x::Symbol, y::Int64 ) = false
+Base.isless(x::Expr  , y::Int64 ) = false
+Base.isless(x::Int64 , y::Expr  ) = true
 Base.isless(x::Symbol, y::Expr  ) = true
 Base.isless(x::Expr  , y::Symbol) = false
 

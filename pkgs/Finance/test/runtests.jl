@@ -46,12 +46,12 @@ r_1000_l9_gold = 0.06972438782723225
 #--------------      TESTS       ----------------------------------------
 #------------------------------------------------------------------------
 #
-@testset "Test Module \"Finance\" Fidelity" begin
+@testset "Finance (Fidelity)" begin
 
     @test length(detect_ambiguities(Finance)) == 0
 end
 
-@testset "Moving Average Stats" begin
+@testset "Finance (Moving Average Stats)" begin
     window_sizes = [w for w in 4:10]
     for w in window_sizes
         ema_res = ema(RNDS, w)
@@ -71,7 +71,7 @@ end
     end
 end
 
-@testset "Entropy Index" begin
+@testset "Finance (Entropy Index)" begin
     # Compute fast exponential
     @test pow_n(2, 7) == 128
     @test pow_n(2, 5) == 32
@@ -84,7 +84,7 @@ end
 end
 
 
-@testset "Test Input Contracts" begin
+@testset "Finance (Test Input Contracts)" begin
     @test_throws DomainError ema(RNDS, 1)
     @test_throws DomainError ema(RNDS, 2)
     @test_throws DomainError ema(RNDS, 3)
@@ -124,7 +124,7 @@ end
         return (nw)
     end
 
-    @testset "PropCheck Test" begin
+	@testset "Finance (PropCheck Test)" begin
         ivec = PropCheck.vector(PropCheck.iconst(N), PropCheck.isample(0.0001:0.001:1.0))
         @test PropCheck.check(v -> permargs(Finance.WWsum, v, TOL2), ivec)
     end
