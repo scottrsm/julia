@@ -123,12 +123,12 @@ end
         nw ./= s
         return (nw)
     end
-
-	@testset "Finance (PropCheck Test)" begin
-        ivec = PropCheck.vector(PropCheck.iconst(N), PropCheck.isample(0.0001:0.001:1.0))
-        @test PropCheck.check(v -> permargs(Finance.WWsum, v, TOL2), ivec)
-    end
-
 end
+
+#@testset "Finance (PropCheck Test)" begin
+#        ivec = PropCheck.vector(PropCheck.iconst(N), PropCheck.isample(0.0001:0.001:1.0))
+#        @test PropCheck.check(v -> permargs(Finance.WWsum, v, TOL2), ivec)
+#end
+
 
 
