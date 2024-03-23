@@ -344,7 +344,7 @@ remains or the value is 0.
 # Return
 `::Expr` -- Simplified logic expression.
 """
-function redux(::Op{:⊕}, pair::Tuple{Expr, Int64})
+function redux(::Op{:⊕}, pair::Tuple{S, Int64}) where S
     if pair[2] % 2 == 0
         return(0)
     else
@@ -463,15 +463,18 @@ end
 """
 function simplifyLogic(::Op{:⊕}, xargs::Vector{Any})
     xargs = map(arg -> simplifyLogic(arg), xargs)
-    xargs = map(x -> redux(Op{:⊕}(), x), rle(sort(xargs)))
+	xargs = map(x -> redux(Op{:⊕}(), x), rle(sort(xargs)))
     
     iargs = filter(arg -> typeof(arg) == Int64, xargs)
     xargs = filter(arg -> typeof(arg) != Int64, xargs)
-    
     # If there are no simple booleans (0 or 1s), return the xor expression 
     #      with the xargs.
     if length(iargs) == 0
-        return(Expr(:call, :⊕, xargs...))
+        if xargs[1] isa Vector{Any}
+            return(Expr(xargs[1]...))
+        else
+            return(xargs[1])
+        end
     end
     
     # If there are no complex boolean expressions, return the xor 
@@ -483,7 +486,7 @@ function simplifyLogic(::Op{:⊕}, xargs::Vector{Any})
         # with the complex boolean expression.
     elseif length(xargs) == 1
         if (sum(iargs) % 2) == 1
-            return(Expr(:call, :~, xargs[1]))
+			return(Expr(:call, :~, xargs[1]))
         else
             if xargs[1] isa Vector{Any}
                 return(Expr(xargs[1]...))
